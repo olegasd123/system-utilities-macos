@@ -30,6 +30,12 @@ struct RootPopoverView: View {
                 )
             }
         }
-        .frame(width: PopoverLayout.width, height: PopoverLayout.height)
+        .frame(
+            width: PopoverLayout.width,
+            height: PopoverLayout.height(
+                for: router.route,
+                hasBattery: appState.snapshot?.battery != nil
+            )
+        )
     }
 }

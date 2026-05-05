@@ -42,10 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func configurePopover() {
         popover.behavior = .transient
         popover.animates = true
-        popover.contentSize = NSSize(
-            width: PopoverLayout.width,
-            height: PopoverLayout.height
-        )
+        updatePopoverContentSize()
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
                 router: popoverRouter,
@@ -53,6 +50,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 onQuit: { NSApp.terminate(nil) }
             )
         )
+    }
+
+    private func updatePopoverContentSize() {
+        let size = PopoverLayout.contentSize(
+            for: popoverRouter.route,
+            hasBattery: appState.snapshot?.battery != nil
+        )
+        let contentSize = NSSize(width: size.width, height: size.height)
+        guard popover.contentSize != contentSize else {
+            return
+        }
+
+        popover.contentSize = contentSize
+        popover.contentViewController?.preferredContentSize = contentSize
     }
 
     @objc private func statusItemClicked(_ sender: Any?) {
@@ -75,6 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         popoverRouter.route = .dashboard
+        updatePopoverContentSize()
         NSApp.activate()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
@@ -112,6 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         popoverRouter.route = .settings
+        updatePopoverContentSize()
         if !popover.isShown {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
@@ -126,6 +139,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .combineLatest(appState.$settings)
             .sink { [weak self] _, _ in
                 self?.updateStatusItem()
+            }
+            .store(in: &cancellables)
+
+        popoverRouter.$route
+            .sink { [weak self] _ in
+                self?.updatePopoverContentSize()
             }
             .store(in: &cancellables)
     }

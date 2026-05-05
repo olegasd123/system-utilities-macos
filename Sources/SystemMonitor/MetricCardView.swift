@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct MetricCardView: View {
-    static let height: CGFloat = 126
-
     let symbol: String
     let label: String
     let value: String
@@ -55,7 +53,12 @@ struct MetricCardView: View {
             footer
         }
         .padding(13)
-        .frame(maxWidth: .infinity, minHeight: Self.height, maxHeight: Self.height, alignment: .topLeading)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: PopoverLayout.metricCardHeight,
+            maxHeight: PopoverLayout.metricCardHeight,
+            alignment: .topLeading
+        )
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
