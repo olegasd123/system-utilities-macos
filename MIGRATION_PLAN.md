@@ -740,6 +740,8 @@ Device tests:
 
 ### Phase 1: Project Skeleton
 
+Status: Done.
+
 Deliverables:
 
 - Xcode project or Swift package app.
@@ -759,6 +761,8 @@ Acceptance:
 
 ### Phase 2: Models And Settings
 
+Status: Done.
+
 Deliverables:
 
 - Swift models for snapshot and settings.
@@ -773,6 +777,8 @@ Acceptance:
 - Restart keeps changed settings.
 
 ### Phase 3: Static UI Parity
+
+Status: First pass done. Final visual parity still needs screenshot review.
 
 Deliverables:
 
@@ -789,6 +795,8 @@ Acceptance:
 - Preferences view has all current controls.
 
 ### Phase 4: Core Metrics
+
+Status: Done.
 
 Deliverables:
 
@@ -923,27 +931,27 @@ Mitigation:
 
 ## Parity Checklist
 
-- [ ] No Dock icon.
-- [ ] Menu bar status item.
+- [x] No Dock icon.
+- [x] Menu bar status item.
 - [ ] Two-line live menu bar metrics.
-- [ ] Left click popover toggle.
-- [ ] Right click menu.
-- [ ] Preferences view.
-- [ ] CPU card.
-- [ ] Memory card.
-- [ ] Disk card.
-- [ ] Network card.
+- [x] Left click popover toggle.
+- [x] Right click menu.
+- [x] Preferences view.
+- [x] CPU card.
+- [x] Memory card.
+- [x] Disk card.
+- [x] Network card.
 - [ ] Network daily totals.
 - [ ] Network reset button.
 - [ ] Temperature sensors card.
 - [ ] Fan RPM card.
 - [ ] Battery card.
-- [ ] Warning thresholds.
+- [x] Warning thresholds.
 - [ ] Warning notifications.
 - [ ] Launch at login.
-- [ ] Light mode.
-- [ ] Dark mode.
-- [ ] Settings persistence.
+- [x] Light mode.
+- [x] Dark mode.
+- [x] Settings persistence.
 - [ ] Signed release build.
 - [ ] Notarized release build.
 

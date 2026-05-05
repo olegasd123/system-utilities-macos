@@ -13,6 +13,7 @@ struct RootPopoverView: View {
             switch router.route {
             case .dashboard:
                 DashboardView(
+                    snapshot: appState.snapshot,
                     settings: appState.settings,
                     onOpenSettings: { router.route = .settings },
                     onQuit: onQuit

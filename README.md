@@ -7,7 +7,9 @@ Native macOS migration of the System Monitor app.
 - Native SwiftPM app skeleton is in place.
 - The app runs as an AppKit menu bar utility with a SwiftUI popover.
 - Preferences are backed by a Codable settings model and JSON store.
-- Metrics collection is not ported yet.
+- CPU, memory, disk, and network metrics are sampled once per second.
+- Battery, detailed sensors, fan RPM, notifications, and launch at login are
+  not ported yet.
 
 ## Run
 

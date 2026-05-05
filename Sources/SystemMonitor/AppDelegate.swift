@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -8,11 +9,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let popoverRouter = PopoverRouter()
     private let appState = AppState()
     private lazy var statusMenu = makeStatusMenu()
+    private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         configureStatusItem()
         configurePopover()
+        bindStatusItem()
     }
 
     private func configureStatusItem() {
@@ -23,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.button?.action = #selector(statusItemClicked(_:))
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         statusItem = item
+        updateStatusItemTitle()
     }
 
     private func configurePopover() {
@@ -102,5 +106,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit() {
         NSApp.terminate(nil)
+    }
+
+    private func bindStatusItem() {
+        appState.$snapshot
+            .combineLatest(appState.$settings)
+            .sink { [weak self] _, _ in
+                self?.updateStatusItemTitle()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateStatusItemTitle() {
+        statusItem?.button?.title = MenuBarFormatter.title(
+            snapshot: appState.snapshot,
+            settings: appState.settings
+        )
     }
 }
