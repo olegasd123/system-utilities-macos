@@ -75,7 +75,8 @@ struct DashboardView: View {
                     label: "SENSORS",
                     value: sensorValue,
                     subtitle: sensorSubtitle,
-                    accent: .yellow
+                    accent: .yellow,
+                    warning: temperatureWarning
                 )
 
                 MetricCardView(
@@ -277,6 +278,22 @@ struct DashboardView: View {
         return settings.warningsEnabled
             && settings.warningThresholds.diskEnabled
             && (100 - primaryDisk.usedPercent) <= settings.warningThresholds.diskFreePercent
+    }
+
+    private var temperatureWarning: Bool {
+        guard let temperature = warningTemperatureC else {
+            return false
+        }
+        return settings.warningsEnabled
+            && settings.warningThresholds.temperatureEnabled
+            && temperature >= settings.warningThresholds.temperatureC
+    }
+
+    private var warningTemperatureC: Double? {
+        if let temperature = snapshot?.cpu.temperatureC {
+            return temperature
+        }
+        return snapshot?.temperatures.map(\.temperatureC).max()
     }
 
     private func batteryWarning(_ battery: BatterySample) -> Bool {

@@ -11,6 +11,16 @@ let package = Package(
         .executable(name: "SystemMonitor", targets: ["SystemMonitor"])
     ],
     targets: [
-        .executableTarget(name: "SystemMonitor")
+        .executableTarget(
+            name: "SystemMonitor",
+            dependencies: ["MacSensorBridge"]
+        ),
+        .target(
+            name: "MacSensorBridge",
+            linkerSettings: [
+                .linkedFramework("CoreFoundation"),
+                .linkedFramework("IOKit")
+            ]
+        )
     ]
 )

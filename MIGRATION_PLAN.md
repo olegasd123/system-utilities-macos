@@ -831,6 +831,8 @@ Acceptance:
 
 ### Phase 6: Detailed Sensors
 
+Status: Implemented. Needs hardware validation on Apple Silicon and Intel Macs.
+
 Deliverables:
 
 - HID temperature bridge.
@@ -945,8 +947,8 @@ Mitigation:
 - [x] Network card.
 - [x] Network daily totals.
 - [x] Network reset button.
-- [ ] Temperature sensors card.
-- [ ] Fan RPM card.
+- [x] Temperature sensors card.
+- [x] Fan RPM card.
 - [x] Battery card.
 - [x] Warning thresholds.
 - [ ] Warning notifications.

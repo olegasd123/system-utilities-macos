@@ -9,8 +9,9 @@ Native macOS migration of the System Monitor app.
 - Preferences are backed by a Codable settings model and JSON store.
 - CPU, memory, disk, network, and battery metrics are sampled once per second.
 - Daily network totals are persisted and can be reset from the dashboard.
-- Detailed sensors, fan RPM, notifications, and launch at login are not ported
-  yet.
+- Detailed temperature sensors and fan RPM are implemented through
+  `IOHIDEventSystemClient` and AppleSMC. Hardware validation is still needed.
+- Notifications and launch at login are not ported yet.
 
 ## Run
 
