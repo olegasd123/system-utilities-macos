@@ -694,6 +694,13 @@ Packaging plan:
 - Notarize release builds.
 - Staple notarization ticket.
 
+Current packaging support:
+
+- `Packaging/Info.plist` defines the app bundle metadata.
+- `scripts/build_app.sh` creates `dist/System Monitor.app`.
+- `scripts/make_dmg.sh` creates `dist/System Monitor.dmg`.
+- `scripts/notarize_dmg.sh` submits and staples the DMG.
+
 ## Testing Plan
 
 Unit tests:
@@ -883,6 +890,9 @@ Acceptance:
 - App can start after login.
 
 ### Phase 9: Polish And Packaging
+
+Status: Packaging scripts added. Final icon, Developer ID signing, and
+notarized distribution still need release credentials.
 
 Deliverables:
 

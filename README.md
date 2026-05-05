@@ -30,6 +30,45 @@ It is enabled for packaged `.app` builds.
 
 Launch at login also needs a packaged and signed `.app` build.
 
+## Package
+
+Build a local `.app` bundle:
+
+```bash
+scripts/build_app.sh
+```
+
+By default this creates an ad-hoc signed app at `dist/System Monitor.app`.
+Use this build for local checks only.
+
+Build with a Developer ID certificate:
+
+```bash
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" scripts/build_app.sh
+```
+
+Create a DMG after the app is built:
+
+```bash
+scripts/make_dmg.sh
+```
+
+Notarize and staple the DMG:
+
+```bash
+NOTARY_PROFILE="profile-name" scripts/notarize_dmg.sh
+```
+
+You can also use `APPLE_ID`, `TEAM_ID`, and `APP_SPECIFIC_PASSWORD` instead of
+`NOTARY_PROFILE`.
+
+## Limits
+
+- Detailed sensors use private macOS APIs. This build is for direct
+  distribution, not the Mac App Store.
+- Apple Silicon and Intel sensor paths still need hardware checks.
+- The final app icon is still a packaging task.
+
 ## Source
 
 The migration plan is in [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
