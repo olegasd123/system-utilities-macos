@@ -16,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         configureStatusItem()
         configurePopover()
+        configureDismissalObservers()
         bindStatusItem()
     }
 
@@ -49,6 +50,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 appState: appState,
                 onQuit: { NSApp.terminate(nil) }
             )
+        )
+    }
+
+    private func configureDismissalObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(closePopoverAfterAppResignedActive),
+            name: NSApplication.didResignActiveNotification,
+            object: NSApp
         )
     }
 
@@ -101,10 +111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        popoverRouter.route = .dashboard
-        updatePopoverContentSize()
-        NSApp.activate()
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        showPopover(route: .dashboard, from: button)
     }
 
     private func showStatusMenu(from button: NSStatusBarButton) {
@@ -139,11 +146,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        popoverRouter.route = .settings
+        showPopover(route: .settings, from: button)
+    }
+
+    private func showPopover(route: PopoverRoute, from button: NSStatusBarButton) {
+        popoverRouter.route = route
         updatePopoverContentSize()
+
+        NSApp.activate()
+
         if !popover.isShown {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
+
+        focusPopoverWindow()
+        Task { @MainActor [weak self] in
+            await Task.yield()
+            self?.focusPopoverWindow()
+        }
+    }
+
+    private func focusPopoverWindow() {
+        guard let window = popover.contentViewController?.view.window else {
+            return
+        }
+
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    @objc private func closePopoverAfterAppResignedActive() {
+        guard popover.isShown else {
+            return
+        }
+
+        popover.performClose(nil)
     }
 
     @objc private func quit() {
