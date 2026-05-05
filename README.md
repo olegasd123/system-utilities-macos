@@ -23,6 +23,9 @@ swift run SystemMonitor
 The app runs as a menu bar utility with no Dock icon. Click the menu bar item
 to open the popover. Right-click it to open the app menu.
 
+Notification delivery is disabled when running as a raw SwiftPM executable.
+It is enabled for packaged `.app` builds.
+
 ## Source
 
 The migration plan is in [MIGRATION_PLAN.md](MIGRATION_PLAN.md).

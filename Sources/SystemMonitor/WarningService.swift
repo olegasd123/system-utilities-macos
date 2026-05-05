@@ -11,7 +11,7 @@ final class WarningService {
     private var permissionRequested = false
 
     func requestPermission() {
-        guard !permissionRequested else {
+        guard !permissionRequested, NotificationRuntime.canUseUserNotifications else {
             return
         }
         permissionRequested = true
@@ -24,7 +24,6 @@ final class WarningService {
             return
         }
 
-        requestPermission()
         let thresholds = settings.warningThresholds
 
         check(
@@ -160,6 +159,10 @@ final class WarningService {
     }
 
     private func sendNotification(module: WarningModule, value: Double, threshold: Double) {
+        guard NotificationRuntime.canUseUserNotifications else {
+            return
+        }
+
         let content = UNMutableNotificationContent()
         let text = notificationText(module: module, value: value, threshold: threshold)
         content.title = text.title
