@@ -167,7 +167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateStatusItem() {
-        let lines = MenuBarFormatter.lines(
+        let lines = MenuBarFormatter.statusLines(
             snapshot: appState.snapshot,
             settings: appState.settings
         )

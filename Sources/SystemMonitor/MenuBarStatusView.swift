@@ -1,8 +1,9 @@
 import AppKit
 
 final class MenuBarStatusView: NSView {
-    private var lines: [String] = ["CPU --  NET --"]
+    private var lines: [MenuBarStatusLine] = [MenuBarStatusLine(text: "CPU --  NET --")]
     private let horizontalPadding: CGFloat = 7
+    private let segmentSeparator = "  "
     private let minimumWidth: CGFloat = 48
 
     override var isFlipped: Bool {
@@ -12,7 +13,7 @@ final class MenuBarStatusView: NSView {
     var preferredWidth: CGFloat {
         let font = drawingFont
         let width = lines
-            .map { ceil(attributedLine($0, font: font).size().width) }
+            .map { ceil(lineWidth($0, font: font)) }
             .max() ?? 0
         return max(minimumWidth, width + horizontalPadding * 2)
     }
@@ -21,7 +22,7 @@ final class MenuBarStatusView: NSView {
         NSSize(width: preferredWidth, height: NSStatusBar.system.thickness)
     }
 
-    func update(lines: [String]) {
+    func update(lines: [MenuBarStatusLine]) {
         self.lines = Array(lines.prefix(2))
         invalidateIntrinsicContentSize()
         needsDisplay = true
@@ -37,16 +38,15 @@ final class MenuBarStatusView: NSView {
         }
 
         let font = drawingFont
-        let attributedLines = lines.map { attributedLine($0, font: font) }
-        let sizes = attributedLines.map { $0.size() }
+        let lineHeights = lines.map { height(of: $0, font: font) }
         let gap: CGFloat = lines.count > 1 ? -1 : 0
-        let totalHeight = sizes.reduce(0) { $0 + $1.height }
+        let totalHeight = lineHeights.reduce(0, +)
             + gap * CGFloat(max(0, lines.count - 1))
         var y = floor((bounds.height - totalHeight) / 2)
 
-        for (index, line) in attributedLines.enumerated() {
-            line.draw(at: NSPoint(x: horizontalPadding, y: y))
-            y += sizes[index].height + gap
+        for (index, line) in lines.enumerated() {
+            draw(line, font: font, y: y)
+            y += lineHeights[index] + gap
         }
     }
 
@@ -64,5 +64,42 @@ final class MenuBarStatusView: NSView {
                 .foregroundColor: NSColor.labelColor
             ]
         )
+    }
+
+    private func lineWidth(_ line: MenuBarStatusLine, font: NSFont) -> CGFloat {
+        guard !line.segments.isEmpty else {
+            return 0
+        }
+
+        let segmentsWidth = line.segments.reduce(CGFloat.zero) { total, segment in
+            total + segmentWidth(segment, font: font)
+        }
+        return segmentsWidth + segmentSpacing(font: font) * CGFloat(line.segments.count - 1)
+    }
+
+    private func height(of line: MenuBarStatusLine, font: NSFont) -> CGFloat {
+        line.segments
+            .map { attributedLine($0.text, font: font).size().height }
+            .max() ?? attributedLine("", font: font).size().height
+    }
+
+    private func draw(_ line: MenuBarStatusLine, font: NSFont, y: CGFloat) {
+        var x = horizontalPadding
+
+        for segment in line.segments {
+            attributedLine(segment.text, font: font).draw(at: NSPoint(x: x, y: y))
+            x += segmentWidth(segment, font: font) + segmentSpacing(font: font)
+        }
+    }
+
+    private func segmentWidth(_ segment: MenuBarStatusSegment, font: NSFont) -> CGFloat {
+        max(
+            attributedLine(segment.text, font: font).size().width,
+            attributedLine(segment.reservedText, font: font).size().width
+        )
+    }
+
+    private func segmentSpacing(font: NSFont) -> CGFloat {
+        attributedLine(segmentSeparator, font: font).size().width
     }
 }
