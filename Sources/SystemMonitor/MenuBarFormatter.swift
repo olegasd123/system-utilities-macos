@@ -19,6 +19,20 @@ struct MenuBarStatusLine {
 struct MenuBarStatusSegment {
     var text: String
     var reservedText: String
+    var symbolName: String?
+    var fallbackPrefix: String?
+
+    init(
+        text: String,
+        reservedText: String,
+        symbolName: String? = nil,
+        fallbackPrefix: String? = nil
+    ) {
+        self.text = text
+        self.reservedText = reservedText
+        self.symbolName = symbolName
+        self.fallbackPrefix = fallbackPrefix
+    }
 }
 
 enum MenuBarFormatter {
@@ -48,7 +62,7 @@ enum MenuBarFormatter {
 
         switch settings.menuBar.displayMode {
         case .singleLine:
-            return [line(from: parts)]
+            return [line(from: parts, style: .icon)]
         case .twoLine:
             return twoLineParts(parts)
         }
@@ -63,6 +77,10 @@ enum MenuBarFormatter {
                 MenuBarPart(
                     text: "CPU \(Int(snapshot.cpu.usagePercent.rounded()))%",
                     reservedText: "CPU 100%",
+                    compactText: "\(Int(snapshot.cpu.usagePercent.rounded()))%",
+                    compactReservedText: "100%",
+                    symbolName: "cpu",
+                    fallbackPrefix: "CPU",
                     group: .system
                 )
             )
@@ -73,6 +91,10 @@ enum MenuBarFormatter {
                 MenuBarPart(
                     text: "TEMP \(SystemFormatters.temperature(temperature, unit: settings.temperatureUnit))",
                     reservedText: "TEMP \(reservedTemperature(unit: settings.temperatureUnit))",
+                    compactText: SystemFormatters.temperature(temperature, unit: settings.temperatureUnit),
+                    compactReservedText: reservedTemperature(unit: settings.temperatureUnit),
+                    symbolName: "thermometer.medium",
+                    fallbackPrefix: "TEMP",
                     group: .system
                 )
             )
@@ -83,6 +105,10 @@ enum MenuBarFormatter {
                 MenuBarPart(
                     text: "RAM \(Int(snapshot.memory.usedPercent.rounded()))%",
                     reservedText: "RAM 100%",
+                    compactText: "\(Int(snapshot.memory.usedPercent.rounded()))%",
+                    compactReservedText: "100%",
+                    symbolName: "memorychip",
+                    fallbackPrefix: "RAM",
                     group: .system
                 )
             )
@@ -93,6 +119,10 @@ enum MenuBarFormatter {
                 MenuBarPart(
                     text: "DISK \(SystemFormatters.compactBytes(disk.availableBytes))",
                     reservedText: "DISK 9999.9GB",
+                    compactText: SystemFormatters.compactBytes(disk.availableBytes),
+                    compactReservedText: "9999.9GB",
+                    symbolName: "internaldrive",
+                    fallbackPrefix: "DISK",
                     group: .system
                 )
             )
@@ -104,6 +134,10 @@ enum MenuBarFormatter {
                 MenuBarPart(
                     text: "BAT \(prefix)\(Int(battery.chargePercent.rounded()))%",
                     reservedText: "BAT *100%",
+                    compactText: "\(prefix)\(Int(battery.chargePercent.rounded()))%",
+                    compactReservedText: "*100%",
+                    symbolName: "battery.100",
+                    fallbackPrefix: "BAT",
                     group: .system
                 )
             )
@@ -125,6 +159,10 @@ enum MenuBarFormatter {
                     MenuBarPart(
                         text: "↓ \(down) ↑ \(up)",
                         reservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
+                        compactText: "↓ \(down) ↑ \(up)",
+                        compactReservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
+                        symbolName: "network",
+                        fallbackPrefix: "NET",
                         group: .network
                     )
                 )
@@ -133,6 +171,10 @@ enum MenuBarFormatter {
                     MenuBarPart(
                         text: "UP \(up)",
                         reservedText: "UP \(reservedRate)",
+                        compactText: up,
+                        compactReservedText: reservedRate,
+                        symbolName: "arrow.up",
+                        fallbackPrefix: "UP",
                         group: .network
                     )
                 )
@@ -141,6 +183,10 @@ enum MenuBarFormatter {
                     MenuBarPart(
                         text: "DOWN \(down)",
                         reservedText: "DOWN \(reservedRate)",
+                        compactText: down,
+                        compactReservedText: reservedRate,
+                        symbolName: "arrow.down",
+                        fallbackPrefix: "DOWN",
                         group: .network
                     )
                 )
@@ -149,6 +195,10 @@ enum MenuBarFormatter {
                     MenuBarPart(
                         text: "NET \(down)",
                         reservedText: "NET \(reservedRate)",
+                        compactText: down,
+                        compactReservedText: reservedRate,
+                        symbolName: "network",
+                        fallbackPrefix: "NET",
                         group: .network
                     )
                 )
@@ -163,24 +213,37 @@ enum MenuBarFormatter {
         let networkParts = parts.filter { $0.group == .network }
 
         if !systemParts.isEmpty, !networkParts.isEmpty {
-            return [line(from: systemParts), line(from: networkParts)]
+            return [line(from: systemParts, style: .text), line(from: networkParts, style: .text)]
         }
 
         if parts.count < 3 {
-            return [line(from: parts)]
+            return [line(from: parts, style: .text)]
         }
 
         let splitIndex = (parts.count + 1) / 2
         return [
-            line(from: Array(parts.prefix(splitIndex))),
-            line(from: Array(parts.suffix(from: splitIndex)))
+            line(from: Array(parts.prefix(splitIndex)), style: .text),
+            line(from: Array(parts.suffix(from: splitIndex)), style: .text)
         ].filter { !$0.segments.isEmpty }
     }
 
-    private static func line(from parts: [MenuBarPart]) -> MenuBarStatusLine {
+    private static func line(
+        from parts: [MenuBarPart],
+        style: MenuBarStatusLineStyle
+    ) -> MenuBarStatusLine {
         MenuBarStatusLine(
             segments: parts.map {
-                MenuBarStatusSegment(text: $0.text, reservedText: $0.reservedText)
+                switch style {
+                case .text:
+                    return MenuBarStatusSegment(text: $0.text, reservedText: $0.reservedText)
+                case .icon:
+                    return MenuBarStatusSegment(
+                        text: $0.compactText,
+                        reservedText: $0.compactReservedText,
+                        symbolName: $0.symbolName,
+                        fallbackPrefix: $0.fallbackPrefix
+                    )
+                }
             }
         )
     }
@@ -218,11 +281,27 @@ enum MenuBarFormatter {
 private struct MenuBarPart {
     var text: String
     var reservedText: String
+    var compactText: String
+    var compactReservedText: String
+    var symbolName: String
+    var fallbackPrefix: String
     var group: MenuBarPartGroup
 
-    init(text: String, reservedText: String, group: MenuBarPartGroup) {
+    init(
+        text: String,
+        reservedText: String,
+        compactText: String,
+        compactReservedText: String,
+        symbolName: String,
+        fallbackPrefix: String,
+        group: MenuBarPartGroup
+    ) {
         self.text = text
         self.reservedText = reservedText
+        self.compactText = compactText
+        self.compactReservedText = compactReservedText
+        self.symbolName = symbolName
+        self.fallbackPrefix = fallbackPrefix
         self.group = group
     }
 }
@@ -230,4 +309,9 @@ private struct MenuBarPart {
 private enum MenuBarPartGroup {
     case system
     case network
+}
+
+private enum MenuBarStatusLineStyle {
+    case text
+    case icon
 }
