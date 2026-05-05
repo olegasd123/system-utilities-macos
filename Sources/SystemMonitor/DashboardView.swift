@@ -168,7 +168,22 @@ struct DashboardView: View {
         guard let primaryDisk else {
             return "Waiting for samples"
         }
-        return "\(primaryDisk.name) · \(SystemFormatters.bytes(primaryDisk.availableBytes, decimals: 0))"
+        let freeSpace = "\(primaryDisk.name) · \(SystemFormatters.bytes(primaryDisk.availableBytes, decimals: 0))"
+        guard let storageTemperature else {
+            return freeSpace
+        }
+        return "\(freeSpace)\nStorage \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: settings.temperatureUnit))"
+    }
+
+    private var storageTemperature: TemperatureSample? {
+        snapshot?.temperatures.first { sample in
+            let label = sample.label.lowercased()
+            return label == "storage"
+                || label.contains("nand")
+                || label.contains("ssd")
+                || label.contains("nvme")
+                || label.contains("disk")
+        }
     }
 
     private var networkValue: String {
