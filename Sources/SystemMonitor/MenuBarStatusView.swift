@@ -14,9 +14,7 @@ final class MenuBarStatusView: NSView {
 
     var preferredWidth: CGFloat {
         let font = drawingFont
-        let width = lines
-            .map { ceil(lineWidth($0, font: font)) }
-            .max() ?? 0
+        let width = ceil(contentWidth(font: font))
         return max(minimumWidth, width + horizontalPadding * 2)
     }
 
@@ -41,13 +39,14 @@ final class MenuBarStatusView: NSView {
 
         let font = drawingFont
         let lineHeights = lines.map { height(of: $0, font: font) }
+        let columnWidths = sharedColumnWidths(font: font)
         let gap: CGFloat = lines.count > 1 ? -1 : 0
         let totalHeight = lineHeights.reduce(0, +)
             + gap * CGFloat(max(0, lines.count - 1))
         var y = floor((bounds.height - totalHeight) / 2)
 
         for (index, line) in lines.enumerated() {
-            draw(line, font: font, y: y)
+            draw(line, font: font, y: y, columnWidths: columnWidths)
             y += lineHeights[index] + gap
         }
     }
@@ -66,6 +65,17 @@ final class MenuBarStatusView: NSView {
                 .foregroundColor: NSColor.labelColor
             ]
         )
+    }
+
+    private func contentWidth(font: NSFont) -> CGFloat {
+        if let columnWidths = sharedColumnWidths(font: font) {
+            return columnWidths.reduce(0, +)
+                + segmentSpacing(for: lines[0], font: font) * CGFloat(columnWidths.count - 1)
+        }
+
+        return lines
+            .map { lineWidth($0, font: font) }
+            .max() ?? 0
     }
 
     private func lineWidth(_ line: MenuBarStatusLine, font: NSFont) -> CGFloat {
@@ -89,13 +99,19 @@ final class MenuBarStatusView: NSView {
             .max() ?? attributedLine("", font: font).size().height
     }
 
-    private func draw(_ line: MenuBarStatusLine, font: NSFont, y: CGFloat) {
+    private func draw(
+        _ line: MenuBarStatusLine,
+        font: NSFont,
+        y: CGFloat,
+        columnWidths: [CGFloat]?
+    ) {
         var x = horizontalPadding
         let lineHeight = height(of: line, font: font)
 
-        for segment in line.segments {
+        for (index, segment) in line.segments.enumerated() {
             draw(segment, font: font, x: x, y: y, lineHeight: lineHeight)
-            x += segmentWidth(segment, font: font) + segmentSpacing(for: line, font: font)
+            x += (columnWidths?[index] ?? segmentWidth(segment, font: font))
+                + segmentSpacing(for: line, font: font)
         }
     }
 
@@ -113,6 +129,24 @@ final class MenuBarStatusView: NSView {
         }
 
         return attributedLine(segmentSeparator, font: font).size().width
+    }
+
+    private func sharedColumnWidths(font: NSFont) -> [CGFloat]? {
+        guard
+            lines.count > 1,
+            let firstLine = lines.first,
+            !firstLine.segments.isEmpty,
+            lines.allSatisfy({ $0.segments.count == firstLine.segments.count }),
+            lines.allSatisfy({ line in line.segments.allSatisfy { $0.symbolName == nil } })
+        else {
+            return nil
+        }
+
+        return firstLine.segments.indices.map { index in
+            lines
+                .map { segmentWidth($0.segments[index], font: font) }
+                .max() ?? 0
+        }
     }
 
     private func draw(
