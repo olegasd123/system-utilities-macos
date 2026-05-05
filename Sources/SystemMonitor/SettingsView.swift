@@ -13,9 +13,12 @@ struct SettingsView: View {
                 Button(action: onClose) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .medium))
+                        .frame(width: 28, height: 14)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .help("Back")
+                .accessibilityLabel("Back")
 
                 Spacer()
 
@@ -24,7 +27,7 @@ struct SettingsView: View {
 
                 Spacer()
 
-                Color.clear.frame(width: 18, height: 18)
+                Color.clear.frame(width: 28, height: 14)
             }
             .padding(.bottom, 12)
 
