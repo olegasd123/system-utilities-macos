@@ -8,6 +8,7 @@ struct MetricCardView: View {
     let accent: Color
     var progress: Double?
     var warning = false
+    var footer: AnyView?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -44,6 +45,8 @@ struct MetricCardView: View {
                     .controlSize(.small)
                     .padding(.top, 4)
             }
+
+            footer
         }
         .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
         .padding(14)

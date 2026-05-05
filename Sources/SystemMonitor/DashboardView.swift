@@ -2,7 +2,9 @@ import SwiftUI
 
 struct DashboardView: View {
     let snapshot: Snapshot?
+    let networkTotals: NetworkTotals?
     let settings: Settings
+    let onResetNetworkTotals: () -> Void
     let onOpenSettings: () -> Void
     let onQuit: () -> Void
 
@@ -64,7 +66,8 @@ struct DashboardView: View {
                     label: "NETWORK",
                     value: networkValue,
                     subtitle: networkSubtitle,
-                    accent: .orange
+                    accent: .orange,
+                    footer: networkTotalsFooter
                 )
 
                 MetricCardView(
@@ -177,6 +180,44 @@ struct DashboardView: View {
         let label = network.connectionType.map { "\($0) (\(primaryInterface))" }
             ?? "Interface: \(primaryInterface)"
         return "\(up)\n\(label)"
+    }
+
+    private var networkTotalsFooter: AnyView? {
+        guard let networkTotals else {
+            return nil
+        }
+
+        return AnyView(
+            HStack(alignment: .bottom, spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Today down")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    Text(SystemFormatters.bytes(networkTotals.rxBytes))
+                        .font(.system(size: 12, weight: .medium))
+                        .monospacedDigit()
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Today up")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                    Text(SystemFormatters.bytes(networkTotals.txBytes))
+                        .font(.system(size: 12, weight: .medium))
+                        .monospacedDigit()
+                }
+
+                Spacer(minLength: 0)
+
+                Button(action: onResetNetworkTotals) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .help("Reset network totals")
+            }
+            .padding(.top, 4)
+        )
     }
 
     private var sensorValue: String {

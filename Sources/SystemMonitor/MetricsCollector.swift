@@ -9,13 +9,14 @@ final class MetricsCollector {
         let memory = MemoryCollector.sample()
         let disks = DiskCollector.sample()
         let network = networkCollector.sample()
+        let battery = BatteryCollector.sample()
 
         return Snapshot(
             cpu: cpu,
             memory: memory,
             disks: disks,
             network: network,
-            battery: nil,
+            battery: battery,
             temperatures: [],
             fans: []
         )

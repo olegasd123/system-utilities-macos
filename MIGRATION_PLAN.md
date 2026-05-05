@@ -814,6 +814,8 @@ Acceptance:
 
 ### Phase 5: Battery, Network Totals, And Formatters
 
+Status: Done.
+
 Deliverables:
 
 - Battery collector.
@@ -941,11 +943,11 @@ Mitigation:
 - [x] Memory card.
 - [x] Disk card.
 - [x] Network card.
-- [ ] Network daily totals.
-- [ ] Network reset button.
+- [x] Network daily totals.
+- [x] Network reset button.
 - [ ] Temperature sensors card.
 - [ ] Fan RPM card.
-- [ ] Battery card.
+- [x] Battery card.
 - [x] Warning thresholds.
 - [ ] Warning notifications.
 - [ ] Launch at login.

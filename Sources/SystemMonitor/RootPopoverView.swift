@@ -14,7 +14,9 @@ struct RootPopoverView: View {
             case .dashboard:
                 DashboardView(
                     snapshot: appState.snapshot,
+                    networkTotals: appState.networkTotals,
                     settings: appState.settings,
+                    onResetNetworkTotals: { appState.resetNetworkTotals() },
                     onOpenSettings: { router.route = .settings },
                     onQuit: onQuit
                 )
