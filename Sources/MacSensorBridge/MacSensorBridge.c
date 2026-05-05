@@ -27,6 +27,11 @@ extern CFTypeRef IOHIDServiceClientCopyEvent(
     int32_t options,
     int64_t timestamp
 );
+extern IOHIDEventSystemClientRef IOHIDEventSystemClientCreate(CFAllocatorRef allocator);
+extern int IOHIDEventSystemClientSetMatching(
+    IOHIDEventSystemClientRef client,
+    CFDictionaryRef matching
+);
 extern double IOHIDEventGetFloatValue(CFTypeRef event, int32_t field);
 
 typedef struct {
@@ -92,6 +97,8 @@ static const SmcTemperatureKey kTemperatureKeys[] = {
 
 static char *copyCString(const char *string);
 static void appendReading(MacSensorReading **readings, size_t *count, const char *label, double value);
+static CFDictionaryRef createHidTemperatureMatching(void);
+static void refreshHidServices(MacSensorContext *context);
 static char *copyHidProductName(IOHIDServiceClientRef service, size_t index);
 static io_connect_t openSmcConnection(void);
 static int smcReadKey(io_connect_t connection, const char *key, SmcValue *value);
@@ -110,11 +117,11 @@ MacSensorContext *MacSensorContextCreate(void) {
         return NULL;
     }
 
-    context->hidClient = IOHIDEventSystemClientCreateSimpleClient(NULL);
-    if (context->hidClient != NULL) {
-        context->hidServices = IOHIDEventSystemClientCopyServices(context->hidClient);
+    context->hidClient = IOHIDEventSystemClientCreate(kCFAllocatorDefault);
+    if (context->hidClient == NULL) {
+        context->hidClient = IOHIDEventSystemClientCreateSimpleClient(kCFAllocatorDefault);
     }
-
+    refreshHidServices(context);
     context->smcConnection = openSmcConnection();
     return context;
 }
@@ -140,7 +147,11 @@ size_t MacSensorCopyHidTemperatures(MacSensorContext *context, MacSensorReading 
         return 0;
     }
     *readings = NULL;
-    if (context == NULL || context->hidServices == NULL) {
+    if (context == NULL) {
+        return 0;
+    }
+    refreshHidServices(context);
+    if (context->hidServices == NULL) {
         return 0;
     }
 
@@ -290,6 +301,63 @@ static void appendReading(MacSensorReading **readings, size_t *count, const char
         return;
     }
     *count += 1;
+}
+
+static CFDictionaryRef createHidTemperatureMatching(void) {
+    int page = kHidPageAppleVendor;
+    int usage = kHidUsageAppleVendorTemperature;
+    CFStringRef keys[2] = {
+        CFSTR("PrimaryUsagePage"),
+        CFSTR("PrimaryUsage")
+    };
+    CFNumberRef values[2] = {
+        CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &page),
+        CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &usage)
+    };
+    if (values[0] == NULL || values[1] == NULL) {
+        if (values[0] != NULL) {
+            CFRelease(values[0]);
+        }
+        if (values[1] != NULL) {
+            CFRelease(values[1]);
+        }
+        return NULL;
+    }
+
+    CFDictionaryRef matching = CFDictionaryCreate(
+        kCFAllocatorDefault,
+        (const void **)keys,
+        (const void **)values,
+        2,
+        &kCFTypeDictionaryKeyCallBacks,
+        &kCFTypeDictionaryValueCallBacks
+    );
+    CFRelease(values[0]);
+    CFRelease(values[1]);
+    return matching;
+}
+
+static void refreshHidServices(MacSensorContext *context) {
+    if (context == NULL || context->hidClient == NULL) {
+        return;
+    }
+
+    CFDictionaryRef matching = createHidTemperatureMatching();
+    if (matching == NULL) {
+        return;
+    }
+    IOHIDEventSystemClientSetMatching(context->hidClient, matching);
+    CFRelease(matching);
+
+    CFArrayRef services = IOHIDEventSystemClientCopyServices(context->hidClient);
+    if (services == NULL) {
+        return;
+    }
+
+    if (context->hidServices != NULL) {
+        CFRelease(context->hidServices);
+    }
+    context->hidServices = services;
 }
 
 static char *copyHidProductName(IOHIDServiceClientRef service, size_t index) {
