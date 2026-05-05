@@ -23,6 +23,9 @@ struct RootPopoverView: View {
             case .settings:
                 SettingsView(
                     settings: $appState.settings,
+                    launchAtLoginStatus: appState.launchAtLoginStatus,
+                    onSetLaunchAtLogin: { appState.setLaunchAtLogin($0) },
+                    onOpenLoginItems: { appState.openLoginItemsSettings() },
                     onClose: { router.route = .dashboard }
                 )
             }

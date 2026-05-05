@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @Binding var settings: Settings
+    let launchAtLoginStatus: LaunchAtLoginStatus
+    let onSetLaunchAtLogin: (Bool) -> Void
+    let onOpenLoginItems: () -> Void
     let onClose: () -> Void
 
     var body: some View {
@@ -28,6 +31,12 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     settingsSection("Show in the menu bar") {
+                        Picker("Menu bar layout", selection: $settings.menuBar.displayMode) {
+                            Text("Single line").tag(MenuBarDisplayMode.singleLine)
+                            Text("Two lines").tag(MenuBarDisplayMode.twoLine)
+                        }
+                        .pickerStyle(.segmented)
+
                         Toggle("CPU load", isOn: $settings.menuBar.showCpuLoad)
                         Toggle("CPU temperature", isOn: $settings.menuBar.showTemperature)
                         Toggle("Memory usage", isOn: $settings.menuBar.showMemoryUsage)
@@ -95,7 +104,19 @@ struct SettingsView: View {
                     }
 
                     settingsSection("Startup") {
-                        Toggle("Open when Mac starts", isOn: $settings.launchAtLogin)
+                        Toggle("Open when Mac starts", isOn: launchAtLoginBinding)
+                            .disabled(!launchAtLoginStatus.canChange)
+
+                        if let message = launchAtLoginStatus.message {
+                            Text(message)
+                                .font(.system(size: 12))
+                                .foregroundStyle(launchAtLoginMessageColor)
+                        }
+
+                        if launchAtLoginStatus.needsApproval {
+                            Button("Open Login Items", action: onOpenLoginItems)
+                                .controlSize(.small)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -136,6 +157,17 @@ struct SettingsView: View {
                     : newValue
             }
         )
+    }
+
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { settings.launchAtLogin },
+            set: { onSetLaunchAtLogin($0) }
+        )
+    }
+
+    private var launchAtLoginMessageColor: Color {
+        launchAtLoginStatus.canChange ? .secondary : .orange
     }
 
     private func settingsSection<Content: View>(

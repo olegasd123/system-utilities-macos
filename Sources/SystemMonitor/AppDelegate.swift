@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private let menuBarStatusView = MenuBarStatusView()
     private let popover = NSPopover()
     private let popoverRouter = PopoverRouter()
     private let appState = AppState()
@@ -20,13 +21,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.title = "CPU --  NET --"
-        item.button?.font = .monospacedSystemFont(ofSize: 11, weight: .medium)
-        item.button?.target = self
-        item.button?.action = #selector(statusItemClicked(_:))
-        item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        if let button = item.button {
+            button.title = ""
+            button.target = self
+            button.action = #selector(statusItemClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            button.addSubview(menuBarStatusView)
+            menuBarStatusView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                menuBarStatusView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+                menuBarStatusView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+                menuBarStatusView.topAnchor.constraint(equalTo: button.topAnchor),
+                menuBarStatusView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
+            ])
+        }
         statusItem = item
-        updateStatusItemTitle()
+        updateStatusItem()
     }
 
     private func configurePopover() {
@@ -112,15 +122,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appState.$snapshot
             .combineLatest(appState.$settings)
             .sink { [weak self] _, _ in
-                self?.updateStatusItemTitle()
+                self?.updateStatusItem()
             }
             .store(in: &cancellables)
     }
 
-    private func updateStatusItemTitle() {
-        statusItem?.button?.title = MenuBarFormatter.title(
+    private func updateStatusItem() {
+        let lines = MenuBarFormatter.lines(
             snapshot: appState.snapshot,
             settings: appState.settings
         )
+        menuBarStatusView.update(lines: lines)
+        statusItem?.length = menuBarStatusView.preferredWidth
     }
 }

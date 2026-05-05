@@ -4,6 +4,7 @@ import Foundation
 final class AppState: ObservableObject {
     @Published var snapshot: Snapshot?
     @Published var networkTotals: NetworkTotals?
+    @Published var launchAtLoginStatus: LaunchAtLoginStatus
     @Published var settings: Settings {
         didSet {
             try? settingsStore.save(settings)
@@ -12,17 +13,24 @@ final class AppState: ObservableObject {
 
     private let settingsStore: SettingsStore
     private let networkTotalsStore: NetworkTotalsStore
+    private let launchAtLoginService: LaunchAtLoginService
     private let metricsSampler = MetricsSampler()
     private let warningService = WarningService()
     private var networkBaseline: NetworkDailyBaseline?
 
     init(
         settingsStore: SettingsStore = .standard,
-        networkTotalsStore: NetworkTotalsStore = .standard
+        networkTotalsStore: NetworkTotalsStore = .standard,
+        launchAtLoginService: LaunchAtLoginService = .standard
     ) {
         self.settingsStore = settingsStore
         self.networkTotalsStore = networkTotalsStore
-        settings = settingsStore.load()
+        self.launchAtLoginService = launchAtLoginService
+        let currentLaunchAtLoginStatus = launchAtLoginService.status()
+        launchAtLoginStatus = currentLaunchAtLoginStatus
+        var loadedSettings = settingsStore.load()
+        loadedSettings.launchAtLogin = currentLaunchAtLoginStatus.isRegistered
+        settings = loadedSettings
         networkBaseline = networkTotalsStore.load()
         metricsSampler.start { [weak self] snapshot in
             self?.apply(snapshot: snapshot)
@@ -38,6 +46,17 @@ final class AppState: ObservableObject {
         networkBaseline = baseline
         networkTotals = NetworkTotals(rxBytes: 0, txBytes: 0)
         try? networkTotalsStore.save(baseline)
+    }
+
+    func setLaunchAtLogin(_ isRegistered: Bool) {
+        launchAtLoginStatus = launchAtLoginService.setRegistered(isRegistered)
+        settings.launchAtLogin = launchAtLoginStatus.isRegistered
+    }
+
+    func openLoginItemsSettings() {
+        launchAtLoginService.openLoginItemsSettings()
+        launchAtLoginStatus = launchAtLoginService.status()
+        settings.launchAtLogin = launchAtLoginStatus.isRegistered
     }
 
     private func apply(snapshot: Snapshot) {

@@ -175,6 +175,7 @@ Keep the same defaults as the source app:
 - Show disk free: off
 - Show battery: on
 - Show temperature: off
+- Menu bar layout: single line
 - Temperature unit: Celsius
 - Network units: bytes per second
 - Network display: upload and download
@@ -869,6 +870,8 @@ Acceptance:
 
 ### Phase 8: Launch At Login
 
+Status: Implemented. Needs validation from a signed `.app` build.
+
 Deliverables:
 
 - `LaunchAtLoginService`.
@@ -943,7 +946,7 @@ Mitigation:
 
 - [x] No Dock icon.
 - [x] Menu bar status item.
-- [ ] Two-line live menu bar metrics.
+- [x] Two-line live menu bar metrics.
 - [x] Left click popover toggle.
 - [x] Right click menu.
 - [x] Preferences view.
@@ -958,7 +961,7 @@ Mitigation:
 - [x] Battery card.
 - [x] Warning thresholds.
 - [x] Warning notifications.
-- [ ] Launch at login.
+- [x] Launch at login.
 - [x] Light mode.
 - [x] Dark mode.
 - [x] Settings persistence.

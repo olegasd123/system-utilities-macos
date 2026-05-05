@@ -16,7 +16,8 @@ struct Settings: Codable, Equatable {
             showMemoryUsage: false,
             showDiskFree: false,
             showBattery: true,
-            showTemperature: false
+            showTemperature: false,
+            displayMode: .singleLine
         ),
         temperatureUnit: .celsius,
         networkUnits: .bytesPerSecond,
@@ -44,6 +45,25 @@ struct MenuBarSettings: Codable, Equatable {
     var showDiskFree: Bool
     var showBattery: Bool
     var showTemperature: Bool
+    var displayMode: MenuBarDisplayMode
+
+    init(
+        showNetworkSpeed: Bool,
+        showCpuLoad: Bool,
+        showMemoryUsage: Bool,
+        showDiskFree: Bool,
+        showBattery: Bool,
+        showTemperature: Bool,
+        displayMode: MenuBarDisplayMode = .singleLine
+    ) {
+        self.showNetworkSpeed = showNetworkSpeed
+        self.showCpuLoad = showCpuLoad
+        self.showMemoryUsage = showMemoryUsage
+        self.showDiskFree = showDiskFree
+        self.showBattery = showBattery
+        self.showTemperature = showTemperature
+        self.displayMode = displayMode
+    }
 
     enum CodingKeys: String, CodingKey {
         case showNetworkSpeed = "show_network_speed"
@@ -52,6 +72,30 @@ struct MenuBarSettings: Codable, Equatable {
         case showDiskFree = "show_disk_free"
         case showBattery = "show_battery"
         case showTemperature = "show_temperature"
+        case displayMode = "display_mode"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        showNetworkSpeed = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .showNetworkSpeed
+        ) ?? true
+        showCpuLoad = try container.decodeIfPresent(Bool.self, forKey: .showCpuLoad) ?? true
+        showMemoryUsage = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .showMemoryUsage
+        ) ?? false
+        showDiskFree = try container.decodeIfPresent(Bool.self, forKey: .showDiskFree) ?? false
+        showBattery = try container.decodeIfPresent(Bool.self, forKey: .showBattery) ?? true
+        showTemperature = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .showTemperature
+        ) ?? false
+        displayMode = try container.decodeIfPresent(
+            MenuBarDisplayMode.self,
+            forKey: .displayMode
+        ) ?? .singleLine
     }
 }
 
@@ -109,4 +153,9 @@ enum NetworkDisplay: String, Codable {
     case uploadOnly = "upload_only"
     case downloadOnly = "download_only"
     case combined
+}
+
+enum MenuBarDisplayMode: String, Codable, CaseIterable {
+    case singleLine = "single_line"
+    case twoLine = "two_line"
 }
