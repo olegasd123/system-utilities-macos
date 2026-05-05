@@ -214,6 +214,10 @@ Native plan:
   - Show battery power marker when charging or full.
   - Support bytes per second and bits per second.
   - Support upload/download display modes.
+- Add a menu bar display mode preference:
+  - Single-line mode remains available.
+  - Two-line mode is added as an option.
+  - The user can switch between them in Preferences.
 
 Reason for custom view:
 
@@ -849,6 +853,8 @@ Acceptance:
 
 ### Phase 7: Warnings And Notifications
 
+Status: Done.
+
 Deliverables:
 
 - `WarningService`.
@@ -951,7 +957,7 @@ Mitigation:
 - [x] Fan RPM card.
 - [x] Battery card.
 - [x] Warning thresholds.
-- [ ] Warning notifications.
+- [x] Warning notifications.
 - [ ] Launch at login.
 - [x] Light mode.
 - [x] Dark mode.

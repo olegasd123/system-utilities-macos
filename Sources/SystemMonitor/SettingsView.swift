@@ -52,6 +52,11 @@ struct SettingsView: View {
 
                     settingsSection("Notifications") {
                         Toggle("Enable warning notifications", isOn: $settings.warningsEnabled)
+                            .onChange(of: settings.warningsEnabled) { _, enabled in
+                                if enabled {
+                                    NotificationPermissionService.requestPermission()
+                                }
+                            }
                         ThresholdRowView(
                             label: "CPU",
                             enabled: $settings.warningThresholds.cpuEnabled,

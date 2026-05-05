@@ -13,6 +13,7 @@ final class AppState: ObservableObject {
     private let settingsStore: SettingsStore
     private let networkTotalsStore: NetworkTotalsStore
     private let metricsSampler = MetricsSampler()
+    private let warningService = WarningService()
     private var networkBaseline: NetworkDailyBaseline?
 
     init(
@@ -42,6 +43,7 @@ final class AppState: ObservableObject {
     private func apply(snapshot: Snapshot) {
         self.snapshot = snapshot
         updateNetworkTotals(snapshot: snapshot)
+        warningService.evaluate(snapshot: snapshot, settings: settings)
     }
 
     private func updateNetworkTotals(snapshot: Snapshot) {

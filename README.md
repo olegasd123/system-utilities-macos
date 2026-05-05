@@ -11,7 +11,8 @@ Native macOS migration of the System Monitor app.
 - Daily network totals are persisted and can be reset from the dashboard.
 - Detailed temperature sensors and fan RPM are implemented through
   `IOHIDEventSystemClient` and AppleSMC. Hardware validation is still needed.
-- Notifications and launch at login are not ported yet.
+- Warning notifications are implemented with threshold hysteresis and cooldown.
+- Launch at login is not ported yet.
 
 ## Run
 
