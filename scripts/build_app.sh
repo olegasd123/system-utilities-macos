@@ -13,6 +13,7 @@ MACOS_PATH="$CONTENTS_PATH/MacOS"
 RESOURCES_PATH="$CONTENTS_PATH/Resources"
 BUILD_HOME="$ROOT_DIR/.build/package-home"
 MODULE_CACHE_PATH="$ROOT_DIR/.build/module-cache"
+DEFAULT_ICON_PATH="$ROOT_DIR/Packaging/AppIcon.icns"
 
 cd "$ROOT_DIR"
 
@@ -34,9 +35,12 @@ mkdir -p "$MACOS_PATH" "$RESOURCES_PATH"
 cp "$ROOT_DIR/.build/$CONFIGURATION/$EXECUTABLE_NAME" "$MACOS_PATH/$EXECUTABLE_NAME"
 cp "$ROOT_DIR/Packaging/Info.plist" "$CONTENTS_PATH/Info.plist"
 
-if [ -n "${APP_ICON_PATH:-}" ]; then
-    cp "$APP_ICON_PATH" "$RESOURCES_PATH/AppIcon.icns"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$CONTENTS_PATH/Info.plist"
+ICON_PATH="${APP_ICON_PATH:-$DEFAULT_ICON_PATH}"
+
+if [ -f "$ICON_PATH" ]; then
+    cp "$ICON_PATH" "$RESOURCES_PATH/AppIcon.icns"
+    /usr/libexec/PlistBuddy -c "Delete :CFBundleIconFile" "$CONTENTS_PATH/Info.plist" 2> /dev/null || true
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$CONTENTS_PATH/Info.plist"
 fi
 
 if [ "$SIGN_IDENTITY" = "-" ]; then
