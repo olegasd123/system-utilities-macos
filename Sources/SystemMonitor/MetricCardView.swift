@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MetricCardView: View {
+    static let height: CGFloat = 126
+
     let symbol: String
     let label: String
     let value: String
@@ -11,7 +13,7 @@ struct MetricCardView: View {
     var footer: AnyView?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 7) {
                 Image(systemName: symbol)
                     .font(.system(size: 14, weight: .medium))
@@ -33,23 +35,27 @@ struct MetricCardView: View {
             Text(value)
                 .font(.system(size: 22, weight: .semibold, design: .default))
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
 
             Text(subtitle)
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
+                .minimumScaleFactor(0.9)
+
+            Spacer(minLength: 0)
 
             if let progress {
                 ProgressView(value: max(0, min(progress, 100)), total: 100)
                     .tint(accent)
                     .controlSize(.small)
-                    .padding(.top, 4)
             }
 
             footer
         }
-        .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
-        .padding(14)
+        .padding(13)
+        .frame(maxWidth: .infinity, minHeight: Self.height, maxHeight: Self.height, alignment: .topLeading)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)

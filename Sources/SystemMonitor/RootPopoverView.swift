@@ -30,6 +30,6 @@ struct RootPopoverView: View {
                 )
             }
         }
-        .frame(width: 450, height: 620)
+        .frame(width: PopoverLayout.width, height: PopoverLayout.height)
     }
 }

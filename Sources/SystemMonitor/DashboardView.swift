@@ -8,11 +8,6 @@ struct DashboardView: View {
     let onOpenSettings: () -> Void
     let onQuit: () -> Void
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 8),
-        GridItem(.flexible(), spacing: 8)
-    ]
-
     var body: some View {
         VStack(spacing: 12) {
             HStack {
@@ -30,62 +25,68 @@ struct DashboardView: View {
             }
             .padding(.horizontal, 4)
 
-            LazyVGrid(columns: columns, spacing: 8) {
-                MetricCardView(
-                    symbol: "cpu",
-                    label: "CPU LOAD",
-                    value: cpuValue,
-                    subtitle: cpuSubtitle,
-                    accent: .blue,
-                    progress: snapshot?.cpu.usagePercent ?? 0,
-                    warning: cpuWarning
-                )
+            VStack(spacing: 8) {
+                metricRow {
+                    MetricCardView(
+                        symbol: "cpu",
+                        label: "CPU LOAD",
+                        value: cpuValue,
+                        subtitle: cpuSubtitle,
+                        accent: .blue,
+                        progress: snapshot?.cpu.usagePercent ?? 0,
+                        warning: cpuWarning
+                    )
+                } right: {
+                    MetricCardView(
+                        symbol: "memorychip",
+                        label: "MEMORY",
+                        value: memoryValue,
+                        subtitle: memorySubtitle,
+                        accent: .green,
+                        progress: snapshot?.memory.usedPercent ?? 0,
+                        warning: memoryWarning
+                    )
+                }
 
-                MetricCardView(
-                    symbol: "memorychip",
-                    label: "MEMORY",
-                    value: memoryValue,
-                    subtitle: memorySubtitle,
-                    accent: .green,
-                    progress: snapshot?.memory.usedPercent ?? 0,
-                    warning: memoryWarning
-                )
+                metricRow {
+                    MetricCardView(
+                        symbol: "internaldrive",
+                        label: "DISK",
+                        value: diskValue,
+                        subtitle: diskSubtitle,
+                        accent: .cyan,
+                        progress: primaryDisk?.usedPercent ?? 0,
+                        warning: diskWarning
+                    )
+                } right: {
+                    MetricCardView(
+                        symbol: "network",
+                        label: "NETWORK",
+                        value: networkValue,
+                        subtitle: networkSubtitle,
+                        accent: .orange,
+                        footer: networkTotalsFooter
+                    )
+                }
 
-                MetricCardView(
-                    symbol: "internaldrive",
-                    label: "DISK",
-                    value: diskValue,
-                    subtitle: diskSubtitle,
-                    accent: .cyan,
-                    progress: primaryDisk?.usedPercent ?? 0,
-                    warning: diskWarning
-                )
-
-                MetricCardView(
-                    symbol: "network",
-                    label: "NETWORK",
-                    value: networkValue,
-                    subtitle: networkSubtitle,
-                    accent: .orange,
-                    footer: networkTotalsFooter
-                )
-
-                MetricCardView(
-                    symbol: "thermometer",
-                    label: "SENSORS",
-                    value: sensorValue,
-                    subtitle: sensorSubtitle,
-                    accent: .yellow,
-                    warning: temperatureWarning
-                )
-
-                MetricCardView(
-                    symbol: "fan",
-                    label: "FANS",
-                    value: fanValue,
-                    subtitle: fanSubtitle,
-                    accent: .yellow
-                )
+                metricRow {
+                    MetricCardView(
+                        symbol: "thermometer",
+                        label: "SENSORS",
+                        value: sensorValue,
+                        subtitle: sensorSubtitle,
+                        accent: .yellow,
+                        warning: temperatureWarning
+                    )
+                } right: {
+                    MetricCardView(
+                        symbol: "fan",
+                        label: "FANS",
+                        value: fanValue,
+                        subtitle: fanSubtitle,
+                        accent: .yellow
+                    )
+                }
 
                 if let battery = snapshot?.battery {
                     MetricCardView(
@@ -97,13 +98,22 @@ struct DashboardView: View {
                         progress: battery.chargePercent,
                         warning: batteryWarning(battery)
                     )
-                    .gridCellColumns(2)
                 }
             }
 
             Spacer(minLength: 0)
         }
         .padding(12)
+    }
+
+    private func metricRow<Left: View, Right: View>(
+        @ViewBuilder left: () -> Left,
+        @ViewBuilder right: () -> Right
+    ) -> some View {
+        HStack(spacing: 8) {
+            left()
+            right()
+        }
     }
 
     private var primaryDisk: DiskSample? {
@@ -189,35 +199,21 @@ struct DashboardView: View {
         }
 
         return AnyView(
-            HStack(alignment: .bottom, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Today down")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                    Text(SystemFormatters.bytes(networkTotals.rxBytes))
-                        .font(.system(size: 12, weight: .medium))
-                        .monospacedDigit()
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Today up")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                    Text(SystemFormatters.bytes(networkTotals.txBytes))
-                        .font(.system(size: 12, weight: .medium))
-                        .monospacedDigit()
-                }
+            HStack(spacing: 8) {
+                Label(SystemFormatters.bytes(networkTotals.rxBytes), systemImage: "arrow.down")
+                Label(SystemFormatters.bytes(networkTotals.txBytes), systemImage: "arrow.up")
 
                 Spacer(minLength: 0)
 
                 Button(action: onResetNetworkTotals) {
                     Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 12, weight: .medium))
                 }
                 .buttonStyle(.plain)
                 .help("Reset network totals")
             }
-            .padding(.top, 4)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
         )
     }
 
