@@ -9,7 +9,7 @@ struct DashboardView: View {
     let onQuit: () -> Void
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: PopoverLayout.titleSpacing) {
             HStack {
                 Text("System Monitor")
                     .font(.system(size: 14, weight: .semibold))
@@ -23,9 +23,10 @@ struct DashboardView: View {
                 .buttonStyle(.plain)
                 .help("Settings")
             }
+            .frame(height: PopoverLayout.titleHeight)
             .padding(.horizontal, 4)
 
-            VStack(spacing: 8) {
+            VStack(spacing: PopoverLayout.rowSpacing) {
                 metricRow {
                     MetricCardView(
                         symbol: "cpu",
@@ -100,17 +101,16 @@ struct DashboardView: View {
                     )
                 }
             }
-
-            Spacer(minLength: 0)
         }
-        .padding(12)
+        .padding(PopoverLayout.contentPadding)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private func metricRow<Left: View, Right: View>(
         @ViewBuilder left: () -> Left,
         @ViewBuilder right: () -> Right
     ) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: PopoverLayout.rowSpacing) {
             left()
             right()
         }

@@ -62,8 +62,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        let oldSize = popover.contentSize
         popover.contentSize = contentSize
         popover.contentViewController?.preferredContentSize = contentSize
+
+        guard
+            popover.isShown,
+            let window = popover.contentViewController?.view.window
+        else {
+            return
+        }
+
+        var frame = window.frame
+        let widthDelta = contentSize.width - oldSize.width
+        let heightDelta = contentSize.height - oldSize.height
+        frame.origin.y -= heightDelta
+        frame.size.width += widthDelta
+        frame.size.height += heightDelta
+        window.setFrame(frame, display: true)
     }
 
     @objc private func statusItemClicked(_ sender: Any?) {
@@ -139,6 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .combineLatest(appState.$settings)
             .sink { [weak self] _, _ in
                 self?.updateStatusItem()
+                self?.updatePopoverContentSize()
             }
             .store(in: &cancellables)
 

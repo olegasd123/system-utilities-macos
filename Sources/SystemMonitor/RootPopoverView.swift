@@ -6,7 +6,7 @@ struct RootPopoverView: View {
     let onQuit: () -> Void
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             VisualEffectView(material: .popover, blendingMode: .behindWindow)
                 .ignoresSafeArea()
 

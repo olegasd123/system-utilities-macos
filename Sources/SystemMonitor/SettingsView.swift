@@ -123,6 +123,7 @@ struct SettingsView: View {
             }
         }
         .padding(16)
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var enabledMenuBarItemCount: Int {
