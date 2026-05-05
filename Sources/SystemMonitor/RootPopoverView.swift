@@ -31,11 +31,8 @@ struct RootPopoverView: View {
             }
         }
         .frame(
-            width: PopoverLayout.width,
-            height: PopoverLayout.height(
-                for: router.route,
-                hasBattery: appState.snapshot?.battery != nil
-            )
+            width: PopoverLayout.contentSize.width,
+            height: PopoverLayout.contentSize.height
         )
     }
 }

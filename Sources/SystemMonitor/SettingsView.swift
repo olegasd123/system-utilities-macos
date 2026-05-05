@@ -13,7 +13,7 @@ struct SettingsView: View {
                 Button(action: onClose) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .medium))
-                        .frame(width: 28, height: 14)
+                        .frame(width: 28, height: PopoverLayout.titleHeight)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -27,9 +27,10 @@ struct SettingsView: View {
 
                 Spacer()
 
-                Color.clear.frame(width: 28, height: 14)
+                Color.clear.frame(width: 28, height: PopoverLayout.titleHeight)
             }
-            .padding(.bottom, 12)
+            .frame(height: PopoverLayout.titleHeight)
+            .padding(.bottom, PopoverLayout.titleSpacing)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -125,7 +126,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .padding(16)
+        .padding(PopoverLayout.contentPadding)
         .frame(maxHeight: .infinity, alignment: .top)
     }
 

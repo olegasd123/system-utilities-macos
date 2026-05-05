@@ -63,10 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updatePopoverContentSize() {
-        let size = PopoverLayout.contentSize(
-            for: popoverRouter.route,
-            hasBattery: appState.snapshot?.battery != nil
-        )
+        let size = PopoverLayout.contentSize
         let contentSize = NSSize(width: size.width, height: size.height)
         guard popover.contentSize != contentSize else {
             return
