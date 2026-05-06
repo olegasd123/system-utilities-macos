@@ -138,7 +138,7 @@ struct DashboardView: View {
             return "Waiting for samples"
         }
         if let temperature = snapshot.cpu.temperatureC {
-            return SystemFormatters.temperature(temperature, unit: settings.temperatureUnit)
+            return "Temp \(SystemFormatters.temperature(temperature, unit: settings.temperatureUnit))"
         }
         return "\(snapshot.cpu.coreCount) cores"
     }
@@ -260,7 +260,7 @@ struct DashboardView: View {
             return "Unavailable"
         }
         return snapshot.fans.prefix(2)
-            .map { "\($0.label) \($0.rpm) RPM" }
+            .map { "\($0.label):  \($0.rpm) RPM" }
             .joined(separator: "\n")
     }
 
