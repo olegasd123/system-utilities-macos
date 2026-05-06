@@ -53,8 +53,8 @@ final class MenuBarStatusView: NSView {
 
     private var drawingFont: NSFont {
         lines.count > 1
-            ? .monospacedSystemFont(ofSize: 8.5, weight: .medium)
-            : .monospacedSystemFont(ofSize: 11, weight: .medium)
+            ? .menuBarFont(ofSize: 8.5)
+            : .menuBarFont(ofSize: 0)
     }
 
     private func attributedLine(_ line: String, font: NSFont) -> NSAttributedString {
