@@ -1,6 +1,9 @@
+import AppCore
 import AppKit
+import AppUI
 import Combine
 import SwiftUI
+import SystemMonitor
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -8,12 +11,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let menuBarStatusView = MenuBarStatusView()
     private let popover = NSPopover()
     private let popoverRouter = PopoverRouter()
-    private let appState = AppState()
+    private let settingsModel = SettingsModel()
+    private lazy var launchAtLoginModel = LaunchAtLoginModel(settingsModel: settingsModel)
+    private lazy var monitorModel = SystemMonitorModel(settingsModel: settingsModel)
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        _ = launchAtLoginModel
+        _ = monitorModel
         configureStatusItem()
         configurePopover()
         configureDismissalObservers()
@@ -47,7 +54,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
                 router: popoverRouter,
-                appState: appState,
+                settingsModel: settingsModel,
+                launchAtLoginModel: launchAtLoginModel,
+                monitorModel: monitorModel,
                 onQuit: { NSApp.terminate(nil) }
             )
         )
@@ -185,8 +194,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func bindStatusItem() {
-        appState.$snapshot
-            .combineLatest(appState.$settings)
+        monitorModel.$snapshot
+            .combineLatest(settingsModel.$settings)
             .sink { [weak self] _, _ in
                 self?.updateStatusItem()
                 self?.updatePopoverContentSize()
@@ -202,8 +211,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatusItem() {
         let lines = MenuBarFormatter.statusLines(
-            snapshot: appState.snapshot,
-            settings: appState.settings
+            snapshot: monitorModel.snapshot,
+            settings: settingsModel.settings
         )
         menuBarStatusView.update(lines: lines)
         statusItem?.length = menuBarStatusView.preferredWidth

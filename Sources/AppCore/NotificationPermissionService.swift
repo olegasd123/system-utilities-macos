@@ -1,8 +1,8 @@
 import Foundation
 import UserNotifications
 
-enum NotificationPermissionService {
-    static func requestPermission() {
+public enum NotificationPermissionService {
+    public static func requestPermission() {
         guard NotificationRuntime.canUseUserNotifications else {
             return
         }

@@ -8,12 +8,22 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "SystemMonitor", targets: ["SystemMonitor"])
+        .executable(name: "SystemMonitor", targets: ["App"])
     ],
     targets: [
         .executableTarget(
+            name: "App",
+            dependencies: ["AppCore", "AppUI", "SystemMonitor"]
+        ),
+        .target(
+            name: "AppCore"
+        ),
+        .target(
+            name: "AppUI"
+        ),
+        .target(
             name: "SystemMonitor",
-            dependencies: ["MacSensorBridge"]
+            dependencies: ["AppCore", "AppUI", "MacSensorBridge"]
         ),
         .target(
             name: "MacSensorBridge",

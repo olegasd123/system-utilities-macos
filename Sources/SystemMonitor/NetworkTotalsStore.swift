@@ -1,16 +1,18 @@
 import Foundation
 
-struct NetworkTotalsStore: Sendable {
-    static let standard = NetworkTotalsStore()
+public struct NetworkTotalsStore: Sendable {
+    public static let standard = NetworkTotalsStore()
 
-    func load() -> NetworkDailyBaseline? {
+    public init() {}
+
+    public func load() -> NetworkDailyBaseline? {
         guard let data = try? Data(contentsOf: baselineURL) else {
             return nil
         }
         return try? JSONDecoder().decode(NetworkDailyBaseline.self, from: data)
     }
 
-    func save(_ baseline: NetworkDailyBaseline) throws {
+    public func save(_ baseline: NetworkDailyBaseline) throws {
         let directory = baselineURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(
             at: directory,

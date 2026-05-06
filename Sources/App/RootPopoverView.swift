@@ -1,8 +1,14 @@
+import AppCore
+import AppKit
+import AppUI
 import SwiftUI
+import SystemMonitor
 
 struct RootPopoverView: View {
     @ObservedObject var router: PopoverRouter
-    @ObservedObject var appState: AppState
+    @ObservedObject var settingsModel: SettingsModel
+    @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
+    @ObservedObject var monitorModel: SystemMonitorModel
     let onQuit: () -> Void
 
     var body: some View {
@@ -13,19 +19,15 @@ struct RootPopoverView: View {
             switch router.route {
             case .dashboard:
                 DashboardView(
-                    snapshot: appState.snapshot,
-                    networkTotals: appState.networkTotals,
-                    settings: appState.settings,
-                    onResetNetworkTotals: { appState.resetNetworkTotals() },
+                    model: monitorModel,
+                    settings: settingsModel.settings,
                     onOpenSettings: { router.route = .settings },
                     onQuit: onQuit
                 )
             case .settings:
                 SettingsView(
-                    settings: $appState.settings,
-                    launchAtLoginStatus: appState.launchAtLoginStatus,
-                    onSetLaunchAtLogin: { appState.setLaunchAtLogin($0) },
-                    onOpenLoginItems: { appState.openLoginItemsSettings() },
+                    settingsModel: settingsModel,
+                    launchAtLoginModel: launchAtLoginModel,
                     onClose: { router.route = .dashboard }
                 )
             }

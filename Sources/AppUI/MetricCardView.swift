@@ -1,16 +1,36 @@
 import SwiftUI
 
-struct MetricCardView: View {
-    let symbol: String
-    let label: String
-    let value: String
-    let subtitle: String
-    let accent: Color
-    var progress: Double?
-    var warning = false
-    var footer: AnyView?
+public struct MetricCardView: View {
+    public let symbol: String
+    public let label: String
+    public let value: String
+    public let subtitle: String
+    public let accent: Color
+    public var progress: Double?
+    public var warning: Bool
+    public var footer: AnyView?
 
-    var body: some View {
+    public init(
+        symbol: String,
+        label: String,
+        value: String,
+        subtitle: String,
+        accent: Color,
+        progress: Double? = nil,
+        warning: Bool = false,
+        footer: AnyView? = nil
+    ) {
+        self.symbol = symbol
+        self.label = label
+        self.value = value
+        self.subtitle = subtitle
+        self.accent = accent
+        self.progress = progress
+        self.warning = warning
+        self.footer = footer
+    }
+
+    public var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 7) {
                 Image(systemName: symbol)

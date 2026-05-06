@@ -1,28 +1,29 @@
+import AppCore
 import Foundation
 
-struct MenuBarStatusLine {
-    var segments: [MenuBarStatusSegment]
+public struct MenuBarStatusLine {
+    public var segments: [MenuBarStatusSegment]
 
-    init(segments: [MenuBarStatusSegment]) {
+    public init(segments: [MenuBarStatusSegment]) {
         self.segments = segments
     }
 
-    init(text: String) {
+    public init(text: String) {
         segments = [MenuBarStatusSegment(text: text, reservedText: text)]
     }
 
-    var text: String {
+    public var text: String {
         segments.map(\.text).joined(separator: "  ")
     }
 }
 
-struct MenuBarStatusSegment {
-    var text: String
-    var reservedText: String
-    var symbolName: String?
-    var fallbackPrefix: String?
+public struct MenuBarStatusSegment {
+    public var text: String
+    public var reservedText: String
+    public var symbolName: String?
+    public var fallbackPrefix: String?
 
-    init(
+    public init(
         text: String,
         reservedText: String,
         symbolName: String? = nil,
@@ -35,16 +36,16 @@ struct MenuBarStatusSegment {
     }
 }
 
-enum MenuBarFormatter {
-    static func title(snapshot: Snapshot?, settings: Settings) -> String {
+public enum MenuBarFormatter {
+    public static func title(snapshot: Snapshot?, settings: Settings) -> String {
         lines(snapshot: snapshot, settings: settings).joined(separator: "  ")
     }
 
-    static func lines(snapshot: Snapshot?, settings: Settings) -> [String] {
+    public static func lines(snapshot: Snapshot?, settings: Settings) -> [String] {
         statusLines(snapshot: snapshot, settings: settings).map(\.text)
     }
 
-    static func statusLines(snapshot: Snapshot?, settings: Settings) -> [MenuBarStatusLine] {
+    public static func statusLines(snapshot: Snapshot?, settings: Settings) -> [MenuBarStatusLine] {
         guard let snapshot else {
             return settings.menuBar.displayMode == .twoLine
                 ? [

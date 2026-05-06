@@ -1,6 +1,6 @@
 import AppKit
 
-final class MenuBarStatusView: NSView {
+public final class MenuBarStatusView: NSView {
     private var lines: [MenuBarStatusLine] = [MenuBarStatusLine(text: "CPU --  NET --")]
     private let horizontalPadding: CGFloat = 7
     private let segmentSeparator = "  "
@@ -8,31 +8,39 @@ final class MenuBarStatusView: NSView {
     private let iconTextSpacing: CGFloat = 3
     private let minimumWidth: CGFloat = 48
 
-    override var isFlipped: Bool {
+    public override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+    }
+
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    public override var isFlipped: Bool {
         true
     }
 
-    var preferredWidth: CGFloat {
+    public var preferredWidth: CGFloat {
         let font = drawingFont
         let width = ceil(contentWidth(font: font))
         return max(minimumWidth, width + horizontalPadding * 2)
     }
 
-    override var intrinsicContentSize: NSSize {
+    public override var intrinsicContentSize: NSSize {
         NSSize(width: preferredWidth, height: NSStatusBar.system.thickness)
     }
 
-    func update(lines: [MenuBarStatusLine]) {
+    public func update(lines: [MenuBarStatusLine]) {
         self.lines = Array(lines.prefix(2))
         invalidateIntrinsicContentSize()
         needsDisplay = true
     }
 
-    override func hitTest(_ point: NSPoint) -> NSView? {
+    public override func hitTest(_ point: NSPoint) -> NSView? {
         nil
     }
 
-    override func draw(_ dirtyRect: NSRect) {
+    public override func draw(_ dirtyRect: NSRect) {
         guard !lines.isEmpty else {
             return
         }

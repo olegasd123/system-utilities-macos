@@ -1,14 +1,26 @@
+import AppCore
+import AppUI
 import SwiftUI
 
-struct DashboardView: View {
-    let snapshot: Snapshot?
-    let networkTotals: NetworkTotals?
-    let settings: Settings
-    let onResetNetworkTotals: () -> Void
-    let onOpenSettings: () -> Void
-    let onQuit: () -> Void
+public struct DashboardView: View {
+    @ObservedObject private var model: SystemMonitorModel
+    private let settings: AppCore.Settings
+    private let onOpenSettings: () -> Void
+    private let onQuit: () -> Void
 
-    var body: some View {
+    public init(
+        model: SystemMonitorModel,
+        settings: AppCore.Settings,
+        onOpenSettings: @escaping () -> Void,
+        onQuit: @escaping () -> Void
+    ) {
+        self.model = model
+        self.settings = settings
+        self.onOpenSettings = onOpenSettings
+        self.onQuit = onQuit
+    }
+
+    public var body: some View {
         VStack(spacing: PopoverLayout.titleSpacing) {
             HStack {
                 Text("System Monitor")
@@ -104,6 +116,14 @@ struct DashboardView: View {
         }
         .padding(PopoverLayout.contentPadding)
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private var snapshot: Snapshot? {
+        model.snapshot
+    }
+
+    private var networkTotals: NetworkTotals? {
+        model.networkTotals
     }
 
     private func metricRow<Left: View, Right: View>(
@@ -220,7 +240,7 @@ struct DashboardView: View {
 
                 Spacer(minLength: 0)
 
-                Button(action: onResetNetworkTotals) {
+                Button(action: { model.resetNetworkTotals() }) {
                     Image(systemName: "arrow.counterclockwise")
                 }
                 .buttonStyle(.plain)

@@ -1,13 +1,27 @@
 import SwiftUI
 
-struct ThresholdRowView: View {
-    let label: String
-    @Binding var enabled: Bool
-    @Binding var value: Double
-    let unit: String
-    let range: ClosedRange<Double>
+public struct ThresholdRowView: View {
+    public let label: String
+    @Binding public var enabled: Bool
+    @Binding public var value: Double
+    public let unit: String
+    public let range: ClosedRange<Double>
 
-    var body: some View {
+    public init(
+        label: String,
+        enabled: Binding<Bool>,
+        value: Binding<Double>,
+        unit: String,
+        range: ClosedRange<Double>
+    ) {
+        self.label = label
+        self._enabled = enabled
+        self._value = value
+        self.unit = unit
+        self.range = range
+    }
+
+    public var body: some View {
         HStack {
             Toggle(label, isOn: $enabled)
 

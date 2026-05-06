@@ -1,13 +1,15 @@
 import Foundation
 
-struct SettingsStore: Sendable {
-    static let standard = SettingsStore()
+public struct SettingsStore: Sendable {
+    public static let standard = SettingsStore()
 
-    func load() -> Settings {
+    public init() {}
+
+    public func load() -> Settings {
         loadResult().settings
     }
 
-    func loadResult() -> SettingsLoadResult {
+    public func loadResult() -> SettingsLoadResult {
         guard let data = try? Data(contentsOf: settingsURL) else {
             return SettingsLoadResult(settings: .defaultValue, loadedFromDisk: false)
         }
@@ -24,7 +26,7 @@ struct SettingsStore: Sendable {
         return SettingsLoadResult(settings: .defaultValue, loadedFromDisk: false)
     }
 
-    func save(_ settings: Settings) throws {
+    public func save(_ settings: Settings) throws {
         let directory = settingsURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(
             at: directory,
@@ -47,9 +49,14 @@ struct SettingsStore: Sendable {
     }
 }
 
-struct SettingsLoadResult: Equatable {
-    let settings: Settings
-    let loadedFromDisk: Bool
+public struct SettingsLoadResult: Equatable, Sendable {
+    public let settings: Settings
+    public let loadedFromDisk: Bool
+
+    public init(settings: Settings, loadedFromDisk: Bool) {
+        self.settings = settings
+        self.loadedFromDisk = loadedFromDisk
+    }
 }
 
 private struct SettingsEnvelope: Codable {

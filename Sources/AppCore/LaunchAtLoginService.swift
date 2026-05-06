@@ -1,14 +1,28 @@
 import Foundation
 import ServiceManagement
 
-struct LaunchAtLoginStatus: Equatable {
-    var isRegistered: Bool
-    var isEnabled: Bool
-    var canChange: Bool
-    var needsApproval: Bool
-    var message: String?
+public struct LaunchAtLoginStatus: Equatable, Sendable {
+    public var isRegistered: Bool
+    public var isEnabled: Bool
+    public var canChange: Bool
+    public var needsApproval: Bool
+    public var message: String?
 
-    static let unavailable = LaunchAtLoginStatus(
+    public init(
+        isRegistered: Bool,
+        isEnabled: Bool,
+        canChange: Bool,
+        needsApproval: Bool,
+        message: String?
+    ) {
+        self.isRegistered = isRegistered
+        self.isEnabled = isEnabled
+        self.canChange = canChange
+        self.needsApproval = needsApproval
+        self.message = message
+    }
+
+    public static let unavailable = LaunchAtLoginStatus(
         isRegistered: false,
         isEnabled: false,
         canChange: false,
@@ -17,10 +31,12 @@ struct LaunchAtLoginStatus: Equatable {
     )
 }
 
-struct LaunchAtLoginService: Sendable {
-    static let standard = LaunchAtLoginService()
+public struct LaunchAtLoginService: Sendable {
+    public static let standard = LaunchAtLoginService()
 
-    func status() -> LaunchAtLoginStatus {
+    public init() {}
+
+    public func status() -> LaunchAtLoginStatus {
         guard Self.canUseMainAppService else {
             return .unavailable
         }
@@ -28,7 +44,7 @@ struct LaunchAtLoginService: Sendable {
         return status(from: SMAppService.mainApp.status)
     }
 
-    func setRegistered(_ isRegistered: Bool) -> LaunchAtLoginStatus {
+    public func setRegistered(_ isRegistered: Bool) -> LaunchAtLoginStatus {
         guard Self.canUseMainAppService else {
             return .unavailable
         }
@@ -53,7 +69,7 @@ struct LaunchAtLoginService: Sendable {
         }
     }
 
-    func openLoginItemsSettings() {
+    public func openLoginItemsSettings() {
         guard Self.canUseMainAppService else {
             return
         }

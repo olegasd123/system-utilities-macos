@@ -1,15 +1,33 @@
 import Foundation
 
-struct Settings: Codable, Equatable {
-    var menuBar: MenuBarSettings
-    var temperatureUnit: TemperatureUnit
-    var networkUnits: NetworkUnits
-    var networkDisplay: NetworkDisplay
-    var warningThresholds: WarningThresholds
-    var warningsEnabled: Bool
-    var launchAtLogin: Bool
+public struct Settings: Codable, Equatable, Sendable {
+    public var menuBar: MenuBarSettings
+    public var temperatureUnit: TemperatureUnit
+    public var networkUnits: NetworkUnits
+    public var networkDisplay: NetworkDisplay
+    public var warningThresholds: WarningThresholds
+    public var warningsEnabled: Bool
+    public var launchAtLogin: Bool
 
-    static var defaultValue: Settings {
+    public init(
+        menuBar: MenuBarSettings,
+        temperatureUnit: TemperatureUnit,
+        networkUnits: NetworkUnits,
+        networkDisplay: NetworkDisplay,
+        warningThresholds: WarningThresholds,
+        warningsEnabled: Bool,
+        launchAtLogin: Bool
+    ) {
+        self.menuBar = menuBar
+        self.temperatureUnit = temperatureUnit
+        self.networkUnits = networkUnits
+        self.networkDisplay = networkDisplay
+        self.warningThresholds = warningThresholds
+        self.warningsEnabled = warningsEnabled
+        self.launchAtLogin = launchAtLogin
+    }
+
+    public static var defaultValue: Settings {
         Settings(
             menuBar: MenuBarSettings(
                 showNetworkSpeed: false,
@@ -46,7 +64,7 @@ struct Settings: Codable, Equatable {
         return Locale.current.measurementSystem == .us ? .fahrenheit : .celsius
     }
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case menuBar = "menu_bar"
         case temperatureUnit = "temperature_unit"
         case networkUnits = "network_units"
@@ -57,16 +75,16 @@ struct Settings: Codable, Equatable {
     }
 }
 
-struct MenuBarSettings: Codable, Equatable {
-    var showNetworkSpeed: Bool
-    var showCpuLoad: Bool
-    var showMemoryUsage: Bool
-    var showDiskFree: Bool
-    var showBattery: Bool
-    var showTemperature: Bool
-    var displayMode: MenuBarDisplayMode
+public struct MenuBarSettings: Codable, Equatable, Sendable {
+    public var showNetworkSpeed: Bool
+    public var showCpuLoad: Bool
+    public var showMemoryUsage: Bool
+    public var showDiskFree: Bool
+    public var showBattery: Bool
+    public var showTemperature: Bool
+    public var displayMode: MenuBarDisplayMode
 
-    init(
+    public init(
         showNetworkSpeed: Bool,
         showCpuLoad: Bool,
         showMemoryUsage: Bool,
@@ -84,7 +102,7 @@ struct MenuBarSettings: Codable, Equatable {
         self.displayMode = displayMode
     }
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case showNetworkSpeed = "show_network_speed"
         case showCpuLoad = "show_cpu_load"
         case showMemoryUsage = "show_memory_usage"
@@ -94,7 +112,7 @@ struct MenuBarSettings: Codable, Equatable {
         case displayMode = "display_mode"
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         showNetworkSpeed = try container.decodeIfPresent(
             Bool.self,
@@ -118,19 +136,43 @@ struct MenuBarSettings: Codable, Equatable {
     }
 }
 
-struct WarningThresholds: Codable, Equatable {
-    var cpuEnabled: Bool
-    var memoryEnabled: Bool
-    var diskEnabled: Bool
-    var batteryEnabled: Bool
-    var temperatureEnabled: Bool
-    var cpuPercent: Double
-    var memoryPercent: Double
-    var diskFreePercent: Double
-    var batteryPercent: Double
-    var temperatureC: Double
+public struct WarningThresholds: Codable, Equatable, Sendable {
+    public var cpuEnabled: Bool
+    public var memoryEnabled: Bool
+    public var diskEnabled: Bool
+    public var batteryEnabled: Bool
+    public var temperatureEnabled: Bool
+    public var cpuPercent: Double
+    public var memoryPercent: Double
+    public var diskFreePercent: Double
+    public var batteryPercent: Double
+    public var temperatureC: Double
 
-    static let defaultValue = WarningThresholds(
+    public init(
+        cpuEnabled: Bool,
+        memoryEnabled: Bool,
+        diskEnabled: Bool,
+        batteryEnabled: Bool,
+        temperatureEnabled: Bool,
+        cpuPercent: Double,
+        memoryPercent: Double,
+        diskFreePercent: Double,
+        batteryPercent: Double,
+        temperatureC: Double
+    ) {
+        self.cpuEnabled = cpuEnabled
+        self.memoryEnabled = memoryEnabled
+        self.diskEnabled = diskEnabled
+        self.batteryEnabled = batteryEnabled
+        self.temperatureEnabled = temperatureEnabled
+        self.cpuPercent = cpuPercent
+        self.memoryPercent = memoryPercent
+        self.diskFreePercent = diskFreePercent
+        self.batteryPercent = batteryPercent
+        self.temperatureC = temperatureC
+    }
+
+    public static let defaultValue = WarningThresholds(
         cpuEnabled: false,
         memoryEnabled: false,
         diskEnabled: false,
@@ -143,7 +185,7 @@ struct WarningThresholds: Codable, Equatable {
         temperatureC: 85
     )
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case cpuEnabled = "cpu_enabled"
         case memoryEnabled = "memory_enabled"
         case diskEnabled = "disk_enabled"
@@ -157,24 +199,24 @@ struct WarningThresholds: Codable, Equatable {
     }
 }
 
-enum TemperatureUnit: String, Codable, CaseIterable {
+public enum TemperatureUnit: String, Codable, CaseIterable, Sendable {
     case celsius
     case fahrenheit
 }
 
-enum NetworkUnits: String, Codable {
+public enum NetworkUnits: String, Codable, Sendable {
     case bytesPerSecond = "bytes_per_second"
     case bitsPerSecond = "bits_per_second"
 }
 
-enum NetworkDisplay: String, Codable {
+public enum NetworkDisplay: String, Codable, Sendable {
     case uploadAndDownload = "upload_and_download"
     case uploadOnly = "upload_only"
     case downloadOnly = "download_only"
     case combined
 }
 
-enum MenuBarDisplayMode: String, Codable, CaseIterable {
+public enum MenuBarDisplayMode: String, Codable, CaseIterable, Sendable {
     case singleLine = "single_line"
     case twoLine = "two_line"
 }
