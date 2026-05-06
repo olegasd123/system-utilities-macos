@@ -11,9 +11,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let menuBarStatusView = MenuBarStatusView()
     private let popover = NSPopover()
     private let popoverRouter = PopoverRouter()
-    private let settingsModel = SettingsModel()
-    private lazy var launchAtLoginModel = LaunchAtLoginModel(settingsModel: settingsModel)
-    private lazy var monitorModel = SystemMonitorModel(settingsModel: settingsModel)
+    private let settingsStore = AppSettingsStore.standard
+    private lazy var initialLoad = settingsStore.loadResult()
+    private lazy var settingsModel = SettingsModel<AppSettings>(
+        initial: initialLoad.settings,
+        onChange: { [settingsStore] settings in
+            try? settingsStore.save(settings)
+        }
+    )
+    private lazy var launchAtLoginModel = LaunchAtLoginModel(
+        initiallyLoadedFromDisk: initialLoad.loadedFromDisk,
+        initialLaunchAtLogin: initialLoad.settings.general.launchAtLogin,
+        persist: { [unowned self] isRegistered in
+            settingsModel.settings.general.launchAtLogin = isRegistered
+        }
+    )
+    private lazy var monitorModel = SystemMonitorModel(
+        currentSettings: { [unowned self] in settingsModel.settings.systemMonitor }
+    )
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
 
@@ -210,9 +225,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateStatusItem() {
+        let settings = settingsModel.settings
         let lines = MenuBarFormatter.statusLines(
             snapshot: monitorModel.snapshot,
-            settings: settingsModel.settings
+            settings: settings.systemMonitor,
+            temperatureUnit: settings.general.temperatureUnit
         )
         menuBarStatusView.update(lines: lines)
         statusItem?.length = menuBarStatusView.preferredWidth

@@ -37,15 +37,29 @@ public struct MenuBarStatusSegment {
 }
 
 public enum MenuBarFormatter {
-    public static func title(snapshot: Snapshot?, settings: Settings) -> String {
-        lines(snapshot: snapshot, settings: settings).joined(separator: "  ")
+    public static func title(
+        snapshot: Snapshot?,
+        settings: SystemMonitorSettings,
+        temperatureUnit: TemperatureUnit
+    ) -> String {
+        lines(snapshot: snapshot, settings: settings, temperatureUnit: temperatureUnit)
+            .joined(separator: "  ")
     }
 
-    public static func lines(snapshot: Snapshot?, settings: Settings) -> [String] {
-        statusLines(snapshot: snapshot, settings: settings).map(\.text)
+    public static func lines(
+        snapshot: Snapshot?,
+        settings: SystemMonitorSettings,
+        temperatureUnit: TemperatureUnit
+    ) -> [String] {
+        statusLines(snapshot: snapshot, settings: settings, temperatureUnit: temperatureUnit)
+            .map(\.text)
     }
 
-    public static func statusLines(snapshot: Snapshot?, settings: Settings) -> [MenuBarStatusLine] {
+    public static func statusLines(
+        snapshot: Snapshot?,
+        settings: SystemMonitorSettings,
+        temperatureUnit: TemperatureUnit
+    ) -> [MenuBarStatusLine] {
         guard let snapshot else {
             return settings.menuBar.displayMode == .twoLine
                 ? [
@@ -65,7 +79,11 @@ public enum MenuBarFormatter {
                 : [MenuBarStatusLine(text: "CPU --  NET --")]
         }
 
-        let parts = makeParts(snapshot: snapshot, settings: settings)
+        let parts = makeParts(
+            snapshot: snapshot,
+            settings: settings,
+            temperatureUnit: temperatureUnit
+        )
 
         guard !parts.isEmpty else {
             return [MenuBarStatusLine(text: "System Monitor")]
@@ -79,7 +97,11 @@ public enum MenuBarFormatter {
         }
     }
 
-    private static func makeParts(snapshot: Snapshot, settings: Settings) -> [MenuBarPart] {
+    private static func makeParts(
+        snapshot: Snapshot,
+        settings: SystemMonitorSettings,
+        temperatureUnit: TemperatureUnit
+    ) -> [MenuBarPart] {
         var parts: [MenuBarPart] = []
         let menuBar = settings.menuBar
 
@@ -101,16 +123,16 @@ public enum MenuBarFormatter {
         }
 
         if menuBar.showTemperature, let temperature = snapshot.cpu.temperatureC {
-            let value = compactTemperature(temperature, unit: settings.temperatureUnit)
+            let value = compactTemperature(temperature, unit: temperatureUnit)
             parts.append(
                 MenuBarPart(
                     label: "TEMP",
                     value: value,
-                    reservedValue: compactReservedTemperature(unit: settings.temperatureUnit),
-                    text: "TEMP \(SystemFormatters.temperature(temperature, unit: settings.temperatureUnit))",
-                    reservedText: "TEMP \(reservedTemperature(unit: settings.temperatureUnit))",
-                    compactText: SystemFormatters.temperature(temperature, unit: settings.temperatureUnit),
-                    compactReservedText: reservedTemperature(unit: settings.temperatureUnit),
+                    reservedValue: compactReservedTemperature(unit: temperatureUnit),
+                    text: "TEMP \(SystemFormatters.temperature(temperature, unit: temperatureUnit))",
+                    reservedText: "TEMP \(reservedTemperature(unit: temperatureUnit))",
+                    compactText: SystemFormatters.temperature(temperature, unit: temperatureUnit),
+                    compactReservedText: reservedTemperature(unit: temperatureUnit),
                     symbolName: "thermometer.medium",
                     fallbackPrefix: "TEMP"
                 )

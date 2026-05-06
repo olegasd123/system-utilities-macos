@@ -6,7 +6,7 @@ import SystemMonitor
 
 struct RootPopoverView: View {
     @ObservedObject var router: PopoverRouter
-    @ObservedObject var settingsModel: SettingsModel
+    @ObservedObject var settingsModel: SettingsModel<AppSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     @ObservedObject var monitorModel: SystemMonitorModel
     let onQuit: () -> Void
@@ -20,7 +20,8 @@ struct RootPopoverView: View {
             case .dashboard:
                 DashboardView(
                     model: monitorModel,
-                    settings: settingsModel.settings,
+                    settings: settingsModel.settings.systemMonitor,
+                    temperatureUnit: settingsModel.settings.general.temperatureUnit,
                     onOpenSettings: { router.route = .settings },
                     onQuit: onQuit
                 )

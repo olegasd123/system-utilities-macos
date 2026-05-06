@@ -1,34 +1,28 @@
 import Foundation
 
-public struct Settings: Codable, Equatable, Sendable {
+public struct SystemMonitorSettings: Codable, Equatable, Sendable {
     public var menuBar: MenuBarSettings
-    public var temperatureUnit: TemperatureUnit
     public var networkUnits: NetworkUnits
     public var networkDisplay: NetworkDisplay
     public var warningThresholds: WarningThresholds
     public var warningsEnabled: Bool
-    public var launchAtLogin: Bool
 
     public init(
         menuBar: MenuBarSettings,
-        temperatureUnit: TemperatureUnit,
         networkUnits: NetworkUnits,
         networkDisplay: NetworkDisplay,
         warningThresholds: WarningThresholds,
-        warningsEnabled: Bool,
-        launchAtLogin: Bool
+        warningsEnabled: Bool
     ) {
         self.menuBar = menuBar
-        self.temperatureUnit = temperatureUnit
         self.networkUnits = networkUnits
         self.networkDisplay = networkDisplay
         self.warningThresholds = warningThresholds
         self.warningsEnabled = warningsEnabled
-        self.launchAtLogin = launchAtLogin
     }
 
-    public static var defaultValue: Settings {
-        Settings(
+    public static var defaultValue: SystemMonitorSettings {
+        SystemMonitorSettings(
             menuBar: MenuBarSettings(
                 showNetworkSpeed: false,
                 showCpuLoad: true,
@@ -38,40 +32,19 @@ public struct Settings: Codable, Equatable, Sendable {
                 showTemperature: true,
                 displayMode: .singleLine
             ),
-            temperatureUnit: systemPreferredTemperatureUnit,
             networkUnits: .bytesPerSecond,
             networkDisplay: .uploadAndDownload,
             warningThresholds: .defaultValue,
-            warningsEnabled: false,
-            launchAtLogin: true
+            warningsEnabled: false
         )
-    }
-
-    private static var systemPreferredTemperatureUnit: TemperatureUnit {
-        if let rawUnit = UserDefaults.standard
-            .string(forKey: "AppleTemperatureUnit")?
-            .lowercased()
-        {
-            if rawUnit.hasPrefix("f") {
-                return .fahrenheit
-            }
-
-            if rawUnit.hasPrefix("c") {
-                return .celsius
-            }
-        }
-
-        return Locale.current.measurementSystem == .us ? .fahrenheit : .celsius
     }
 
     public enum CodingKeys: String, CodingKey {
         case menuBar = "menu_bar"
-        case temperatureUnit = "temperature_unit"
         case networkUnits = "network_units"
         case networkDisplay = "network_display"
         case warningThresholds = "warning_thresholds"
         case warningsEnabled = "warnings_enabled"
-        case launchAtLogin = "launch_at_login"
     }
 }
 
@@ -197,11 +170,6 @@ public struct WarningThresholds: Codable, Equatable, Sendable {
         case batteryPercent = "battery_percent"
         case temperatureC = "temperature_c"
     }
-}
-
-public enum TemperatureUnit: String, Codable, CaseIterable, Sendable {
-    case celsius
-    case fahrenheit
 }
 
 public enum NetworkUnits: String, Codable, Sendable {

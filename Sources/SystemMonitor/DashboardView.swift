@@ -4,18 +4,21 @@ import SwiftUI
 
 public struct DashboardView: View {
     @ObservedObject private var model: SystemMonitorModel
-    private let settings: AppCore.Settings
+    private let settings: SystemMonitorSettings
+    private let temperatureUnit: TemperatureUnit
     private let onOpenSettings: () -> Void
     private let onQuit: () -> Void
 
     public init(
         model: SystemMonitorModel,
-        settings: AppCore.Settings,
+        settings: SystemMonitorSettings,
+        temperatureUnit: TemperatureUnit,
         onOpenSettings: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
         self.model = model
         self.settings = settings
+        self.temperatureUnit = temperatureUnit
         self.onOpenSettings = onOpenSettings
         self.onQuit = onQuit
     }
@@ -158,7 +161,7 @@ public struct DashboardView: View {
             return "Waiting for samples"
         }
         if let temperature = snapshot.cpu.temperatureC {
-            return "Temp \(SystemFormatters.temperature(temperature, unit: settings.temperatureUnit))"
+            return "Temp \(SystemFormatters.temperature(temperature, unit: temperatureUnit))"
         }
         return "\(snapshot.cpu.coreCount) cores"
     }
@@ -192,7 +195,7 @@ public struct DashboardView: View {
         guard let storageTemperature else {
             return freeSpace
         }
-        return "\(freeSpace)\nStorage \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: settings.temperatureUnit))"
+        return "\(freeSpace)\nStorage \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit))"
     }
 
     private var storageTemperature: TemperatureSample? {
@@ -264,7 +267,7 @@ public struct DashboardView: View {
             return "Waiting for detailed sensors"
         }
         return snapshot.temperatures.prefix(2)
-            .map { "\($0.label) \(SystemFormatters.temperature($0.temperatureC, unit: settings.temperatureUnit))" }
+            .map { "\($0.label) \(SystemFormatters.temperature($0.temperatureC, unit: temperatureUnit))" }
             .joined(separator: "\n")
     }
 

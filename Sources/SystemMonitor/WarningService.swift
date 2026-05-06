@@ -19,7 +19,7 @@ final class WarningService {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    func evaluate(snapshot: Snapshot, settings: Settings) {
+    func evaluate(snapshot: Snapshot, settings: SystemMonitorSettings) {
         if !settings.warningsEnabled {
             reset()
             return

@@ -1,14 +1,19 @@
 import AppCore
 import AppUI
 import SwiftUI
+import SystemMonitor
 
 struct SettingsView: View {
-    @ObservedObject var settingsModel: SettingsModel
+    @ObservedObject var settingsModel: SettingsModel<AppSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let onClose: () -> Void
 
-    private var settings: Binding<AppCore.Settings> {
-        $settingsModel.settings
+    private var general: Binding<GeneralSettings> {
+        $settingsModel.settings.general
+    }
+
+    private var monitor: Binding<SystemMonitorSettings> {
+        $settingsModel.settings.systemMonitor
     }
 
     var body: some View {
@@ -39,18 +44,18 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     settingsSection("Show in the menu bar") {
-                        Picker("Menu bar layout", selection: settings.menuBar.displayMode) {
+                        Picker("Menu bar layout", selection: monitor.menuBar.displayMode) {
                             Text("Single line").tag(MenuBarDisplayMode.singleLine)
                             Text("Two lines").tag(MenuBarDisplayMode.twoLine)
                         }
                         .pickerStyle(.segmented)
 
-                        Toggle("CPU load", isOn: settings.menuBar.showCpuLoad)
-                        Toggle("CPU temperature", isOn: settings.menuBar.showTemperature)
-                        Toggle("Memory usage", isOn: settings.menuBar.showMemoryUsage)
-                        Toggle("Free disk space", isOn: settings.menuBar.showDiskFree)
-                        Toggle("Battery status", isOn: settings.menuBar.showBattery)
-                        Toggle("Network speed", isOn: settings.menuBar.showNetworkSpeed)
+                        Toggle("CPU load", isOn: monitor.menuBar.showCpuLoad)
+                        Toggle("CPU temperature", isOn: monitor.menuBar.showTemperature)
+                        Toggle("Memory usage", isOn: monitor.menuBar.showMemoryUsage)
+                        Toggle("Free disk space", isOn: monitor.menuBar.showDiskFree)
+                        Toggle("Battery status", isOn: monitor.menuBar.showBattery)
+                        Toggle("Network speed", isOn: monitor.menuBar.showNetworkSpeed)
                         if enabledMenuBarItemCount > 5 {
                             Text("Lots of modules enabled. The menu bar may run out of room.")
                                 .font(.system(size: 12))
@@ -59,7 +64,7 @@ struct SettingsView: View {
                     }
 
                     settingsSection("Temperature unit") {
-                        Picker("Temperature unit", selection: settings.temperatureUnit) {
+                        Picker("Temperature unit", selection: general.temperatureUnit) {
                             Text("Celsius").tag(TemperatureUnit.celsius)
                             Text("Fahrenheit").tag(TemperatureUnit.fahrenheit)
                         }
@@ -68,47 +73,47 @@ struct SettingsView: View {
                     }
 
                     settingsSection("Notifications") {
-                        Toggle("Enable warning notifications", isOn: settings.warningsEnabled)
-                            .onChange(of: settingsModel.settings.warningsEnabled) { _, enabled in
+                        Toggle("Enable warning notifications", isOn: monitor.warningsEnabled)
+                            .onChange(of: settingsModel.settings.systemMonitor.warningsEnabled) { _, enabled in
                                 if enabled {
                                     NotificationPermissionService.requestPermission()
                                 }
                             }
 
-                        if settingsModel.settings.warningsEnabled {
+                        if settingsModel.settings.systemMonitor.warningsEnabled {
                             VStack(alignment: .leading, spacing: 10) {
                                 ThresholdRowView(
                                     label: "CPU",
-                                    enabled: settings.warningThresholds.cpuEnabled,
-                                    value: settings.warningThresholds.cpuPercent,
+                                    enabled: monitor.warningThresholds.cpuEnabled,
+                                    value: monitor.warningThresholds.cpuPercent,
                                     unit: "%",
                                     range: 1...100
                                 )
                                 ThresholdRowView(
                                     label: "Temperature",
-                                    enabled: settings.warningThresholds.temperatureEnabled,
+                                    enabled: monitor.warningThresholds.temperatureEnabled,
                                     value: temperatureThresholdBinding,
                                     unit: temperatureThresholdUnit,
                                     range: temperatureThresholdRange
                                 )
                                 ThresholdRowView(
                                     label: "Memory",
-                                    enabled: settings.warningThresholds.memoryEnabled,
-                                    value: settings.warningThresholds.memoryPercent,
+                                    enabled: monitor.warningThresholds.memoryEnabled,
+                                    value: monitor.warningThresholds.memoryPercent,
                                     unit: "%",
                                     range: 1...100
                                 )
                                 ThresholdRowView(
                                     label: "Disk free below",
-                                    enabled: settings.warningThresholds.diskEnabled,
-                                    value: settings.warningThresholds.diskFreePercent,
+                                    enabled: monitor.warningThresholds.diskEnabled,
+                                    value: monitor.warningThresholds.diskFreePercent,
                                     unit: "%",
                                     range: 1...99
                                 )
                                 ThresholdRowView(
                                     label: "Battery below",
-                                    enabled: settings.warningThresholds.batteryEnabled,
-                                    value: settings.warningThresholds.batteryPercent,
+                                    enabled: monitor.warningThresholds.batteryEnabled,
+                                    value: monitor.warningThresholds.batteryPercent,
                                     unit: "%",
                                     range: 1...99
                                 )
@@ -143,7 +148,7 @@ struct SettingsView: View {
     }
 
     private var enabledMenuBarItemCount: Int {
-        let menuBar = settingsModel.settings.menuBar
+        let menuBar = settingsModel.settings.systemMonitor.menuBar
         return [
             menuBar.showCpuLoad,
             menuBar.showTemperature,
@@ -155,32 +160,35 @@ struct SettingsView: View {
     }
 
     private var temperatureThresholdUnit: String {
-        settingsModel.settings.temperatureUnit == .fahrenheit ? "F" : "C"
+        settingsModel.settings.general.temperatureUnit == .fahrenheit ? "F" : "C"
     }
 
     private var temperatureThresholdRange: ClosedRange<Double> {
-        settingsModel.settings.temperatureUnit == .fahrenheit ? 34...230 : 1...110
+        settingsModel.settings.general.temperatureUnit == .fahrenheit ? 34...230 : 1...110
     }
 
     private var temperatureThresholdBinding: Binding<Double> {
         Binding(
             get: {
-                settingsModel.settings.temperatureUnit == .fahrenheit
-                    ? settingsModel.settings.warningThresholds.temperatureC * 1.8 + 32
-                    : settingsModel.settings.warningThresholds.temperatureC
+                let monitor = settingsModel.settings.systemMonitor
+                let unit = settingsModel.settings.general.temperatureUnit
+                return unit == .fahrenheit
+                    ? monitor.warningThresholds.temperatureC * 1.8 + 32
+                    : monitor.warningThresholds.temperatureC
             },
             set: { newValue in
-                let celsius = settingsModel.settings.temperatureUnit == .fahrenheit
+                let unit = settingsModel.settings.general.temperatureUnit
+                let celsius = unit == .fahrenheit
                     ? (newValue - 32) / 1.8
                     : newValue
-                settingsModel.settings.warningThresholds.temperatureC = celsius
+                settingsModel.settings.systemMonitor.warningThresholds.temperatureC = celsius
             }
         )
     }
 
     private var launchAtLoginBinding: Binding<Bool> {
         Binding(
-            get: { settingsModel.settings.launchAtLogin },
+            get: { settingsModel.settings.general.launchAtLogin },
             set: { launchAtLoginModel.setRegistered($0) }
         )
     }

@@ -1,21 +1,20 @@
 import Foundation
 
 @MainActor
-public final class SettingsModel: ObservableObject {
+public final class SettingsModel<Settings: Equatable & Sendable>: ObservableObject {
     @Published public var settings: Settings {
         didSet {
-            try? store.save(settings)
+            guard settings != oldValue else {
+                return
+            }
+            onChange(settings)
         }
     }
 
-    public let initialLoadResult: SettingsLoadResult
+    private let onChange: (Settings) -> Void
 
-    private let store: SettingsStore
-
-    public init(store: SettingsStore = .standard) {
-        self.store = store
-        let result = store.loadResult()
-        self.initialLoadResult = result
-        self.settings = result.settings
+    public init(initial: Settings, onChange: @escaping (Settings) -> Void) {
+        self.settings = initial
+        self.onChange = onChange
     }
 }

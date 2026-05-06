@@ -6,17 +6,17 @@ public final class SystemMonitorModel: ObservableObject {
     @Published public private(set) var snapshot: Snapshot?
     @Published public private(set) var networkTotals: NetworkTotals?
 
-    private let settingsModel: SettingsModel
+    private let currentSettings: () -> SystemMonitorSettings
     private let networkTotalsStore: NetworkTotalsStore
     private let metricsSampler = MetricsSampler()
     private let warningService = WarningService()
     private var networkBaseline: NetworkDailyBaseline?
 
     public init(
-        settingsModel: SettingsModel,
+        currentSettings: @escaping () -> SystemMonitorSettings,
         networkTotalsStore: NetworkTotalsStore = .standard
     ) {
-        self.settingsModel = settingsModel
+        self.currentSettings = currentSettings
         self.networkTotalsStore = networkTotalsStore
         self.networkBaseline = networkTotalsStore.load()
         metricsSampler.start { [weak self] snapshot in
@@ -38,7 +38,7 @@ public final class SystemMonitorModel: ObservableObject {
     private func apply(snapshot: Snapshot) {
         self.snapshot = snapshot
         updateNetworkTotals(snapshot: snapshot)
-        warningService.evaluate(snapshot: snapshot, settings: settingsModel.settings)
+        warningService.evaluate(snapshot: snapshot, settings: currentSettings())
     }
 
     private func updateNetworkTotals(snapshot: Snapshot) {

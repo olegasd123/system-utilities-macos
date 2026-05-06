@@ -5,38 +5,39 @@ public final class LaunchAtLoginModel: ObservableObject {
     @Published public private(set) var status: LaunchAtLoginStatus
 
     private let service: LaunchAtLoginService
-    private let settingsModel: SettingsModel
+    private let persist: (Bool) -> Void
 
     public init(
         service: LaunchAtLoginService = .standard,
-        settingsModel: SettingsModel
+        initiallyLoadedFromDisk: Bool,
+        initialLaunchAtLogin: Bool,
+        persist: @escaping (Bool) -> Void
     ) {
         self.service = service
-        self.settingsModel = settingsModel
+        self.persist = persist
 
         var currentStatus = service.status()
-        let loadResult = settingsModel.initialLoadResult
-        if !loadResult.loadedFromDisk,
-           loadResult.settings.launchAtLogin,
+        if !initiallyLoadedFromDisk,
+           initialLaunchAtLogin,
            currentStatus.canChange
         {
             currentStatus = service.setRegistered(true)
         }
         self.status = currentStatus
 
-        if settingsModel.settings.launchAtLogin != currentStatus.isRegistered {
-            settingsModel.settings.launchAtLogin = currentStatus.isRegistered
+        if initialLaunchAtLogin != currentStatus.isRegistered {
+            persist(currentStatus.isRegistered)
         }
     }
 
     public func setRegistered(_ isRegistered: Bool) {
         status = service.setRegistered(isRegistered)
-        settingsModel.settings.launchAtLogin = status.isRegistered
+        persist(status.isRegistered)
     }
 
     public func openLoginItemsSettings() {
         service.openLoginItemsSettings()
         status = service.status()
-        settingsModel.settings.launchAtLogin = status.isRegistered
+        persist(status.isRegistered)
     }
 }
