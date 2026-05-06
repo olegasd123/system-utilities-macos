@@ -26,9 +26,16 @@ final class AppState: ObservableObject {
         self.settingsStore = settingsStore
         self.networkTotalsStore = networkTotalsStore
         self.launchAtLoginService = launchAtLoginService
-        let currentLaunchAtLoginStatus = launchAtLoginService.status()
+        let loadResult = settingsStore.loadResult()
+        var currentLaunchAtLoginStatus = launchAtLoginService.status()
+        if !loadResult.loadedFromDisk,
+           loadResult.settings.launchAtLogin,
+           currentLaunchAtLoginStatus.canChange
+        {
+            currentLaunchAtLoginStatus = launchAtLoginService.setRegistered(true)
+        }
         launchAtLoginStatus = currentLaunchAtLoginStatus
-        var loadedSettings = settingsStore.load()
+        var loadedSettings = loadResult.settings
         loadedSettings.launchAtLogin = currentLaunchAtLoginStatus.isRegistered
         settings = loadedSettings
         networkBaseline = networkTotalsStore.load()

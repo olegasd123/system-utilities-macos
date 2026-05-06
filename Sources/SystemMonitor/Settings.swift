@@ -9,23 +9,42 @@ struct Settings: Codable, Equatable {
     var warningsEnabled: Bool
     var launchAtLogin: Bool
 
-    static let defaultValue = Settings(
-        menuBar: MenuBarSettings(
-            showNetworkSpeed: true,
-            showCpuLoad: true,
-            showMemoryUsage: false,
-            showDiskFree: false,
-            showBattery: true,
-            showTemperature: false,
-            displayMode: .singleLine
-        ),
-        temperatureUnit: .celsius,
-        networkUnits: .bytesPerSecond,
-        networkDisplay: .uploadAndDownload,
-        warningThresholds: .defaultValue,
-        warningsEnabled: true,
-        launchAtLogin: false
-    )
+    static var defaultValue: Settings {
+        Settings(
+            menuBar: MenuBarSettings(
+                showNetworkSpeed: false,
+                showCpuLoad: true,
+                showMemoryUsage: false,
+                showDiskFree: false,
+                showBattery: false,
+                showTemperature: true,
+                displayMode: .singleLine
+            ),
+            temperatureUnit: systemPreferredTemperatureUnit,
+            networkUnits: .bytesPerSecond,
+            networkDisplay: .uploadAndDownload,
+            warningThresholds: .defaultValue,
+            warningsEnabled: false,
+            launchAtLogin: true
+        )
+    }
+
+    private static var systemPreferredTemperatureUnit: TemperatureUnit {
+        if let rawUnit = UserDefaults.standard
+            .string(forKey: "AppleTemperatureUnit")?
+            .lowercased()
+        {
+            if rawUnit.hasPrefix("f") {
+                return .fahrenheit
+            }
+
+            if rawUnit.hasPrefix("c") {
+                return .celsius
+            }
+        }
+
+        return Locale.current.measurementSystem == .us ? .fahrenheit : .celsius
+    }
 
     enum CodingKeys: String, CodingKey {
         case menuBar = "menu_bar"
@@ -112,11 +131,11 @@ struct WarningThresholds: Codable, Equatable {
     var temperatureC: Double
 
     static let defaultValue = WarningThresholds(
-        cpuEnabled: true,
-        memoryEnabled: true,
-        diskEnabled: true,
-        batteryEnabled: true,
-        temperatureEnabled: true,
+        cpuEnabled: false,
+        memoryEnabled: false,
+        diskEnabled: false,
+        batteryEnabled: false,
+        temperatureEnabled: false,
         cpuPercent: 90,
         memoryPercent: 90,
         diskFreePercent: 10,

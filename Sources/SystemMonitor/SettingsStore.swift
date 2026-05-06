@@ -4,20 +4,24 @@ struct SettingsStore: Sendable {
     static let standard = SettingsStore()
 
     func load() -> Settings {
+        loadResult().settings
+    }
+
+    func loadResult() -> SettingsLoadResult {
         guard let data = try? Data(contentsOf: settingsURL) else {
-            return .defaultValue
+            return SettingsLoadResult(settings: .defaultValue, loadedFromDisk: false)
         }
 
         let decoder = JSONDecoder()
         if let settings = try? decoder.decode(Settings.self, from: data) {
-            return settings
+            return SettingsLoadResult(settings: settings, loadedFromDisk: true)
         }
 
         if let envelope = try? decoder.decode(SettingsEnvelope.self, from: data) {
-            return envelope.settings
+            return SettingsLoadResult(settings: envelope.settings, loadedFromDisk: true)
         }
 
-        return .defaultValue
+        return SettingsLoadResult(settings: .defaultValue, loadedFromDisk: false)
     }
 
     func save(_ settings: Settings) throws {
@@ -41,6 +45,11 @@ struct SettingsStore: Sendable {
             .appendingPathComponent("dev.olegoleg.system-monitor", isDirectory: true)
             .appendingPathComponent("settings.json")
     }
+}
+
+struct SettingsLoadResult: Equatable {
+    let settings: Settings
+    let loadedFromDisk: Bool
 }
 
 private struct SettingsEnvelope: Codable {
