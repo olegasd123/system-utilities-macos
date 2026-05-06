@@ -70,41 +70,47 @@ struct SettingsView: View {
                                     NotificationPermissionService.requestPermission()
                                 }
                             }
-                        ThresholdRowView(
-                            label: "CPU",
-                            enabled: $settings.warningThresholds.cpuEnabled,
-                            value: $settings.warningThresholds.cpuPercent,
-                            unit: "%",
-                            range: 1...100
-                        )
-                        ThresholdRowView(
-                            label: "Temperature",
-                            enabled: $settings.warningThresholds.temperatureEnabled,
-                            value: temperatureThresholdBinding,
-                            unit: temperatureThresholdUnit,
-                            range: temperatureThresholdRange
-                        )
-                        ThresholdRowView(
-                            label: "Memory",
-                            enabled: $settings.warningThresholds.memoryEnabled,
-                            value: $settings.warningThresholds.memoryPercent,
-                            unit: "%",
-                            range: 1...100
-                        )
-                        ThresholdRowView(
-                            label: "Disk free below",
-                            enabled: $settings.warningThresholds.diskEnabled,
-                            value: $settings.warningThresholds.diskFreePercent,
-                            unit: "%",
-                            range: 1...99
-                        )
-                        ThresholdRowView(
-                            label: "Battery below",
-                            enabled: $settings.warningThresholds.batteryEnabled,
-                            value: $settings.warningThresholds.batteryPercent,
-                            unit: "%",
-                            range: 1...99
-                        )
+
+                        if settings.warningsEnabled {
+                            VStack(alignment: .leading, spacing: 10) {
+                                ThresholdRowView(
+                                    label: "CPU",
+                                    enabled: $settings.warningThresholds.cpuEnabled,
+                                    value: $settings.warningThresholds.cpuPercent,
+                                    unit: "%",
+                                    range: 1...100
+                                )
+                                ThresholdRowView(
+                                    label: "Temperature",
+                                    enabled: $settings.warningThresholds.temperatureEnabled,
+                                    value: temperatureThresholdBinding,
+                                    unit: temperatureThresholdUnit,
+                                    range: temperatureThresholdRange
+                                )
+                                ThresholdRowView(
+                                    label: "Memory",
+                                    enabled: $settings.warningThresholds.memoryEnabled,
+                                    value: $settings.warningThresholds.memoryPercent,
+                                    unit: "%",
+                                    range: 1...100
+                                )
+                                ThresholdRowView(
+                                    label: "Disk free below",
+                                    enabled: $settings.warningThresholds.diskEnabled,
+                                    value: $settings.warningThresholds.diskFreePercent,
+                                    unit: "%",
+                                    range: 1...99
+                                )
+                                ThresholdRowView(
+                                    label: "Battery below",
+                                    enabled: $settings.warningThresholds.batteryEnabled,
+                                    value: $settings.warningThresholds.batteryPercent,
+                                    unit: "%",
+                                    range: 1...99
+                                )
+                            }
+                            .padding(.top, 4)
+                        }
                     }
 
                     settingsSection("Startup") {
@@ -179,12 +185,12 @@ struct SettingsView: View {
         _ title: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
             Text(title.uppercased())
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
 
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 10) {
                 content()
             }
         }
