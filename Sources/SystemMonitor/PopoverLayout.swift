@@ -7,7 +7,7 @@ enum PopoverLayout {
     static let titleSpacing: CGFloat = 12
     static let metricCardHeight: CGFloat = 126
     static let rowSpacing: CGFloat = 8
-    static let maximumHeight: CGFloat = 590
+    static let maximumHeight: CGFloat = 582
 
     static var contentSize: CGSize {
         CGSize(width: width, height: maximumHeight)
