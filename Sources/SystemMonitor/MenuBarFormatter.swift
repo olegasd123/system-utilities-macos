@@ -152,7 +152,8 @@ enum MenuBarFormatter {
 
         if menuBar.showBattery, let battery = snapshot.battery {
             let prefix = isOnPower(battery.state) ? "*" : ""
-            let value = "\(prefix)\(Int(battery.chargePercent.rounded()))%"
+            let percent = "\(Int(battery.chargePercent.rounded()))%"
+            let value = "\(prefix)\(percent)"
             parts.append(
                 MenuBarPart(
                     label: "BAT",
@@ -160,9 +161,9 @@ enum MenuBarFormatter {
                     reservedValue: "*100%",
                     text: "BAT \(value)",
                     reservedText: "BAT *100%",
-                    compactText: value,
-                    compactReservedText: "*100%",
-                    symbolName: "battery.100",
+                    compactText: percent,
+                    compactReservedText: "100%",
+                    symbolName: BatterySymbol.name(for: battery),
                     fallbackPrefix: "BAT"
                 )
             )

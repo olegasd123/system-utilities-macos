@@ -91,7 +91,7 @@ struct DashboardView: View {
 
                 if let battery = snapshot?.battery {
                     MetricCardView(
-                        symbol: battery.state == .charging ? "battery.100.bolt" : "battery.100",
+                        symbol: BatterySymbol.name(for: battery),
                         label: "BATTERY",
                         value: "\(Int(battery.chargePercent.rounded()))%",
                         subtitle: batterySubtitle(battery),
