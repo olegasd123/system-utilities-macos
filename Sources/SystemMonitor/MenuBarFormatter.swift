@@ -190,8 +190,8 @@ enum MenuBarFormatter {
                         reservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
                         compactText: "↓ \(down) ↑ \(up)",
                         compactReservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
-                        symbolName: "network",
-                        fallbackPrefix: "NET",
+                        symbolName: nil,
+                        fallbackPrefix: nil,
                         twoLineTopText: "↓ \(down)",
                         twoLineReservedTopText: "↓ \(reservedRate)"
                     )
@@ -234,8 +234,8 @@ enum MenuBarFormatter {
                         reservedText: "NET \(reservedRate)",
                         compactText: down,
                         compactReservedText: reservedRate,
-                        symbolName: "network",
-                        fallbackPrefix: "NET"
+                        symbolName: nil,
+                        fallbackPrefix: nil
                     )
                 )
             }
@@ -350,8 +350,8 @@ private struct MenuBarPart {
     var reservedText: String
     var compactText: String
     var compactReservedText: String
-    var symbolName: String
-    var fallbackPrefix: String
+    var symbolName: String?
+    var fallbackPrefix: String?
     var twoLineTopText: String
     var twoLineReservedTopText: String
 
@@ -363,8 +363,8 @@ private struct MenuBarPart {
         reservedText: String,
         compactText: String,
         compactReservedText: String,
-        symbolName: String,
-        fallbackPrefix: String,
+        symbolName: String?,
+        fallbackPrefix: String?,
         twoLineTopText: String? = nil,
         twoLineReservedTopText: String? = nil
     ) {
