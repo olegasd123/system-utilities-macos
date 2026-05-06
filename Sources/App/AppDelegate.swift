@@ -10,7 +10,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let menuBarStatusView = MenuBarStatusView()
     private let popover = NSPopover()
-    private let popoverRouter = PopoverRouter()
     private let settingsStore = AppSettingsStore.standard
     private lazy var initialLoad = settingsStore.loadResult()
     private lazy var settingsModel = SettingsModel<AppSettings>(
@@ -29,6 +28,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var monitorModel = SystemMonitorModel(
         currentSettings: { [unowned self] in settingsModel.settings.systemMonitor }
     )
+    private lazy var systemMonitorFeature = makeSystemMonitorFeature()
+    private lazy var features: [any AppFeature] = [systemMonitorFeature]
+    private lazy var router = PopoverRouter(initialFeatureId: features.first?.id ?? "")
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
 
@@ -36,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         _ = launchAtLoginModel
         _ = monitorModel
+        _ = features
         configureStatusItem()
         configurePopover()
         configureDismissalObservers()
@@ -68,11 +71,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updatePopoverContentSize()
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
-                router: popoverRouter,
+                router: router,
                 settingsModel: settingsModel,
                 launchAtLoginModel: launchAtLoginModel,
-                monitorModel: monitorModel,
-                onQuit: { NSApp.terminate(nil) }
+                features: features
             )
         )
     }
@@ -132,7 +134,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        showPopover(route: .dashboard, from: button)
+        showPopover(from: button)
     }
 
     private func showStatusMenu(from button: NSStatusBarButton) {
@@ -167,11 +169,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        showPopover(route: .settings, from: button)
+        router.showSettings()
+        showPopover(from: button)
     }
 
-    private func showPopover(route: PopoverRoute, from button: NSStatusBarButton) {
-        popoverRouter.route = route
+    private func showPopover(from button: NSStatusBarButton) {
         updatePopoverContentSize()
 
         NSApp.activate()
@@ -208,16 +210,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
-    private func bindStatusItem() {
-        monitorModel.$snapshot
-            .combineLatest(settingsModel.$settings)
-            .sink { [weak self] _, _ in
-                self?.updateStatusItem()
-                self?.updatePopoverContentSize()
-            }
-            .store(in: &cancellables)
+    private func makeSystemMonitorFeature() -> SystemMonitorFeature {
+        let monitorChanges = settingsModel.$settings
+            .map(\.systemMonitor)
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+        let temperatureUnitChanges = settingsModel.$settings
+            .map(\.general.temperatureUnit)
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+        let monitorBinding = Binding<SystemMonitorSettings>(
+            get: { [unowned self] in settingsModel.settings.systemMonitor },
+            set: { [unowned self] in settingsModel.settings.systemMonitor = $0 }
+        )
+        return SystemMonitorFeature(
+            model: monitorModel,
+            currentSettings: { [unowned self] in settingsModel.settings.systemMonitor },
+            currentTemperatureUnit: { [unowned self] in settingsModel.settings.general.temperatureUnit },
+            settingsBinding: monitorBinding,
+            settingsChanges: monitorChanges,
+            temperatureUnitChanges: temperatureUnitChanges
+        )
+    }
 
-        popoverRouter.$route
+    private func bindStatusItem() {
+        let menuBarFeatures = features.compactMap { $0 as? any MenuBarFeature }
+
+        if menuBarFeatures.isEmpty {
+            updateStatusItem()
+        } else {
+            let publishers = menuBarFeatures.map(\.menuBarLinesPublisher)
+            Publishers.MergeMany(publishers)
+                .receive(on: RunLoop.main)
+                .sink { [weak self] _ in
+                    self?.updateStatusItem()
+                    self?.updatePopoverContentSize()
+                }
+                .store(in: &cancellables)
+        }
+
+        router.$route
             .sink { [weak self] _ in
                 self?.updatePopoverContentSize()
             }
@@ -225,12 +257,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateStatusItem() {
-        let settings = settingsModel.settings
-        let lines = MenuBarFormatter.statusLines(
-            snapshot: monitorModel.snapshot,
-            settings: settings.systemMonitor,
-            temperatureUnit: settings.general.temperatureUnit
-        )
+        let lines = features
+            .compactMap { $0 as? any MenuBarFeature }
+            .flatMap(\.currentMenuBarLines)
         menuBarStatusView.update(lines: lines)
         statusItem?.length = menuBarStatusView.preferredWidth
     }

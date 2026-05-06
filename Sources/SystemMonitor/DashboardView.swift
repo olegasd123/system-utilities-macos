@@ -6,43 +6,20 @@ public struct DashboardView: View {
     @ObservedObject private var model: SystemMonitorModel
     private let settings: SystemMonitorSettings
     private let temperatureUnit: TemperatureUnit
-    private let onOpenSettings: () -> Void
-    private let onQuit: () -> Void
 
     public init(
         model: SystemMonitorModel,
         settings: SystemMonitorSettings,
-        temperatureUnit: TemperatureUnit,
-        onOpenSettings: @escaping () -> Void,
-        onQuit: @escaping () -> Void
+        temperatureUnit: TemperatureUnit
     ) {
         self.model = model
         self.settings = settings
         self.temperatureUnit = temperatureUnit
-        self.onOpenSettings = onOpenSettings
-        self.onQuit = onQuit
     }
 
     public var body: some View {
-        VStack(spacing: PopoverLayout.titleSpacing) {
-            HStack {
-                Text("System Monitor")
-                    .font(.system(size: 14, weight: .semibold))
-
-                Spacer()
-
-                Button(action: onOpenSettings) {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .buttonStyle(.plain)
-                .help("Settings")
-            }
-            .frame(height: PopoverLayout.titleHeight)
-            .padding(.horizontal, 4)
-
-            VStack(spacing: PopoverLayout.rowSpacing) {
-                metricRow {
+        VStack(spacing: PopoverLayout.rowSpacing) {
+            metricRow {
                     MetricCardView(
                         symbol: "cpu",
                         label: "CPU LOAD",
@@ -104,20 +81,18 @@ public struct DashboardView: View {
                     )
                 }
 
-                if let battery = snapshot?.battery {
-                    MetricCardView(
-                        symbol: BatterySymbol.name(for: battery),
-                        label: "BATTERY",
-                        value: "\(Int(battery.chargePercent.rounded()))%",
-                        subtitle: batterySubtitle(battery),
-                        accent: .green,
-                        progress: battery.chargePercent,
-                        warning: batteryWarning(battery)
-                    )
-                }
+            if let battery = snapshot?.battery {
+                MetricCardView(
+                    symbol: BatterySymbol.name(for: battery),
+                    label: "BATTERY",
+                    value: "\(Int(battery.chargePercent.rounded()))%",
+                    subtitle: batterySubtitle(battery),
+                    accent: .green,
+                    progress: battery.chargePercent,
+                    warning: batteryWarning(battery)
+                )
             }
         }
-        .padding(PopoverLayout.contentPadding)
         .frame(maxHeight: .infinity, alignment: .top)
     }
 
