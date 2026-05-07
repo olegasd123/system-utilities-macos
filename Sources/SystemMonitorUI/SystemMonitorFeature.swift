@@ -101,16 +101,9 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
     public func makeSettingsSection() -> AnyView? {
         AnyView(
             SystemMonitorSettingsView(
-                settings: settings.binding,
-                temperatureUnit: temperatureUnitBinding
+                settings: settings,
+                generalSettings: general
             )
-        )
-    }
-
-    private var temperatureUnitBinding: Binding<TemperatureUnit> {
-        Binding(
-            get: { [unowned self] in general.settings.temperatureUnit },
-            set: { [unowned self] in general.settings.temperatureUnit = $0 }
         )
     }
 }
