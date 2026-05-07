@@ -1,7 +1,7 @@
 import Foundation
 import MacSensorBridge
 
-final class DetailedSensorCollector {
+final class DetailedSensorCollector: SensorMetricSource {
     private let context: OpaquePointer?
 
     init() {

@@ -1,8 +1,8 @@
 import Foundation
 import IOKit.ps
 
-enum BatteryCollector {
-    static func sample() -> BatterySample? {
+struct BatteryCollector: BatteryMetricSource {
+    func sample() -> BatterySample? {
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef]
         else {
@@ -16,8 +16,8 @@ enum BatteryCollector {
                 continue
             }
 
-            guard let currentCapacity = number(description[kIOPSCurrentCapacityKey]),
-                  let maxCapacity = number(description[kIOPSMaxCapacityKey]),
+            guard let currentCapacity = Self.number(description[kIOPSCurrentCapacityKey]),
+                  let maxCapacity = Self.number(description[kIOPSMaxCapacityKey]),
                   maxCapacity > 0
             else {
                 continue
@@ -26,10 +26,10 @@ enum BatteryCollector {
             let chargePercent = Double(currentCapacity) / Double(maxCapacity) * 100
             return BatterySample(
                 chargePercent: chargePercent,
-                state: state(description: description, chargePercent: chargePercent),
-                timeToFullSecs: secondsFromMinutes(description[kIOPSTimeToFullChargeKey]),
-                timeToEmptySecs: secondsFromMinutes(description[kIOPSTimeToEmptyKey]),
-                cycleCount: cycleCount(description: description)
+                state: Self.state(description: description, chargePercent: chargePercent),
+                timeToFullSecs: Self.secondsFromMinutes(description[kIOPSTimeToFullChargeKey]),
+                timeToEmptySecs: Self.secondsFromMinutes(description[kIOPSTimeToEmptyKey]),
+                cycleCount: Self.cycleCount(description: description)
             )
         }
 
