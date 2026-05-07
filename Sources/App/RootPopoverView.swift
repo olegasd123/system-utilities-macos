@@ -21,6 +21,11 @@ struct RootPopoverView: View {
             .padding(PopoverLayout.contentPadding)
             .frame(maxHeight: .infinity, alignment: .top)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.secondary.opacity(0.35), lineWidth: 1)
+        }
         .frame(
             width: PopoverLayout.contentSize.width,
             height: PopoverLayout.contentSize.height

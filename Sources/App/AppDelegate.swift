@@ -9,7 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let composer = AppComposer()
     private var statusItem: NSStatusItem?
     private let menuBarStatusView = MenuBarStatusView()
-    private let popover = NSPopover()
+    private let popoverWindow = ArrowlessPopoverPanel()
     private lazy var router = PopoverRouter(initialFeatureId: composer.features.first?.id ?? "")
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
@@ -18,7 +18,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         configureStatusItem()
         configurePopover()
-        configureDismissalObservers()
         bindStatusItem()
     }
 
@@ -43,11 +42,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configurePopover() {
-        popover.behavior = .transient
-        popover.animates = true
-        popover.delegate = self
         updatePopoverContentSize()
-        popover.contentViewController = NSHostingController(
+        popoverWindow.delegate = self
+        popoverWindow.contentViewController = NSHostingController(
             rootView: RootPopoverView(
                 router: router,
                 generalSettings: composer.generalSettings,
@@ -57,40 +54,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    private func configureDismissalObservers() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(closePopoverAfterAppResignedActive),
-            name: NSApplication.didResignActiveNotification,
-            object: NSApp
-        )
-    }
-
     private func updatePopoverContentSize() {
         let size = PopoverLayout.contentSize
         let contentSize = NSSize(width: size.width, height: size.height)
-        guard popover.contentSize != contentSize else {
+        guard popoverWindow.frame.size != contentSize else {
             return
         }
 
-        let oldSize = popover.contentSize
-        popover.contentSize = contentSize
-        popover.contentViewController?.preferredContentSize = contentSize
+        let oldSize = popoverWindow.frame.size
+        popoverWindow.setContentSize(contentSize)
+        popoverWindow.contentViewController?.preferredContentSize = contentSize
 
         guard
-            popover.isShown,
-            let window = popover.contentViewController?.view.window
+            popoverWindow.isVisible
         else {
             return
         }
 
-        var frame = window.frame
+        var frame = popoverWindow.frame
         let widthDelta = contentSize.width - oldSize.width
         let heightDelta = contentSize.height - oldSize.height
         frame.origin.y -= heightDelta
         frame.size.width += widthDelta
         frame.size.height += heightDelta
-        window.setFrame(frame, display: true)
+        popoverWindow.setFrame(frame, display: true)
     }
 
     @objc private func statusItemClicked(_ sender: Any?) {
@@ -107,8 +94,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func togglePopover(from button: NSStatusBarButton) {
-        if popover.isShown {
-            popover.performClose(nil)
+        if popoverWindow.isVisible {
+            hidePopover()
             return
         }
 
@@ -154,10 +141,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showPopover(from button: NSStatusBarButton) {
         updatePopoverContentSize()
 
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
 
-        if !popover.isShown {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        if !popoverWindow.isVisible {
+            positionPopoverWindow(relativeTo: button)
+            popoverWindow.makeKeyAndOrderFront(nil)
         }
 
         focusPopoverWindow()
@@ -167,25 +155,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func focusPopoverWindow() {
-        guard let window = popover.contentViewController?.view.window else {
+    private func positionPopoverWindow(relativeTo button: NSStatusBarButton) {
+        guard let buttonWindow = button.window else {
             return
         }
 
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
+        let buttonFrame = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
+        let size = PopoverLayout.contentSize
+        let screenFrame = (buttonWindow.screen ?? NSScreen.main)?.visibleFrame ?? .zero
+        let margin: CGFloat = 8
+        var x = buttonFrame.midX - size.width / 2
+        x = min(max(x, screenFrame.minX + margin), screenFrame.maxX - size.width - margin)
+
+        let y = max(screenFrame.minY + margin, buttonFrame.minY - size.height - margin)
+        popoverWindow.setFrame(
+            NSRect(x: x, y: y, width: size.width, height: size.height),
+            display: true
+        )
     }
 
-    @objc private func closePopoverAfterAppResignedActive() {
-        guard popover.isShown else {
-            return
-        }
-
-        popover.performClose(nil)
+    private func focusPopoverWindow() {
+        NSApp.activate(ignoringOtherApps: true)
+        popoverWindow.makeKeyAndOrderFront(nil)
     }
 
     @objc private func quit() {
         NSApp.terminate(nil)
+    }
+
+    private func hidePopover() {
+        guard popoverWindow.isVisible else {
+            return
+        }
+
+        popoverWindow.orderOut(nil)
+        updateFeatureVisibility()
     }
 
     private func bindStatusItem() {
@@ -213,7 +217,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateFeatureVisibility() {
-        let isShown = popover.isShown
+        let isShown = popoverWindow.isVisible
         let activeId: String? = {
             if case .feature(let id) = router.route {
                 return id
@@ -230,16 +234,67 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .compactMap { $0 as? any MenuBarFeature }
             .flatMap(\.currentMenuBarLines)
         menuBarStatusView.update(lines: lines)
-        statusItem?.length = menuBarStatusView.preferredWidth
+        guard let statusItem else {
+            return
+        }
+
+        guard
+            popoverWindow.isVisible
+        else {
+            statusItem.length = menuBarStatusView.preferredWidth
+            return
+        }
+
+        let frame = popoverWindow.frame
+        statusItem.length = menuBarStatusView.preferredWidth
+        popoverWindow.setFrame(frame, display: true)
+        Task { @MainActor [weak self] in
+            await Task.yield()
+            guard self?.popoverWindow.isVisible == true else {
+                return
+            }
+            self?.popoverWindow.setFrame(frame, display: true)
+        }
     }
 }
 
-extension AppDelegate: NSPopoverDelegate {
-    func popoverDidShow(_ notification: Notification) {
+extension AppDelegate: NSWindowDelegate {
+    func windowDidBecomeKey(_ notification: Notification) {
         updateFeatureVisibility()
     }
 
-    func popoverDidClose(_ notification: Notification) {
-        updateFeatureVisibility()
+    func windowDidResignKey(_ notification: Notification) {
+        hidePopover()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        for feature in composer.features {
+            feature.setActive(false)
+        }
+    }
+}
+
+private final class ArrowlessPopoverPanel: NSPanel {
+    init() {
+        super.init(
+            contentRect: .zero,
+            styleMask: [.borderless, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = true
+        isReleasedWhenClosed = false
+        level = .floating
+        collectionBehavior = [.transient, .ignoresCycle]
+    }
+
+    override var canBecomeKey: Bool {
+        true
+    }
+
+    override var canBecomeMain: Bool {
+        true
     }
 }
