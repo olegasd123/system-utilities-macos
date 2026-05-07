@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let menuBarStatusView = MenuBarStatusView()
     private let popoverWindow = ArrowlessPopoverPanel()
+    private lazy var fallbackStatusImage = makeFallbackStatusImage()
     private lazy var router = PopoverRouter(initialFeatureId: composer.features.first?.id ?? "")
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
@@ -25,6 +26,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
             button.title = ""
+            button.imagePosition = .imageOnly
+            button.toolTip = "System Monitor"
+            button.setAccessibilityLabel("System Monitor")
             button.target = self
             button.action = #selector(statusItemClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -127,6 +131,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         menu.items.forEach { $0.target = self }
         return menu
+    }
+
+    private func makeFallbackStatusImage() -> NSImage {
+        let image = Bundle.main.image(forResource: "AppIcon")
+            ?? NSApp.applicationIconImage
+            ?? NSImage(systemSymbolName: "gauge.with.dots.needle.67percent", accessibilityDescription: "System Monitor")
+            ?? NSImage(size: NSSize(width: 18, height: 18))
+        let copy = image.copy() as? NSImage ?? image
+        copy.size = NSSize(width: 18, height: 18)
+        copy.isTemplate = true
+        return copy
     }
 
     @objc private func openPreferences() {
@@ -238,15 +253,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        if let button = statusItem.button {
+            let showsFallbackIcon = lines.isEmpty
+            button.image = showsFallbackIcon ? fallbackStatusImage : nil
+            menuBarStatusView.isHidden = showsFallbackIcon
+        }
+
+        let preferredLength = lines.isEmpty
+            ? NSStatusItem.squareLength
+            : menuBarStatusView.preferredWidth
+
         guard
             popoverWindow.isVisible
         else {
-            statusItem.length = menuBarStatusView.preferredWidth
+            statusItem.length = preferredLength
             return
         }
 
         let frame = popoverWindow.frame
-        statusItem.length = menuBarStatusView.preferredWidth
+        statusItem.length = preferredLength
         popoverWindow.setFrame(frame, display: true)
         Task { @MainActor [weak self] in
             await Task.yield()

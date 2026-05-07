@@ -27,6 +27,10 @@ public enum MenuBarFormatter {
         settings: SystemMonitorSettings,
         temperatureUnit: TemperatureUnit
     ) -> [MenuBarStatusLine] {
+        guard hasSelectedMenuBarMetric(settings.menuBar) else {
+            return []
+        }
+
         guard let snapshot else {
             return settings.menuBar.displayMode == .twoLine
                 ? [
@@ -289,6 +293,15 @@ public enum MenuBarFormatter {
             ?? disks.first { $0.mountPoint == "/" }
             ?? disks.first { !$0.isRemovable }
             ?? disks.first
+    }
+
+    private static func hasSelectedMenuBarMetric(_ menuBar: MenuBarSettings) -> Bool {
+        menuBar.showCpuLoad
+            || menuBar.showTemperature
+            || menuBar.showMemoryUsage
+            || menuBar.showDiskFree
+            || menuBar.showBattery
+            || menuBar.showNetworkSpeed
     }
 
     private static func isOnPower(_ state: BatteryState) -> Bool {
