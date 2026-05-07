@@ -167,10 +167,15 @@ public final class MenuBarStatusView: NSView {
         if let image = symbolImage(for: segment, font: font) {
             let iconY = y + floor((lineHeight - image.size.height) / 2)
             image.draw(
-                at: NSPoint(x: x, y: iconY),
+                in: NSRect(
+                    origin: NSPoint(x: x, y: iconY),
+                    size: image.size
+                ),
                 from: NSRect(origin: .zero, size: image.size),
                 operation: .sourceOver,
-                fraction: 1
+                fraction: 1,
+                respectFlipped: true,
+                hints: nil
             )
 
             let textY = y + floor((lineHeight - attributedLine(segment.text, font: font).size().height) / 2)
