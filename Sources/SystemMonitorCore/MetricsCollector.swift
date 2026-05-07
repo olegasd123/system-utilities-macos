@@ -29,13 +29,15 @@ final class MetricsCollector {
         let fans = sensors.fans()
         var cpuSample = cpu.sample()
         cpuSample.temperatureC = sensors.cpuTemperature(from: temperatures)
+        var batterySample = battery.sample()
+        batterySample?.temperatureC = sensors.batteryTemperatureC()
 
         return Snapshot(
             cpu: cpuSample,
             memory: memory.sample(),
             disks: disk.sample(),
             network: network.sample(),
-            battery: battery.sample(),
+            battery: batterySample,
             temperatures: temperatures,
             fans: fans
         )

@@ -24,4 +24,5 @@ protocol SensorMetricSource {
     func temperatures() -> [TemperatureSample]
     func fans() -> [FanSample]
     func cpuTemperature(from temperatures: [TemperatureSample]) -> Double?
+    func batteryTemperatureC() -> Double?
 }
