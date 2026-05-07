@@ -224,15 +224,7 @@ public final class MenuBarStatusView: NSView {
         }
 
         let configuration = NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .medium)
-        let configuredImage = image.withSymbolConfiguration(configuration) ?? image
-        guard let tintedImage = configuredImage.copy() as? NSImage else {
-            return configuredImage
-        }
-
-        tintedImage.lockFocus()
-        NSColor.labelColor.set()
-        NSRect(origin: .zero, size: tintedImage.size).fill(using: .sourceAtop)
-        tintedImage.unlockFocus()
-        return tintedImage
+            .applying(NSImage.SymbolConfiguration(hierarchicalColor: .labelColor))
+        return image.withSymbolConfiguration(configuration) ?? image
     }
 }

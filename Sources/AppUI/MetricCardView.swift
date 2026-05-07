@@ -35,6 +35,7 @@ public struct MetricCardView: View {
             HStack(spacing: 7) {
                 Image(systemName: symbol)
                     .font(.system(size: 14, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(accent)
 
                 Text(label)
