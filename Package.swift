@@ -13,7 +13,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "App",
-            dependencies: ["AppCore", "AppUI", "SystemMonitor"]
+            dependencies: ["AppCore", "AppUI", "SystemMonitorUI"]
         ),
         .target(
             name: "AppCore"
@@ -22,8 +22,12 @@ let package = Package(
             name: "AppUI"
         ),
         .target(
-            name: "SystemMonitor",
-            dependencies: ["AppCore", "AppUI", "MacSensorBridge"]
+            name: "SystemMonitorCore",
+            dependencies: ["AppCore", "MacSensorBridge"]
+        ),
+        .target(
+            name: "SystemMonitorUI",
+            dependencies: ["AppCore", "AppUI", "SystemMonitorCore"]
         ),
         .target(
             name: "MacSensorBridge",

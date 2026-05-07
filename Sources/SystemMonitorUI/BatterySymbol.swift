@@ -1,3 +1,5 @@
+import SystemMonitorCore
+
 enum BatterySymbol {
     static func name(for battery: BatterySample) -> String {
         if battery.state == .charging {

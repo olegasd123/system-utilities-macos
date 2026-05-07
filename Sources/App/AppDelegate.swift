@@ -3,42 +3,19 @@ import AppKit
 import AppUI
 import Combine
 import SwiftUI
-import SystemMonitor
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let composer = AppComposer()
     private var statusItem: NSStatusItem?
     private let menuBarStatusView = MenuBarStatusView()
     private let popover = NSPopover()
-    private let settingsStore = AppSettingsStore.standard
-    private lazy var initialLoad = settingsStore.loadResult()
-    private lazy var settingsModel = SettingsModel<AppSettings>(
-        initial: initialLoad.settings,
-        onChange: { [settingsStore] settings in
-            try? settingsStore.save(settings)
-        }
-    )
-    private lazy var launchAtLoginModel = LaunchAtLoginModel(
-        initiallyLoadedFromDisk: initialLoad.loadedFromDisk,
-        initialLaunchAtLogin: initialLoad.settings.general.launchAtLogin,
-        persist: { [unowned self] isRegistered in
-            settingsModel.settings.general.launchAtLogin = isRegistered
-        }
-    )
-    private lazy var monitorModel = SystemMonitorModel(
-        currentSettings: { [unowned self] in settingsModel.settings.systemMonitor }
-    )
-    private lazy var systemMonitorFeature = makeSystemMonitorFeature()
-    private lazy var features: [any AppFeature] = [systemMonitorFeature]
-    private lazy var router = PopoverRouter(initialFeatureId: features.first?.id ?? "")
+    private lazy var router = PopoverRouter(initialFeatureId: composer.features.first?.id ?? "")
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        _ = launchAtLoginModel
-        _ = monitorModel
-        _ = features
         configureStatusItem()
         configurePopover()
         configureDismissalObservers()
@@ -73,9 +50,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
                 router: router,
-                settingsModel: settingsModel,
-                launchAtLoginModel: launchAtLoginModel,
-                features: features
+                generalSettings: composer.generalSettings,
+                launchAtLoginModel: composer.launchAtLoginModel,
+                features: composer.features
             )
         )
     }
@@ -211,36 +188,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
-    private func makeSystemMonitorFeature() -> SystemMonitorFeature {
-        let monitorChanges = settingsModel.$settings
-            .map(\.systemMonitor)
-            .removeDuplicates()
-            .eraseToAnyPublisher()
-        let temperatureUnitChanges = settingsModel.$settings
-            .map(\.general.temperatureUnit)
-            .removeDuplicates()
-            .eraseToAnyPublisher()
-        let monitorBinding = Binding<SystemMonitorSettings>(
-            get: { [unowned self] in settingsModel.settings.systemMonitor },
-            set: { [unowned self] in settingsModel.settings.systemMonitor = $0 }
-        )
-        let temperatureUnitBinding = Binding<TemperatureUnit>(
-            get: { [unowned self] in settingsModel.settings.general.temperatureUnit },
-            set: { [unowned self] in settingsModel.settings.general.temperatureUnit = $0 }
-        )
-        return SystemMonitorFeature(
-            model: monitorModel,
-            currentSettings: { [unowned self] in settingsModel.settings.systemMonitor },
-            currentTemperatureUnit: { [unowned self] in settingsModel.settings.general.temperatureUnit },
-            settingsBinding: monitorBinding,
-            temperatureUnitBinding: temperatureUnitBinding,
-            settingsChanges: monitorChanges,
-            temperatureUnitChanges: temperatureUnitChanges
-        )
-    }
-
     private func bindStatusItem() {
-        let menuBarFeatures = features.compactMap { $0 as? any MenuBarFeature }
+        let menuBarFeatures = composer.features.compactMap { $0 as? any MenuBarFeature }
 
         if menuBarFeatures.isEmpty {
             updateStatusItem()
@@ -271,13 +220,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return nil
         }()
-        for feature in features {
+        for feature in composer.features {
             feature.setActive(isShown && activeId == feature.id)
         }
     }
 
     private func updateStatusItem() {
-        let lines = features
+        let lines = composer.features
             .compactMap { $0 as? any MenuBarFeature }
             .flatMap(\.currentMenuBarLines)
         menuBarStatusView.update(lines: lines)

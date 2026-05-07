@@ -3,7 +3,7 @@ import AppUI
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject var settingsModel: SettingsModel<AppSettings>
+    @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let features: [any AppFeature]
 
@@ -44,7 +44,7 @@ struct SettingsView: View {
 
     private var launchAtLoginBinding: Binding<Bool> {
         Binding(
-            get: { settingsModel.settings.general.launchAtLogin },
+            get: { generalSettings.settings.launchAtLogin },
             set: { launchAtLoginModel.setRegistered($0) }
         )
     }

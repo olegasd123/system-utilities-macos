@@ -1,6 +1,7 @@
 import AppCore
 import AppUI
 import Foundation
+import SystemMonitorCore
 
 public enum MenuBarFormatter {
     public static func title(

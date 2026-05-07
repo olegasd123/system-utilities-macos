@@ -1,6 +1,9 @@
+import AppCore
 import Foundation
 
-public struct SystemMonitorSettings: Codable, Equatable, Sendable {
+public struct SystemMonitorSettings: FeatureSettings {
+    public static let featureId = "system-monitor"
+
     public var menuBar: MenuBarSettings
     public var networkUnits: NetworkUnits
     public var networkDisplay: NetworkDisplay

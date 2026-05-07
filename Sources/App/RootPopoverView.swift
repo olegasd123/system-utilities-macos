@@ -5,7 +5,7 @@ import SwiftUI
 
 struct RootPopoverView: View {
     @ObservedObject var router: PopoverRouter
-    @ObservedObject var settingsModel: SettingsModel<AppSettings>
+    @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let features: [any AppFeature]
 
@@ -121,7 +121,7 @@ struct RootPopoverView: View {
             }
         case .settings:
             SettingsView(
-                settingsModel: settingsModel,
+                generalSettings: generalSettings,
                 launchAtLoginModel: launchAtLoginModel,
                 features: features
             )

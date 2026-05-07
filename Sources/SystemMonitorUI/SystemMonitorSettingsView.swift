@@ -1,8 +1,9 @@
 import AppCore
 import AppUI
 import SwiftUI
+import SystemMonitorCore
 
-public struct SystemMonitorSettingsSection: View {
+public struct SystemMonitorSettingsView: View {
     @Binding private var settings: SystemMonitorSettings
     @Binding private var temperatureUnit: TemperatureUnit
 

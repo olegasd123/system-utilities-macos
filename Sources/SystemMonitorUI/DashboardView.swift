@@ -1,6 +1,7 @@
 import AppCore
 import AppUI
 import SwiftUI
+import SystemMonitorCore
 
 public struct DashboardView: View {
     @ObservedObject private var model: SystemMonitorModel
