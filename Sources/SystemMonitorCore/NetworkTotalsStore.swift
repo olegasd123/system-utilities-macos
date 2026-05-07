@@ -31,7 +31,7 @@ public struct NetworkTotalsStore: Sendable {
             in: .userDomainMask
         )[0]
         return applicationSupport
-            .appendingPathComponent("dev.olegoleg.system-monitor", isDirectory: true)
+            .appendingPathComponent("dev.oleg-verhoglyad.SystemMonitor", isDirectory: true)
             .appendingPathComponent("network-daily-baseline.json")
     }
 }

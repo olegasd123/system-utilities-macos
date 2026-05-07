@@ -5,7 +5,7 @@ public struct AppSettingsStore: Sendable {
 
     private let bundleId: String
 
-    public init(bundleId: String = "dev.olegoleg.system-monitor") {
+    public init(bundleId: String = "dev.oleg-verhoglyad.SystemMonitor") {
         self.bundleId = bundleId
     }
 
