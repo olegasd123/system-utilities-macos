@@ -15,6 +15,15 @@ public protocol AppFeature: AnyObject {
     /// Optional settings section embedded in the global preferences screen.
     /// Return `nil` if the feature has no user-facing settings.
     func makeSettingsSection() -> AnyView?
+
+    /// Called by the shell when this feature's primary UI becomes visible/hidden.
+    /// Use to start or pause work that's only needed while the user is interacting
+    /// with the feature. Default is a no-op.
+    func setActive(_ active: Bool)
+}
+
+extension AppFeature {
+    public func setActive(_ active: Bool) {}
 }
 
 @MainActor

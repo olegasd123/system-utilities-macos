@@ -68,6 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func configurePopover() {
         popover.behavior = .transient
         popover.animates = true
+        popover.delegate = self
         updatePopoverContentSize()
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
@@ -252,8 +253,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         router.$route
             .sink { [weak self] _ in
                 self?.updatePopoverContentSize()
+                self?.updateFeatureVisibility()
             }
             .store(in: &cancellables)
+    }
+
+    private func updateFeatureVisibility() {
+        let isShown = popover.isShown
+        let activeId: String? = {
+            if case .feature(let id) = router.route {
+                return id
+            }
+            return nil
+        }()
+        for feature in features {
+            feature.setActive(isShown && activeId == feature.id)
+        }
     }
 
     private func updateStatusItem() {
@@ -262,5 +277,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .flatMap(\.currentMenuBarLines)
         menuBarStatusView.update(lines: lines)
         statusItem?.length = menuBarStatusView.preferredWidth
+    }
+}
+
+extension AppDelegate: NSPopoverDelegate {
+    func popoverDidShow(_ notification: Notification) {
+        updateFeatureVisibility()
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        updateFeatureVisibility()
     }
 }

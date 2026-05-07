@@ -13,6 +13,8 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
     public let model: SystemMonitorModel
 
     @Published public private(set) var menuBarLines: [MenuBarStatusLine] = []
+    @Published private var isActive = false
+
     public var currentMenuBarLines: [MenuBarStatusLine] { menuBarLines }
     public var menuBarLinesPublisher: AnyPublisher<[MenuBarStatusLine], Never> {
         $menuBarLines.eraseToAnyPublisher()
@@ -58,6 +60,38 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
                 self?.menuBarLines = lines
             }
             .store(in: &cancellables)
+
+        Publishers.CombineLatest($isActive, settingsStream)
+            .map { active, settings in
+                active || Self.menuBarOrWarningsNeedSampling(settings)
+            }
+            .removeDuplicates()
+            .sink { [weak self] needsSampling in
+                guard let self else {
+                    return
+                }
+                if needsSampling {
+                    self.model.startSampling()
+                } else {
+                    self.model.stopSampling()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    public func setActive(_ active: Bool) {
+        isActive = active
+    }
+
+    private static func menuBarOrWarningsNeedSampling(_ settings: SystemMonitorSettings) -> Bool {
+        let menuBar = settings.menuBar
+        return menuBar.showCpuLoad
+            || menuBar.showTemperature
+            || menuBar.showMemoryUsage
+            || menuBar.showDiskFree
+            || menuBar.showBattery
+            || menuBar.showNetworkSpeed
+            || settings.warningsEnabled
     }
 
     public func makeRootView() -> AnyView {

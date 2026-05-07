@@ -11,6 +11,7 @@ public final class SystemMonitorModel: ObservableObject {
     private let metricsSampler = MetricsSampler()
     private let warningService = WarningService()
     private var networkBaseline: NetworkDailyBaseline?
+    private var isSampling = false
 
     public init(
         currentSettings: @escaping () -> SystemMonitorSettings,
@@ -19,9 +20,24 @@ public final class SystemMonitorModel: ObservableObject {
         self.currentSettings = currentSettings
         self.networkTotalsStore = networkTotalsStore
         self.networkBaseline = networkTotalsStore.load()
+    }
+
+    public func startSampling() {
+        guard !isSampling else {
+            return
+        }
+        isSampling = true
         metricsSampler.start { [weak self] snapshot in
             self?.apply(snapshot: snapshot)
         }
+    }
+
+    public func stopSampling() {
+        guard isSampling else {
+            return
+        }
+        isSampling = false
+        metricsSampler.stop()
     }
 
     public func resetNetworkTotals() {
