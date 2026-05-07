@@ -224,11 +224,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             get: { [unowned self] in settingsModel.settings.systemMonitor },
             set: { [unowned self] in settingsModel.settings.systemMonitor = $0 }
         )
+        let temperatureUnitBinding = Binding<TemperatureUnit>(
+            get: { [unowned self] in settingsModel.settings.general.temperatureUnit },
+            set: { [unowned self] in settingsModel.settings.general.temperatureUnit = $0 }
+        )
         return SystemMonitorFeature(
             model: monitorModel,
             currentSettings: { [unowned self] in settingsModel.settings.systemMonitor },
             currentTemperatureUnit: { [unowned self] in settingsModel.settings.general.temperatureUnit },
             settingsBinding: monitorBinding,
+            temperatureUnitBinding: temperatureUnitBinding,
             settingsChanges: monitorChanges,
             temperatureUnitChanges: temperatureUnitChanges
         )

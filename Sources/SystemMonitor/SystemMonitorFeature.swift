@@ -23,6 +23,7 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
     private let currentSettings: () -> SystemMonitorSettings
     private let currentTemperatureUnit: () -> TemperatureUnit
     private let settingsBinding: Binding<SystemMonitorSettings>
+    private let temperatureUnitBinding: Binding<TemperatureUnit>
 
     private var cancellables: Set<AnyCancellable> = []
 
@@ -31,6 +32,7 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         currentSettings: @escaping () -> SystemMonitorSettings,
         currentTemperatureUnit: @escaping () -> TemperatureUnit,
         settingsBinding: Binding<SystemMonitorSettings>,
+        temperatureUnitBinding: Binding<TemperatureUnit>,
         settingsChanges: AnyPublisher<SystemMonitorSettings, Never>,
         temperatureUnitChanges: AnyPublisher<TemperatureUnit, Never>
     ) {
@@ -38,6 +40,7 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         self.currentSettings = currentSettings
         self.currentTemperatureUnit = currentTemperatureUnit
         self.settingsBinding = settingsBinding
+        self.temperatureUnitBinding = temperatureUnitBinding
 
         let settingsStream = settingsChanges
             .prepend(currentSettings())
@@ -108,7 +111,7 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         AnyView(
             SystemMonitorSettingsSection(
                 settings: settingsBinding,
-                temperatureUnit: currentTemperatureUnit()
+                temperatureUnit: temperatureUnitBinding
             )
         )
     }

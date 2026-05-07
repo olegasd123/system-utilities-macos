@@ -10,8 +10,6 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                temperatureSection
-
                 ForEach(features, id: \.id) { feature in
                     if let section = feature.makeSettingsSection() {
                         section
@@ -21,20 +19,6 @@ struct SettingsView: View {
                 startupSection
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private var temperatureSection: some View {
-        SettingsSection("Temperature unit") {
-            Picker(
-                "Temperature unit",
-                selection: $settingsModel.settings.general.temperatureUnit
-            ) {
-                Text("Celsius").tag(TemperatureUnit.celsius)
-                Text("Fahrenheit").tag(TemperatureUnit.fahrenheit)
-            }
-            .pickerStyle(.radioGroup)
-            .labelsHidden()
         }
     }
 

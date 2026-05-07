@@ -4,19 +4,20 @@ import SwiftUI
 
 public struct SystemMonitorSettingsSection: View {
     @Binding private var settings: SystemMonitorSettings
-    private let temperatureUnit: TemperatureUnit
+    @Binding private var temperatureUnit: TemperatureUnit
 
     public init(
         settings: Binding<SystemMonitorSettings>,
-        temperatureUnit: TemperatureUnit
+        temperatureUnit: Binding<TemperatureUnit>
     ) {
         self._settings = settings
-        self.temperatureUnit = temperatureUnit
+        self._temperatureUnit = temperatureUnit
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             menuBarSection
+            temperatureSection
             notificationsSection
         }
     }
@@ -40,6 +41,20 @@ public struct SystemMonitorSettingsSection: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.orange)
             }
+        }
+    }
+
+    private var temperatureSection: some View {
+        SettingsSection("Temperature unit") {
+            Picker(
+                "Temperature unit",
+                selection: $temperatureUnit
+            ) {
+                Text("Celsius").tag(TemperatureUnit.celsius)
+                Text("Fahrenheit").tag(TemperatureUnit.fahrenheit)
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
         }
     }
 
