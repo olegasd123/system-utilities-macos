@@ -43,7 +43,7 @@ public enum MenuBarFormatter {
                     MenuBarStatusLine(
                         segments: [
                             MenuBarStatusSegment(text: "--", reservedText: "100%"),
-                            MenuBarStatusSegment(text: "--", reservedText: "999.9MB/s")
+                            MenuBarStatusSegment(text: "--", reservedText: "999.9MB")
                         ]
                     )
                 ]
@@ -367,9 +367,9 @@ public enum MenuBarFormatter {
     private static func reservedNetworkRate(units: NetworkUnits) -> String {
         switch units {
         case .bytesPerSecond:
-            return "999.9MB/s"
+            return "999.9MB"
         case .bitsPerSecond:
-            return "999.9Mb/s"
+            return "999.9Mb"
         }
     }
 }

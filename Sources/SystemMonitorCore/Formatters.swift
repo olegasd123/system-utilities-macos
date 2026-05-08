@@ -80,22 +80,22 @@ public enum SystemFormatters {
 
     private static func compactByteRate(_ bytesPerSecond: UInt64) -> String {
         if bytesPerSecond < 1024 {
-            return "\(bytesPerSecond)B/s"
+            return "\(bytesPerSecond)B"
         }
         if bytesPerSecond < 1024 * 1024 {
-            return String(format: "%.1fKB/s", Double(bytesPerSecond) / 1024)
+            return String(format: "%.1fKB", Double(bytesPerSecond) / 1024)
         }
-        return String(format: "%.1fMB/s", Double(bytesPerSecond) / 1024 / 1024)
+        return String(format: "%.1fMB", Double(bytesPerSecond) / 1024 / 1024)
     }
 
     private static func compactBitRate(_ bitsPerSecond: UInt64) -> String {
         if bitsPerSecond < 1000 {
-            return "\(bitsPerSecond)b/s"
+            return "\(bitsPerSecond)b"
         }
         if bitsPerSecond < 1000 * 1000 {
-            return String(format: "%.1fKb/s", Double(bitsPerSecond) / 1000)
+            return String(format: "%.1fKb", Double(bitsPerSecond) / 1000)
         }
-        return String(format: "%.1fMb/s", Double(bitsPerSecond) / 1000 / 1000)
+        return String(format: "%.1fMb", Double(bitsPerSecond) / 1000 / 1000)
     }
 }
 
