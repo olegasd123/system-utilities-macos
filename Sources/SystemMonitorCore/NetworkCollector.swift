@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import SystemConfiguration
 
 final class NetworkCollector: NetworkMetricSource {
     private var previous: NetworkCounters?
@@ -21,7 +22,7 @@ final class NetworkCollector: NetworkMetricSource {
                 totalRxBytes: counters.totalRxBytes,
                 totalTxBytes: counters.totalTxBytes,
                 primaryInterface: counters.primaryInterface,
-                connectionType: counters.primaryInterface.flatMap(connectionType)
+                connectionType: counters.connectionType
             )
         }
 
@@ -34,14 +35,14 @@ final class NetworkCollector: NetworkMetricSource {
             totalRxBytes: counters.totalRxBytes,
             totalTxBytes: counters.totalTxBytes,
             primaryInterface: counters.primaryInterface,
-            connectionType: counters.primaryInterface.flatMap(connectionType)
+            connectionType: counters.connectionType
         )
     }
 
     private func readCounters() -> NetworkCounters {
         var interfaces: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&interfaces) == 0, let interfaces else {
-            return NetworkCounters(totalRxBytes: 0, totalTxBytes: 0, primaryInterface: nil)
+            return NetworkCounters(totalRxBytes: 0, totalTxBytes: 0, primaryInterface: nil, connectionType: nil)
         }
         defer {
             freeifaddrs(interfaces)
@@ -81,18 +82,93 @@ final class NetworkCollector: NetworkMetricSource {
             activityByInterface[name, default: 0] += interfaceRx + interfaceTx
         }
 
-        let primary = activityByInterface.max { lhs, rhs in
-            lhs.value < rhs.value
-        }?.key
+        let primary = primaryInterface(from: activityByInterface)
+        let serviceTypes = serviceTypesByInterface()
+        let type = primary.flatMap {
+            Self.connectionType(for: $0, serviceType: serviceTypes[$0])
+        }
 
-        return NetworkCounters(totalRxBytes: rx, totalTxBytes: tx, primaryInterface: primary)
+        return NetworkCounters(
+            totalRxBytes: rx,
+            totalTxBytes: tx,
+            primaryInterface: primary,
+            connectionType: type
+        )
     }
 
     private func isLoopback(_ name: String) -> Bool {
         name == "lo" || name == "lo0" || name.hasPrefix("Loopback")
     }
 
-    private func connectionType(for interface: String) -> String? {
+    private func primaryInterface(from activityByInterface: [String: UInt64]) -> String? {
+        if let activeInterface = activePrimaryInterface(),
+           activityByInterface[activeInterface] != nil {
+            return activeInterface
+        }
+
+        return activityByInterface.max { lhs, rhs in
+            lhs.value < rhs.value
+        }?.key
+    }
+
+    private func activePrimaryInterface() -> String? {
+        primaryInterface(for: "State:/Network/Global/IPv4")
+            ?? primaryInterface(for: "State:/Network/Global/IPv6")
+    }
+
+    private func primaryInterface(for key: String) -> String? {
+        guard let store = SCDynamicStoreCreate(nil, "SystemMonitor" as CFString, nil, nil),
+              let state = SCDynamicStoreCopyValue(store, key as CFString) as? [String: Any] else {
+            return nil
+        }
+
+        return state["PrimaryInterface"] as? String
+    }
+
+    private func serviceTypesByInterface() -> [String: String] {
+        guard let preferences = SCPreferencesCreate(nil, "SystemMonitor" as CFString, nil),
+              let services = SCNetworkServiceCopyAll(preferences) as? [SCNetworkService] else {
+            return [:]
+        }
+
+        var types: [String: String] = [:]
+        for service in services where SCNetworkServiceGetEnabled(service) {
+            guard let interface = SCNetworkServiceGetInterface(service),
+                  let name = SCNetworkInterfaceGetBSDName(interface) as String?,
+                  let type = SCNetworkInterfaceGetInterfaceType(interface) as String? else {
+                continue
+            }
+
+            types[name] = type
+        }
+
+        return types
+    }
+
+    static func connectionType(for interface: String, serviceType: String?) -> String? {
+        if let serviceType {
+            switch serviceType {
+            case "IEEE80211":
+                return "Wi-Fi"
+            case "Ethernet":
+                return "Ethernet"
+            case "Bluetooth":
+                return "Bluetooth"
+            case "WWAN":
+                return "Cellular"
+            case "FireWire":
+                return "FireWire"
+            case "IPSec", "L2TP", "PPP", "PPTP":
+                return "VPN"
+            case "Bond":
+                return "Bond"
+            case "VLAN":
+                return "VLAN"
+            default:
+                break
+            }
+        }
+
         let lower = interface.lowercased()
         if lower == "en0" {
             return "Wi-Fi"
@@ -114,6 +190,7 @@ private struct NetworkCounters {
     var totalRxBytes: UInt64
     var totalTxBytes: UInt64
     var primaryInterface: String?
+    var connectionType: String?
 }
 
 private extension UInt64 {

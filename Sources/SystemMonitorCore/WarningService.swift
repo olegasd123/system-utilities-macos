@@ -4,12 +4,22 @@ import UserNotifications
 
 @MainActor
 final class WarningService {
+    private let notificationSender: any WarningNotificationSending
+    private let now: () -> Date
     private var cpu = WarningModuleState()
     private var memory = WarningModuleState()
     private var disk = WarningModuleState()
     private var battery = WarningModuleState()
     private var temperature = WarningModuleState()
     private var permissionRequested = false
+
+    init(
+        notificationSender: any WarningNotificationSending = UserNotificationWarningSender(),
+        now: @escaping () -> Date = Date.init
+    ) {
+        self.notificationSender = notificationSender
+        self.now = now
+    }
 
     func requestPermission() {
         guard !permissionRequested, NotificationRuntime.canUseUserNotifications else {
@@ -94,7 +104,7 @@ final class WarningService {
         if isWarningValue(module: module, value: value, threshold: threshold) {
             if !state.active, canNotify(state.lastNotifiedAt) {
                 sendNotification(module: module, value: value, threshold: threshold)
-                state.lastNotifiedAt = Date()
+                state.lastNotifiedAt = now()
             }
             state.active = true
             return
@@ -117,7 +127,7 @@ final class WarningService {
         guard let lastNotifiedAt else {
             return true
         }
-        return Date().timeIntervalSince(lastNotifiedAt) >= 10 * 60
+        return now().timeIntervalSince(lastNotifiedAt) >= 10 * 60
     }
 
     private func isWarningValue(module: WarningModule, value: Double, threshold: Double) -> Bool {
@@ -160,22 +170,14 @@ final class WarningService {
     }
 
     private func sendNotification(module: WarningModule, value: Double, threshold: Double) {
-        guard NotificationRuntime.canUseUserNotifications else {
-            return
-        }
-
-        let content = UNMutableNotificationContent()
         let text = notificationText(module: module, value: value, threshold: threshold)
-        content.title = text.title
-        content.body = text.body
-        content.sound = .default
-
-        let request = UNNotificationRequest(
-            identifier: "system-monitor-\(module.rawValue)-\(Int(Date().timeIntervalSince1970))",
-            content: content,
-            trigger: nil
+        notificationSender.send(
+            WarningNotification(
+                identifier: "system-monitor-\(module.rawValue)-\(Int(now().timeIntervalSince1970))",
+                title: text.title,
+                body: text.body
+            )
         )
-        UNUserNotificationCenter.current().add(request)
     }
 
     private func notificationText(
@@ -216,6 +218,37 @@ final class WarningService {
 private struct WarningModuleState {
     var active = false
     var lastNotifiedAt: Date?
+}
+
+struct WarningNotification: Equatable {
+    var identifier: String
+    var title: String
+    var body: String
+}
+
+@MainActor
+protocol WarningNotificationSending {
+    func send(_ notification: WarningNotification)
+}
+
+private struct UserNotificationWarningSender: WarningNotificationSending {
+    func send(_ notification: WarningNotification) {
+        guard NotificationRuntime.canUseUserNotifications else {
+            return
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = notification.title
+        content.body = notification.body
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: notification.identifier,
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
 }
 
 private enum WarningModule: String {

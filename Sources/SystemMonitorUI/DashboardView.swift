@@ -55,7 +55,7 @@ public struct DashboardView: View {
                 } right: {
                     MetricCardView(
                         symbol: "network",
-                        label: "NETWORK",
+                        label: networkLabel,
                         value: networkValue,
                         subtitle: networkSubtitle,
                         accent: .orange,
@@ -70,6 +70,7 @@ public struct DashboardView: View {
                         value: sensorValue,
                         subtitle: sensorSubtitle,
                         accent: .yellow,
+                        subtitleLineLimit: 3,
                         warning: temperatureWarning
                     )
                 } right: {
@@ -171,7 +172,7 @@ public struct DashboardView: View {
         guard let storageTemperature else {
             return freeSpace
         }
-        return "\(freeSpace)\nStorage \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit))"
+        return "\(freeSpace)\nTemp \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit))"
     }
 
     private var storageTemperature: TemperatureSample? {
@@ -192,19 +193,16 @@ public struct DashboardView: View {
         return "↓ \(SystemFormatters.rate(snapshot.network.rxBytesPerSec))"
     }
 
+    private var networkLabel: String {
+        snapshot?.network.connectionType?.uppercased() ?? "NETWORK"
+    }
+
     private var networkSubtitle: String {
         guard let network = snapshot?.network else {
             return "↑ -- B/s"
         }
 
-        let up = "↑ \(SystemFormatters.rate(network.txBytesPerSec))"
-        guard let primaryInterface = network.primaryInterface else {
-            return up
-        }
-
-        let label = network.connectionType.map { "\($0) (\(primaryInterface))" }
-            ?? "Interface: \(primaryInterface)"
-        return "\(up)\n\(label)"
+        return "↑ \(SystemFormatters.rate(network.txBytesPerSec))"
     }
 
     private var networkTotalsFooter: AnyView? {
@@ -239,12 +237,10 @@ public struct DashboardView: View {
     }
 
     private var sensorSubtitle: String {
-        guard let snapshot, !snapshot.temperatures.isEmpty else {
-            return "Waiting for detailed sensors"
-        }
-        return snapshot.temperatures.prefix(2)
-            .map { "\($0.label) \(SystemFormatters.temperature($0.temperatureC, unit: temperatureUnit))" }
-            .joined(separator: "\n")
+        SensorCardFormatter.subtitle(
+            temperatures: snapshot?.temperatures ?? [],
+            temperatureUnit: temperatureUnit
+        )
     }
 
     private var fanValue: String {

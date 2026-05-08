@@ -3,7 +3,11 @@ import Foundation
 public struct NetworkTotalsStore: Sendable {
     public static let standard = NetworkTotalsStore()
 
-    public init() {}
+    private let bundleId: String
+
+    public init(bundleId: String = "dev.oleg-verhoglyad.SystemMonitor") {
+        self.bundleId = bundleId
+    }
 
     public func load() -> NetworkDailyBaseline? {
         guard let data = try? Data(contentsOf: baselineURL) else {
@@ -31,7 +35,7 @@ public struct NetworkTotalsStore: Sendable {
             in: .userDomainMask
         )[0]
         return applicationSupport
-            .appendingPathComponent("dev.oleg-verhoglyad.SystemMonitor", isDirectory: true)
+            .appendingPathComponent(bundleId, isDirectory: true)
             .appendingPathComponent("network-daily-baseline.json")
     }
 }
