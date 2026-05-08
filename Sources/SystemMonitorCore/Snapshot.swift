@@ -92,19 +92,22 @@ public struct BatterySample: Equatable {
     public var timeToFullSecs: UInt64?
     public var timeToEmptySecs: UInt64?
     public var cycleCount: UInt32?
+    public var temperatureC: Double?
 
     public init(
         chargePercent: Double,
         state: BatteryState,
         timeToFullSecs: UInt64?,
         timeToEmptySecs: UInt64?,
-        cycleCount: UInt32?
+        cycleCount: UInt32?,
+        temperatureC: Double? = nil
     ) {
         self.chargePercent = chargePercent
         self.state = state
         self.timeToFullSecs = timeToFullSecs
         self.timeToEmptySecs = timeToEmptySecs
         self.cycleCount = cycleCount
+        self.temperatureC = temperatureC
     }
 }
 

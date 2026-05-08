@@ -5,7 +5,7 @@ import SwiftUI
 
 struct RootPopoverView: View {
     @ObservedObject var router: PopoverRouter
-    @ObservedObject var settingsModel: SettingsModel<AppSettings>
+    @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let features: [any AppFeature]
 
@@ -20,6 +20,11 @@ struct RootPopoverView: View {
             }
             .padding(PopoverLayout.contentPadding)
             .frame(maxHeight: .infinity, alignment: .top)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.secondary.opacity(0.35), lineWidth: 1)
         }
         .frame(
             width: PopoverLayout.contentSize.width,
@@ -121,7 +126,7 @@ struct RootPopoverView: View {
             }
         case .settings:
             SettingsView(
-                settingsModel: settingsModel,
+                generalSettings: generalSettings,
                 launchAtLoginModel: launchAtLoginModel,
                 features: features
             )

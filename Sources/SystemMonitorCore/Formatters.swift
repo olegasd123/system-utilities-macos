@@ -1,8 +1,8 @@
 import AppCore
 import Foundation
 
-enum SystemFormatters {
-    static func bytes(_ bytes: UInt64, decimals: Int = 1) -> String {
+public enum SystemFormatters {
+    public static func bytes(_ bytes: UInt64, decimals: Int = 1) -> String {
         if bytes < 1024 {
             return "\(bytes) B"
         }
@@ -17,7 +17,7 @@ enum SystemFormatters {
         return String(format: "%.\(decimals)f %@", value, units[index])
     }
 
-    static func rate(_ bytesPerSecond: UInt64) -> String {
+    public static func rate(_ bytesPerSecond: UInt64) -> String {
         if bytesPerSecond < 1024 {
             return "\(bytesPerSecond) B/s"
         }
@@ -27,7 +27,7 @@ enum SystemFormatters {
         return String(format: "%.1f MB/s", Double(bytesPerSecond) / 1024 / 1024)
     }
 
-    static func temperature(_ celsius: Double, unit: TemperatureUnit) -> String {
+    public static func temperature(_ celsius: Double, unit: TemperatureUnit) -> String {
         switch unit {
         case .celsius:
             return String(format: "%.1f C", celsius)
@@ -36,7 +36,7 @@ enum SystemFormatters {
         }
     }
 
-    static func duration(_ seconds: UInt64) -> String {
+    public static func duration(_ seconds: UInt64) -> String {
         if seconds < 60 {
             return "\(seconds)s"
         }
@@ -56,7 +56,7 @@ enum SystemFormatters {
         return "\(days)d \(hours % 24)h"
     }
 
-    static func compactBytes(_ bytes: UInt64) -> String {
+    public static func compactBytes(_ bytes: UInt64) -> String {
         if bytes < 1024 {
             return "\(bytes)B"
         }
@@ -69,7 +69,7 @@ enum SystemFormatters {
         return String(format: "%.1fGB", Double(bytes) / 1024 / 1024 / 1024)
     }
 
-    static func compactRate(_ bytesPerSecond: UInt64, units: NetworkUnits) -> String {
+    public static func compactRate(_ bytesPerSecond: UInt64, units: NetworkUnits) -> String {
         switch units {
         case .bytesPerSecond:
             return compactByteRate(bytesPerSecond)
@@ -80,22 +80,22 @@ enum SystemFormatters {
 
     private static func compactByteRate(_ bytesPerSecond: UInt64) -> String {
         if bytesPerSecond < 1024 {
-            return "\(bytesPerSecond)B/s"
+            return "\(bytesPerSecond)B"
         }
         if bytesPerSecond < 1024 * 1024 {
-            return String(format: "%.1fKB/s", Double(bytesPerSecond) / 1024)
+            return String(format: "%.1fKB", Double(bytesPerSecond) / 1024)
         }
-        return String(format: "%.1fMB/s", Double(bytesPerSecond) / 1024 / 1024)
+        return String(format: "%.1fMB", Double(bytesPerSecond) / 1024 / 1024)
     }
 
     private static func compactBitRate(_ bitsPerSecond: UInt64) -> String {
         if bitsPerSecond < 1000 {
-            return "\(bitsPerSecond)b/s"
+            return "\(bitsPerSecond)b"
         }
         if bitsPerSecond < 1000 * 1000 {
-            return String(format: "%.1fKb/s", Double(bitsPerSecond) / 1000)
+            return String(format: "%.1fKb", Double(bitsPerSecond) / 1000)
         }
-        return String(format: "%.1fMb/s", Double(bitsPerSecond) / 1000 / 1000)
+        return String(format: "%.1fMb", Double(bitsPerSecond) / 1000 / 1000)
     }
 }
 

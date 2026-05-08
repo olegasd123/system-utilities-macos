@@ -8,7 +8,7 @@
     <key>CFBundleExecutable</key>
     <string>SystemMonitor</string>
     <key>CFBundleIdentifier</key>
-    <string>dev.olegoleg.system-monitor</string>
+    <string>dev.oleg-verhoglyad.SystemMonitor</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
@@ -26,7 +26,7 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2026 Oleg Oleg.</string>
+    <string>Copyright © 2026 Oleg Verhoglyad.</string>
     <key>NSUserNotificationAlertStyle</key>
     <string>alert</string>
 </dict>

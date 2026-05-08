@@ -3,15 +3,13 @@ import AppUI
 import SwiftUI
 
 struct SettingsView: View {
-    @ObservedObject var settingsModel: SettingsModel<AppSettings>
+    @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let features: [any AppFeature]
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                temperatureSection
-
                 ForEach(features, id: \.id) { feature in
                     if let section = feature.makeSettingsSection() {
                         section
@@ -21,20 +19,6 @@ struct SettingsView: View {
                 startupSection
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private var temperatureSection: some View {
-        SettingsSection("Temperature unit") {
-            Picker(
-                "Temperature unit",
-                selection: $settingsModel.settings.general.temperatureUnit
-            ) {
-                Text("Celsius").tag(TemperatureUnit.celsius)
-                Text("Fahrenheit").tag(TemperatureUnit.fahrenheit)
-            }
-            .pickerStyle(.radioGroup)
-            .labelsHidden()
         }
     }
 
@@ -60,7 +44,7 @@ struct SettingsView: View {
 
     private var launchAtLoginBinding: Binding<Bool> {
         Binding(
-            get: { settingsModel.settings.general.launchAtLogin },
+            get: { generalSettings.settings.launchAtLogin },
             set: { launchAtLoginModel.setRegistered($0) }
         )
     }

@@ -1,8 +1,8 @@
 import Darwin
 import Foundation
 
-enum MemoryCollector {
-    static func sample() -> MemorySample {
+struct MemoryCollector: MemoryMetricSource {
+    func sample() -> MemorySample {
         let total = ProcessInfo.processInfo.physicalMemory
         let used = activityMonitorUsedMemory(total: total) ?? 0
         return MemorySample(
@@ -12,7 +12,7 @@ enum MemoryCollector {
         )
     }
 
-    private static func activityMonitorUsedMemory(total: UInt64) -> UInt64? {
+    private func activityMonitorUsedMemory(total: UInt64) -> UInt64? {
         guard let pageSize = pageSize(), let stat = vmStatistics() else {
             return nil
         }
@@ -25,7 +25,7 @@ enum MemoryCollector {
         return total > 0 ? min(used, total) : used
     }
 
-    private static func vmStatistics() -> vm_statistics64? {
+    private func vmStatistics() -> vm_statistics64? {
         var stat = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.stride / MemoryLayout<integer_t>.stride)
         let result = withUnsafeMutablePointer(to: &stat) { statPointer in
@@ -41,7 +41,7 @@ enum MemoryCollector {
         return result == KERN_SUCCESS ? stat : nil
     }
 
-    private static func pageSize() -> UInt64? {
+    private func pageSize() -> UInt64? {
         let value = sysconf(_SC_PAGESIZE)
         return value > 0 ? UInt64(value) : nil
     }

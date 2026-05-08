@@ -1,7 +1,7 @@
 import Foundation
 import MacSensorBridge
 
-final class DetailedSensorCollector {
+final class DetailedSensorCollector: SensorMetricSource {
     private let context: OpaquePointer?
 
     init() {
@@ -73,6 +73,16 @@ final class DetailedSensorCollector {
         }
 
         return temperatures.map(\.temperatureC).max()
+    }
+
+    func batteryTemperatureC() -> Double? {
+        let values = readTemperatures(copyFunction: MacSensorCopyHidTemperatures)
+            .filter { isBatteryTemperatureLabel($0.label) }
+            .map(\.temperatureC)
+        guard !values.isEmpty else {
+            return nil
+        }
+        return values.reduce(0, +) / Double(values.count)
     }
 
     private func readTemperatures(
@@ -148,7 +158,7 @@ final class DetailedSensorCollector {
             || lower.hasPrefix("g-acc") {
             return .group(SensorLabels.graphics)
         }
-        if lower.contains("gas gauge battery") {
+        if isBatteryTemperatureLabel(lower) {
             return .skip
         }
         if lower.contains("tdie") {
@@ -162,6 +172,10 @@ final class DetailedSensorCollector {
         }
 
         return .passthrough
+    }
+
+    private func isBatteryTemperatureLabel(_ label: String) -> Bool {
+        label.lowercased().contains("gas gauge battery")
     }
 
     private func sortPriority(_ label: String) -> Int {

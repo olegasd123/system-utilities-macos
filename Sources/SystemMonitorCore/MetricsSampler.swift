@@ -2,8 +2,12 @@ import Foundation
 
 @MainActor
 final class MetricsSampler {
-    private let collector = MetricsCollector()
+    private let collector: MetricsCollector
     private var timer: Timer?
+
+    init(collector: MetricsCollector = MetricsCollector()) {
+        self.collector = collector
+    }
 
     func start(onSample: @escaping @MainActor (Snapshot) -> Void) {
         stop()

@@ -1,7 +1,7 @@
 import Foundation
 
-enum DiskCollector {
-    static func sample() -> [DiskSample] {
+struct DiskCollector: DiskMetricSource {
+    func sample() -> [DiskSample] {
         let keys: Set<URLResourceKey> = [
             .volumeNameKey,
             .volumeTotalCapacityKey,

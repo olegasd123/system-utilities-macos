@@ -1,6 +1,7 @@
 import AppCore
 import AppUI
 import SwiftUI
+import SystemMonitorCore
 
 public struct DashboardView: View {
     @ObservedObject private var model: SystemMonitorModel
@@ -313,13 +314,22 @@ public struct DashboardView: View {
     }
 
     private func batterySubtitle(_ battery: BatterySample) -> String {
+        var lines: [String] = []
         if battery.state == .charging, let seconds = battery.timeToFullSecs {
-            return "\(SystemFormatters.duration(seconds)) until full"
+            lines.append("\(SystemFormatters.duration(seconds)) until full")
+        } else if let seconds = battery.timeToEmptySecs {
+            lines.append("\(SystemFormatters.duration(seconds)) remaining")
+        } else {
+            lines.append(batteryStateLabel(battery.state))
         }
-        if let seconds = battery.timeToEmptySecs {
-            return "\(SystemFormatters.duration(seconds)) remaining"
+        if let temperature = battery.temperatureC {
+            lines.append("Temp \(SystemFormatters.temperature(temperature, unit: temperatureUnit))")
         }
-        switch battery.state {
+        return lines.joined(separator: "\n")
+    }
+
+    private func batteryStateLabel(_ state: BatteryState) -> String {
+        switch state {
         case .charging:
             return "Charging"
         case .discharging:

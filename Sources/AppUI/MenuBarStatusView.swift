@@ -1,7 +1,7 @@
 import AppKit
 
 public final class MenuBarStatusView: NSView {
-    private var lines: [MenuBarStatusLine] = [MenuBarStatusLine(text: "CPU --  NET --")]
+    private var lines: [MenuBarStatusLine] = [MenuBarStatusLine(text: "CPU --  ↕ --")]
     private let horizontalPadding: CGFloat = 7
     private let segmentSeparator = "  "
     private let compactSegmentSpacing: CGFloat = 6
@@ -167,10 +167,15 @@ public final class MenuBarStatusView: NSView {
         if let image = symbolImage(for: segment, font: font) {
             let iconY = y + floor((lineHeight - image.size.height) / 2)
             image.draw(
-                at: NSPoint(x: x, y: iconY),
+                in: NSRect(
+                    origin: NSPoint(x: x, y: iconY),
+                    size: image.size
+                ),
                 from: NSRect(origin: .zero, size: image.size),
                 operation: .sourceOver,
-                fraction: 1
+                fraction: 1,
+                respectFlipped: true,
+                hints: nil
             )
 
             let textY = y + floor((lineHeight - attributedLine(segment.text, font: font).size().height) / 2)
@@ -224,15 +229,7 @@ public final class MenuBarStatusView: NSView {
         }
 
         let configuration = NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .medium)
-        let configuredImage = image.withSymbolConfiguration(configuration) ?? image
-        guard let tintedImage = configuredImage.copy() as? NSImage else {
-            return configuredImage
-        }
-
-        tintedImage.lockFocus()
-        NSColor.labelColor.set()
-        NSRect(origin: .zero, size: tintedImage.size).fill(using: .sourceAtop)
-        tintedImage.unlockFocus()
-        return tintedImage
+            .applying(NSImage.SymbolConfiguration(hierarchicalColor: .labelColor))
+        return image.withSymbolConfiguration(configuration) ?? image
     }
 }

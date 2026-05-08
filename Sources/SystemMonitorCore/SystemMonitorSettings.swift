@@ -1,6 +1,9 @@
+import AppCore
 import Foundation
 
-public struct SystemMonitorSettings: Codable, Equatable, Sendable {
+public struct SystemMonitorSettings: FeatureSettings {
+    public static let featureId = "system-monitor"
+
     public var menuBar: MenuBarSettings
     public var networkUnits: NetworkUnits
     public var networkDisplay: NetworkDisplay
@@ -33,7 +36,7 @@ public struct SystemMonitorSettings: Codable, Equatable, Sendable {
                 displayMode: .singleLine
             ),
             networkUnits: .bytesPerSecond,
-            networkDisplay: .uploadAndDownload,
+            networkDisplay: .greater,
             warningThresholds: .defaultValue,
             warningsEnabled: false
         )
@@ -45,6 +48,31 @@ public struct SystemMonitorSettings: Codable, Equatable, Sendable {
         case networkDisplay = "network_display"
         case warningThresholds = "warning_thresholds"
         case warningsEnabled = "warnings_enabled"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let defaults = Self.defaultValue
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        menuBar = try container.decodeIfPresent(
+            MenuBarSettings.self,
+            forKey: .menuBar
+        ) ?? defaults.menuBar
+        networkUnits = try container.decodeIfPresent(
+            NetworkUnits.self,
+            forKey: .networkUnits
+        ) ?? defaults.networkUnits
+        networkDisplay = try container.decodeIfPresent(
+            NetworkDisplay.self,
+            forKey: .networkDisplay
+        ) ?? defaults.networkDisplay
+        warningThresholds = try container.decodeIfPresent(
+            WarningThresholds.self,
+            forKey: .warningThresholds
+        ) ?? defaults.warningThresholds
+        warningsEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .warningsEnabled
+        ) ?? defaults.warningsEnabled
     }
 }
 
@@ -172,12 +200,13 @@ public struct WarningThresholds: Codable, Equatable, Sendable {
     }
 }
 
-public enum NetworkUnits: String, Codable, Sendable {
+public enum NetworkUnits: String, Codable, CaseIterable, Sendable {
     case bytesPerSecond = "bytes_per_second"
     case bitsPerSecond = "bits_per_second"
 }
 
-public enum NetworkDisplay: String, Codable, Sendable {
+public enum NetworkDisplay: String, Codable, CaseIterable, Sendable {
+    case greater
     case uploadAndDownload = "upload_and_download"
     case uploadOnly = "upload_only"
     case downloadOnly = "download_only"

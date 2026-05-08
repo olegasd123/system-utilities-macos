@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-final class CpuCollector {
+final class CpuCollector: CpuMetricSource {
     private var previousLoads: [processor_cpu_load_info] = []
 
     func sample() -> CpuSample {

@@ -3,6 +3,7 @@ import AppUI
 import Combine
 import Foundation
 import SwiftUI
+import SystemMonitorCore
 
 @MainActor
 public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuBarFeature {
@@ -20,33 +21,26 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         $menuBarLines.eraseToAnyPublisher()
     }
 
-    private let currentSettings: () -> SystemMonitorSettings
-    private let currentTemperatureUnit: () -> TemperatureUnit
-    private let settingsBinding: Binding<SystemMonitorSettings>
+    private let settings: SettingsModel<SystemMonitorSettings>
+    private let general: SettingsModel<GeneralSettings>
 
     private var cancellables: Set<AnyCancellable> = []
 
     public init(
-        model: SystemMonitorModel,
-        currentSettings: @escaping () -> SystemMonitorSettings,
-        currentTemperatureUnit: @escaping () -> TemperatureUnit,
-        settingsBinding: Binding<SystemMonitorSettings>,
-        settingsChanges: AnyPublisher<SystemMonitorSettings, Never>,
-        temperatureUnitChanges: AnyPublisher<TemperatureUnit, Never>
+        settings: SettingsModel<SystemMonitorSettings>,
+        general: SettingsModel<GeneralSettings>,
+        model: SystemMonitorModel
     ) {
+        self.settings = settings
+        self.general = general
         self.model = model
-        self.currentSettings = currentSettings
-        self.currentTemperatureUnit = currentTemperatureUnit
-        self.settingsBinding = settingsBinding
 
-        let settingsStream = settingsChanges
-            .prepend(currentSettings())
-            .eraseToAnyPublisher()
-        let unitStream = temperatureUnitChanges
-            .prepend(currentTemperatureUnit())
+        let unitStream = general.publisher
+            .map(\.temperatureUnit)
+            .removeDuplicates()
             .eraseToAnyPublisher()
 
-        Publishers.CombineLatest3(model.$snapshot, settingsStream, unitStream)
+        Publishers.CombineLatest3(model.$snapshot, settings.publisher, unitStream)
             .map { snapshot, settings, unit in
                 MenuBarFormatter.statusLines(
                     snapshot: snapshot,
@@ -61,7 +55,7 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
             }
             .store(in: &cancellables)
 
-        Publishers.CombineLatest($isActive, settingsStream)
+        Publishers.CombineLatest($isActive, settings.publisher)
             .map { active, settings in
                 active || Self.menuBarOrWarningsNeedSampling(settings)
             }
@@ -98,17 +92,17 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         AnyView(
             DashboardView(
                 model: model,
-                settings: currentSettings(),
-                temperatureUnit: currentTemperatureUnit()
+                settings: settings.settings,
+                temperatureUnit: general.settings.temperatureUnit
             )
         )
     }
 
     public func makeSettingsSection() -> AnyView? {
         AnyView(
-            SystemMonitorSettingsSection(
-                settings: settingsBinding,
-                temperatureUnit: currentTemperatureUnit()
+            SystemMonitorSettingsView(
+                settings: settings,
+                generalSettings: general
             )
         )
     }

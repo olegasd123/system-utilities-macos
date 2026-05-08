@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-final class NetworkCollector {
+final class NetworkCollector: NetworkMetricSource {
     private var previous: NetworkCounters?
     private var previousDate = Date()
 
