@@ -70,6 +70,7 @@ public struct DashboardView: View {
                         value: sensorValue,
                         subtitle: sensorSubtitle,
                         accent: .yellow,
+                        subtitleLineLimit: 3,
                         warning: temperatureWarning
                     )
                 } right: {
@@ -239,12 +240,10 @@ public struct DashboardView: View {
     }
 
     private var sensorSubtitle: String {
-        guard let snapshot, !snapshot.temperatures.isEmpty else {
-            return "Waiting for detailed sensors"
-        }
-        return snapshot.temperatures.prefix(2)
-            .map { "\($0.label) \(SystemFormatters.temperature($0.temperatureC, unit: temperatureUnit))" }
-            .joined(separator: "\n")
+        SensorCardFormatter.subtitle(
+            temperatures: snapshot?.temperatures ?? [],
+            temperatureUnit: temperatureUnit
+        )
     }
 
     private var fanValue: String {

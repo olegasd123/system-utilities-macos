@@ -6,6 +6,7 @@ public struct MetricCardView: View {
     public let value: String
     public let subtitle: String
     public let accent: Color
+    public var subtitleLineLimit: Int
     public var progress: Double?
     public var warning: Bool
     public var footer: AnyView?
@@ -16,6 +17,7 @@ public struct MetricCardView: View {
         value: String,
         subtitle: String,
         accent: Color,
+        subtitleLineLimit: Int = 2,
         progress: Double? = nil,
         warning: Bool = false,
         footer: AnyView? = nil
@@ -25,6 +27,7 @@ public struct MetricCardView: View {
         self.value = value
         self.subtitle = subtitle
         self.accent = accent
+        self.subtitleLineLimit = subtitleLineLimit
         self.progress = progress
         self.warning = warning
         self.footer = footer
@@ -60,7 +63,7 @@ public struct MetricCardView: View {
             Text(subtitle)
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .lineLimit(subtitleLineLimit)
                 .minimumScaleFactor(0.9)
 
             Spacer(minLength: 0)
