@@ -58,6 +58,7 @@ public struct SystemMonitorSettingsView: View {
             .pickerStyle(.radioGroup)
 
             Picker("Network display", selection: $settingsModel.settings.networkDisplay) {
+                Text("Greater ↑ or ↓").tag(NetworkDisplay.greater)
                 Text("↑ and ↓").tag(NetworkDisplay.uploadAndDownload)
                 Text("↑ only").tag(NetworkDisplay.uploadOnly)
                 Text("↓ only").tag(NetworkDisplay.downloadOnly)

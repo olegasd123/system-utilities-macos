@@ -36,7 +36,7 @@ public struct SystemMonitorSettings: FeatureSettings {
                 displayMode: .singleLine
             ),
             networkUnits: .bytesPerSecond,
-            networkDisplay: .uploadAndDownload,
+            networkDisplay: .greater,
             warningThresholds: .defaultValue,
             warningsEnabled: false
         )
@@ -206,6 +206,7 @@ public enum NetworkUnits: String, Codable, CaseIterable, Sendable {
 }
 
 public enum NetworkDisplay: String, Codable, CaseIterable, Sendable {
+    case greater
     case uploadAndDownload = "upload_and_download"
     case uploadOnly = "upload_only"
     case downloadOnly = "download_only"

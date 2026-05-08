@@ -169,6 +169,21 @@ public enum MenuBarFormatter {
             )
             let reservedRate = reservedNetworkRate(units: settings.networkUnits)
             switch settings.networkDisplay {
+            case .greater:
+                let (symbol, rate) = greaterNetworkRate(snapshot.network)
+                let value = SystemFormatters.compactRate(rate, units: settings.networkUnits)
+                parts.append(
+                    MenuBarPart(
+                        singleLineText: "\(symbol) \(value)",
+                        singleLineReservedText: "↓ \(reservedRate)",
+                        symbolName: nil,
+                        fallbackPrefix: nil,
+                        twoLineTopText: "NET \(symbol)",
+                        twoLineTopReservedText: "NET ↓",
+                        twoLineBottomText: value,
+                        twoLineBottomReservedText: reservedRate
+                    )
+                )
             case .uploadAndDownload:
                 if menuBar.displayMode == .singleLine {
                     parts.append(
@@ -361,6 +376,14 @@ public enum MenuBarFormatter {
     private static func combinedNetworkBytesPerSecond(_ network: NetworkSample) -> UInt64 {
         let (total, overflow) = network.rxBytesPerSec.addingReportingOverflow(network.txBytesPerSec)
         return overflow ? UInt64.max : total
+    }
+
+    private static func greaterNetworkRate(_ network: NetworkSample) -> (symbol: String, rate: UInt64) {
+        if network.txBytesPerSec > network.rxBytesPerSec {
+            return ("↑", network.txBytesPerSec)
+        }
+
+        return ("↓", network.rxBytesPerSec)
     }
 }
 
