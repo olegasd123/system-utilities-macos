@@ -1,7 +1,7 @@
 import AppKit
 
 public final class MenuBarStatusView: NSView {
-    private var lines: [MenuBarStatusLine] = [MenuBarStatusLine(text: "CPU --  NET --")]
+    private var lines: [MenuBarStatusLine] = [MenuBarStatusLine(text: "CPU --  ↕ --")]
     private let horizontalPadding: CGFloat = 7
     private let segmentSeparator = "  "
     private let compactSegmentSpacing: CGFloat = 6

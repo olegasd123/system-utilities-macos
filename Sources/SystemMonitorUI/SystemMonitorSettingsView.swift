@@ -37,11 +37,33 @@ public struct SystemMonitorSettingsView: View {
             Toggle("Free disk space", isOn: $settingsModel.settings.menuBar.showDiskFree)
             Toggle("Battery status", isOn: $settingsModel.settings.menuBar.showBattery)
             Toggle("Network speed", isOn: $settingsModel.settings.menuBar.showNetworkSpeed)
+            if settingsModel.settings.menuBar.showNetworkSpeed {
+                networkSpeedOptions
+                    .padding(.leading, 16)
+            }
             if enabledMenuBarItemCount > 5 {
                 Text("Lots of modules enabled. The menu bar may run out of room.")
                     .font(.system(size: 12))
                     .foregroundStyle(.orange)
             }
+        }
+    }
+
+    private var networkSpeedOptions: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Picker("Network unit", selection: $settingsModel.settings.networkUnits) {
+                Text("Bytes/s").tag(NetworkUnits.bytesPerSecond)
+                Text("Bits/s").tag(NetworkUnits.bitsPerSecond)
+            }
+            .pickerStyle(.radioGroup)
+
+            Picker("Network display", selection: $settingsModel.settings.networkDisplay) {
+                Text("↑ and ↓").tag(NetworkDisplay.uploadAndDownload)
+                Text("↑ only").tag(NetworkDisplay.uploadOnly)
+                Text("↓ only").tag(NetworkDisplay.downloadOnly)
+                Text("↕ combined").tag(NetworkDisplay.combined)
+            }
+            .pickerStyle(.radioGroup)
         }
     }
 

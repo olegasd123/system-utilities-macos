@@ -37,7 +37,7 @@ public enum MenuBarFormatter {
                     MenuBarStatusLine(
                         segments: [
                             MenuBarStatusSegment(text: "CPU", reservedText: "CPU"),
-                            MenuBarStatusSegment(text: "NET", reservedText: "NET")
+                            MenuBarStatusSegment(text: "↕", reservedText: "↕")
                         ]
                     ),
                     MenuBarStatusLine(
@@ -47,7 +47,7 @@ public enum MenuBarFormatter {
                         ]
                     )
                 ]
-                : [MenuBarStatusLine(text: "CPU --  NET --")]
+                : [MenuBarStatusLine(text: "CPU --  ↕ --")]
         }
 
         let parts = makeParts(
@@ -225,12 +225,12 @@ public enum MenuBarFormatter {
                         label: "↑",
                         value: up,
                         reservedValue: reservedRate,
-                        text: "UP \(up)",
-                        reservedText: "UP \(reservedRate)",
-                        compactText: up,
-                        compactReservedText: reservedRate,
-                        symbolName: "arrow.up",
-                        fallbackPrefix: "UP"
+                        text: "↑ \(up)",
+                        reservedText: "↑ \(reservedRate)",
+                        compactText: "↑ \(up)",
+                        compactReservedText: "↑ \(reservedRate)",
+                        symbolName: nil,
+                        fallbackPrefix: nil
                     )
                 )
             case .downloadOnly:
@@ -239,24 +239,28 @@ public enum MenuBarFormatter {
                         label: "↓",
                         value: down,
                         reservedValue: reservedRate,
-                        text: "DOWN \(down)",
-                        reservedText: "DOWN \(reservedRate)",
-                        compactText: down,
-                        compactReservedText: reservedRate,
-                        symbolName: "arrow.down",
-                        fallbackPrefix: "DOWN"
+                        text: "↓ \(down)",
+                        reservedText: "↓ \(reservedRate)",
+                        compactText: "↓ \(down)",
+                        compactReservedText: "↓ \(reservedRate)",
+                        symbolName: nil,
+                        fallbackPrefix: nil
                     )
                 )
             case .combined:
+                let combined = SystemFormatters.compactRate(
+                    combinedNetworkBytesPerSecond(snapshot.network),
+                    units: settings.networkUnits
+                )
                 parts.append(
                     MenuBarPart(
-                        label: "↓",
-                        value: down,
+                        label: "↕",
+                        value: combined,
                         reservedValue: reservedRate,
-                        text: "NET \(down)",
-                        reservedText: "NET \(reservedRate)",
-                        compactText: down,
-                        compactReservedText: reservedRate,
+                        text: "↕ \(combined)",
+                        reservedText: "↕ \(reservedRate)",
+                        compactText: "↕ \(combined)",
+                        compactReservedText: "↕ \(reservedRate)",
                         symbolName: nil,
                         fallbackPrefix: nil
                     )
@@ -371,6 +375,11 @@ public enum MenuBarFormatter {
         case .bitsPerSecond:
             return "999.9Mb"
         }
+    }
+
+    private static func combinedNetworkBytesPerSecond(_ network: NetworkSample) -> UInt64 {
+        let (total, overflow) = network.rxBytesPerSec.addingReportingOverflow(network.txBytesPerSec)
+        return overflow ? UInt64.max : total
     }
 }
 
