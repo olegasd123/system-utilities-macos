@@ -55,7 +55,7 @@ public struct DashboardView: View {
                 } right: {
                     MetricCardView(
                         symbol: "network",
-                        label: "NETWORK",
+                        label: networkLabel,
                         value: networkValue,
                         subtitle: networkSubtitle,
                         accent: .orange,
@@ -193,19 +193,16 @@ public struct DashboardView: View {
         return "↓ \(SystemFormatters.rate(snapshot.network.rxBytesPerSec))"
     }
 
+    private var networkLabel: String {
+        snapshot?.network.connectionType?.uppercased() ?? "NETWORK"
+    }
+
     private var networkSubtitle: String {
         guard let network = snapshot?.network else {
             return "↑ -- B/s"
         }
 
-        let up = "↑ \(SystemFormatters.rate(network.txBytesPerSec))"
-        guard let primaryInterface = network.primaryInterface else {
-            return up
-        }
-
-        let label = network.connectionType.map { "\($0) (\(primaryInterface))" }
-            ?? "Interface: \(primaryInterface)"
-        return "\(up)\n\(label)"
+        return "↑ \(SystemFormatters.rate(network.txBytesPerSec))"
     }
 
     private var networkTotalsFooter: AnyView? {
