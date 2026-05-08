@@ -62,7 +62,7 @@ public enum MenuBarFormatter {
 
         switch settings.menuBar.displayMode {
         case .singleLine:
-            return [line(from: parts, style: .icon)]
+            return [line(from: parts)]
         case .twoLine:
             return twoLineParts(parts)
         }
@@ -80,15 +80,14 @@ public enum MenuBarFormatter {
             let value = "\(Int(snapshot.cpu.usagePercent.rounded()))%"
             parts.append(
                 MenuBarPart(
-                    label: "CPU",
-                    value: value,
-                    reservedValue: "100%",
-                    text: "CPU \(value)",
-                    reservedText: "CPU 100%",
-                    compactText: value,
-                    compactReservedText: "100%",
+                    singleLineText: value,
+                    singleLineReservedText: "100%",
                     symbolName: "cpu",
-                    fallbackPrefix: "CPU"
+                    fallbackPrefix: "CPU",
+                    twoLineTopText: "CPU",
+                    twoLineTopReservedText: "CPU",
+                    twoLineBottomText: value,
+                    twoLineBottomReservedText: "100%"
                 )
             )
         }
@@ -97,15 +96,14 @@ public enum MenuBarFormatter {
             let value = compactTemperature(temperature, unit: temperatureUnit)
             parts.append(
                 MenuBarPart(
-                    label: "TEMP",
-                    value: value,
-                    reservedValue: compactReservedTemperature(unit: temperatureUnit),
-                    text: "TEMP \(SystemFormatters.temperature(temperature, unit: temperatureUnit))",
-                    reservedText: "TEMP \(reservedTemperature(unit: temperatureUnit))",
-                    compactText: SystemFormatters.temperature(temperature, unit: temperatureUnit),
-                    compactReservedText: reservedTemperature(unit: temperatureUnit),
+                    singleLineText: SystemFormatters.temperature(temperature, unit: temperatureUnit),
+                    singleLineReservedText: reservedTemperature(unit: temperatureUnit),
                     symbolName: "thermometer.medium",
-                    fallbackPrefix: "TEMP"
+                    fallbackPrefix: "TEMP",
+                    twoLineTopText: "TEMP",
+                    twoLineTopReservedText: "TEMP",
+                    twoLineBottomText: value,
+                    twoLineBottomReservedText: compactReservedTemperature(unit: temperatureUnit)
                 )
             )
         }
@@ -114,15 +112,14 @@ public enum MenuBarFormatter {
             let value = "\(Int(snapshot.memory.usedPercent.rounded()))%"
             parts.append(
                 MenuBarPart(
-                    label: "RAM",
-                    value: value,
-                    reservedValue: "100%",
-                    text: "RAM \(value)",
-                    reservedText: "RAM 100%",
-                    compactText: value,
-                    compactReservedText: "100%",
+                    singleLineText: value,
+                    singleLineReservedText: "100%",
                     symbolName: "memorychip",
-                    fallbackPrefix: "RAM"
+                    fallbackPrefix: "RAM",
+                    twoLineTopText: "RAM",
+                    twoLineTopReservedText: "RAM",
+                    twoLineBottomText: value,
+                    twoLineBottomReservedText: "100%"
                 )
             )
         }
@@ -131,15 +128,14 @@ public enum MenuBarFormatter {
             let value = SystemFormatters.compactBytes(disk.availableBytes)
             parts.append(
                 MenuBarPart(
-                    label: "DISK",
-                    value: value,
-                    reservedValue: "9999.9GB",
-                    text: "DISK \(value)",
-                    reservedText: "DISK 9999.9GB",
-                    compactText: value,
-                    compactReservedText: "9999.9GB",
+                    singleLineText: value,
+                    singleLineReservedText: "9999.9GB",
                     symbolName: "internaldrive",
-                    fallbackPrefix: "DISK"
+                    fallbackPrefix: "DISK",
+                    twoLineTopText: "DISK",
+                    twoLineTopReservedText: "DISK",
+                    twoLineBottomText: value,
+                    twoLineBottomReservedText: "9999.9GB"
                 )
             )
         }
@@ -150,15 +146,14 @@ public enum MenuBarFormatter {
             let value = "\(prefix)\(percent)"
             parts.append(
                 MenuBarPart(
-                    label: "BAT",
-                    value: value,
-                    reservedValue: "*100%",
-                    text: "BAT \(value)",
-                    reservedText: "BAT *100%",
-                    compactText: percent,
-                    compactReservedText: "100%",
+                    singleLineText: percent,
+                    singleLineReservedText: "100%",
                     symbolName: BatterySymbol.name(for: battery),
-                    fallbackPrefix: "BAT"
+                    fallbackPrefix: "BAT",
+                    twoLineTopText: "BAT",
+                    twoLineTopReservedText: "BAT",
+                    twoLineBottomText: value,
+                    twoLineBottomReservedText: "*100%"
                 )
             )
         }
@@ -178,73 +173,66 @@ public enum MenuBarFormatter {
                 if menuBar.displayMode == .singleLine {
                     parts.append(
                         MenuBarPart(
-                            label: "↓",
-                            value: down,
-                            reservedValue: reservedRate,
-                            text: "↓ \(down)",
-                            reservedText: "↓ \(reservedRate)",
-                            compactText: "↓ \(down)",
-                            compactReservedText: "↓ \(reservedRate)",
+                            singleLineText: "↓ \(down)",
+                            singleLineReservedText: "↓ \(reservedRate)",
                             symbolName: nil,
-                            fallbackPrefix: nil
+                            fallbackPrefix: nil,
+                            twoLineTopText: "↓",
+                            twoLineTopReservedText: "↓",
+                            twoLineBottomText: down,
+                            twoLineBottomReservedText: reservedRate
                         )
                     )
                     parts.append(
                         MenuBarPart(
-                            label: "↑",
-                            value: up,
-                            reservedValue: reservedRate,
-                            text: "↑ \(up)",
-                            reservedText: "↑ \(reservedRate)",
-                            compactText: "↑ \(up)",
-                            compactReservedText: "↑ \(reservedRate)",
+                            singleLineText: "↑ \(up)",
+                            singleLineReservedText: "↑ \(reservedRate)",
                             symbolName: nil,
-                            fallbackPrefix: nil
+                            fallbackPrefix: nil,
+                            twoLineTopText: "↑",
+                            twoLineTopReservedText: "↑",
+                            twoLineBottomText: up,
+                            twoLineBottomReservedText: reservedRate
                         )
                     )
                 } else {
                     parts.append(
                         MenuBarPart(
-                            label: "↓",
-                            value: "↑ \(up)",
-                            reservedValue: "↑ \(reservedRate)",
-                            text: "↓ \(down) ↑ \(up)",
-                            reservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
-                            compactText: "↓ \(down) ↑ \(up)",
-                            compactReservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
+                            singleLineText: "↓ \(down) ↑ \(up)",
+                            singleLineReservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
                             symbolName: nil,
                             fallbackPrefix: nil,
                             twoLineTopText: "↓ \(down)",
-                            twoLineReservedTopText: "↓ \(reservedRate)"
+                            twoLineTopReservedText: "↓ \(reservedRate)",
+                            twoLineBottomText: "↑ \(up)",
+                            twoLineBottomReservedText: "↑ \(reservedRate)"
                         )
                     )
                 }
             case .uploadOnly:
                 parts.append(
                     MenuBarPart(
-                        label: "↑",
-                        value: up,
-                        reservedValue: reservedRate,
-                        text: "↑ \(up)",
-                        reservedText: "↑ \(reservedRate)",
-                        compactText: "↑ \(up)",
-                        compactReservedText: "↑ \(reservedRate)",
+                        singleLineText: "↑ \(up)",
+                        singleLineReservedText: "↑ \(reservedRate)",
                         symbolName: nil,
-                        fallbackPrefix: nil
+                        fallbackPrefix: nil,
+                        twoLineTopText: "NET ↑",
+                        twoLineTopReservedText: "NET ↑",
+                        twoLineBottomText: up,
+                        twoLineBottomReservedText: reservedRate
                     )
                 )
             case .downloadOnly:
                 parts.append(
                     MenuBarPart(
-                        label: "↓",
-                        value: down,
-                        reservedValue: reservedRate,
-                        text: "↓ \(down)",
-                        reservedText: "↓ \(reservedRate)",
-                        compactText: "↓ \(down)",
-                        compactReservedText: "↓ \(reservedRate)",
+                        singleLineText: "↓ \(down)",
+                        singleLineReservedText: "↓ \(reservedRate)",
                         symbolName: nil,
-                        fallbackPrefix: nil
+                        fallbackPrefix: nil,
+                        twoLineTopText: "NET ↓",
+                        twoLineTopReservedText: "NET ↓",
+                        twoLineBottomText: down,
+                        twoLineBottomReservedText: reservedRate
                     )
                 )
             case .combined:
@@ -254,15 +242,14 @@ public enum MenuBarFormatter {
                 )
                 parts.append(
                     MenuBarPart(
-                        label: "↕",
-                        value: combined,
-                        reservedValue: reservedRate,
-                        text: "↕ \(combined)",
-                        reservedText: "↕ \(reservedRate)",
-                        compactText: "↕ \(combined)",
-                        compactReservedText: "↕ \(reservedRate)",
+                        singleLineText: "↕ \(combined)",
+                        singleLineReservedText: "↕ \(reservedRate)",
                         symbolName: nil,
-                        fallbackPrefix: nil
+                        fallbackPrefix: nil,
+                        twoLineTopText: "NET ↕",
+                        twoLineTopReservedText: "NET ↕",
+                        twoLineBottomText: combined,
+                        twoLineBottomReservedText: reservedRate
                     )
                 )
             }
@@ -279,22 +266,16 @@ public enum MenuBarFormatter {
     }
 
     private static func line(
-        from parts: [MenuBarPart],
-        style: MenuBarStatusLineStyle
+        from parts: [MenuBarPart]
     ) -> MenuBarStatusLine {
         MenuBarStatusLine(
             segments: parts.map {
-                switch style {
-                case .text:
-                    return MenuBarStatusSegment(text: $0.text, reservedText: $0.reservedText)
-                case .icon:
-                    return MenuBarStatusSegment(
-                        text: $0.compactText,
-                        reservedText: $0.compactReservedText,
-                        symbolName: $0.symbolName,
-                        fallbackPrefix: $0.fallbackPrefix
-                    )
-                }
+                MenuBarStatusSegment(
+                    text: $0.singleLineText,
+                    reservedText: $0.singleLineReservedText,
+                    symbolName: $0.symbolName,
+                    fallbackPrefix: $0.fallbackPrefix
+                )
             }
         )
     }
@@ -304,7 +285,7 @@ public enum MenuBarFormatter {
             segments: parts.map {
                 MenuBarStatusSegment(
                     text: $0.twoLineTopText,
-                    reservedText: $0.twoLineReservedText
+                    reservedText: $0.twoLineTopReservedText
                 )
             }
         )
@@ -314,8 +295,8 @@ public enum MenuBarFormatter {
         MenuBarStatusLine(
             segments: parts.map {
                 MenuBarStatusSegment(
-                    text: $0.value,
-                    reservedText: $0.twoLineReservedText
+                    text: $0.twoLineBottomText,
+                    reservedText: $0.twoLineBottomReservedText
                 )
             }
         )
@@ -384,51 +365,32 @@ public enum MenuBarFormatter {
 }
 
 private struct MenuBarPart {
-    var label: String
-    var value: String
-    var reservedValue: String
-    var text: String
-    var reservedText: String
-    var compactText: String
-    var compactReservedText: String
+    var singleLineText: String
+    var singleLineReservedText: String
     var symbolName: String?
     var fallbackPrefix: String?
     var twoLineTopText: String
-    var twoLineReservedTopText: String
+    var twoLineTopReservedText: String
+    var twoLineBottomText: String
+    var twoLineBottomReservedText: String
 
     init(
-        label: String,
-        value: String,
-        reservedValue: String,
-        text: String,
-        reservedText: String,
-        compactText: String,
-        compactReservedText: String,
+        singleLineText: String,
+        singleLineReservedText: String,
         symbolName: String?,
         fallbackPrefix: String?,
-        twoLineTopText: String? = nil,
-        twoLineReservedTopText: String? = nil
+        twoLineTopText: String,
+        twoLineTopReservedText: String,
+        twoLineBottomText: String,
+        twoLineBottomReservedText: String
     ) {
-        self.label = label
-        self.value = value
-        self.reservedValue = reservedValue
-        self.text = text
-        self.reservedText = reservedText
-        self.compactText = compactText
-        self.compactReservedText = compactReservedText
+        self.singleLineText = singleLineText
+        self.singleLineReservedText = singleLineReservedText
         self.symbolName = symbolName
         self.fallbackPrefix = fallbackPrefix
-        self.twoLineTopText = twoLineTopText ?? label
-        self.twoLineReservedTopText = twoLineReservedTopText ?? label
+        self.twoLineTopText = twoLineTopText
+        self.twoLineTopReservedText = twoLineTopReservedText
+        self.twoLineBottomText = twoLineBottomText
+        self.twoLineBottomReservedText = twoLineBottomReservedText
     }
-
-    var twoLineReservedText: String {
-        [twoLineReservedTopText, reservedValue]
-            .max { $0.count < $1.count } ?? reservedValue
-    }
-}
-
-private enum MenuBarStatusLineStyle {
-    case text
-    case icon
 }
