@@ -175,21 +175,50 @@ public enum MenuBarFormatter {
             let reservedRate = reservedNetworkRate(units: settings.networkUnits)
             switch settings.networkDisplay {
             case .uploadAndDownload:
-                parts.append(
-                    MenuBarPart(
-                        label: "↓",
-                        value: "↑ \(up)",
-                        reservedValue: "↑ \(reservedRate)",
-                        text: "↓ \(down) ↑ \(up)",
-                        reservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
-                        compactText: "↓ \(down) ↑ \(up)",
-                        compactReservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
-                        symbolName: nil,
-                        fallbackPrefix: nil,
-                        twoLineTopText: "↓ \(down)",
-                        twoLineReservedTopText: "↓ \(reservedRate)"
+                if menuBar.displayMode == .singleLine {
+                    parts.append(
+                        MenuBarPart(
+                            label: "↓",
+                            value: down,
+                            reservedValue: reservedRate,
+                            text: "↓ \(down)",
+                            reservedText: "↓ \(reservedRate)",
+                            compactText: "↓ \(down)",
+                            compactReservedText: "↓ \(reservedRate)",
+                            symbolName: nil,
+                            fallbackPrefix: nil
+                        )
                     )
-                )
+                    parts.append(
+                        MenuBarPart(
+                            label: "↑",
+                            value: up,
+                            reservedValue: reservedRate,
+                            text: "↑ \(up)",
+                            reservedText: "↑ \(reservedRate)",
+                            compactText: "↑ \(up)",
+                            compactReservedText: "↑ \(reservedRate)",
+                            symbolName: nil,
+                            fallbackPrefix: nil
+                        )
+                    )
+                } else {
+                    parts.append(
+                        MenuBarPart(
+                            label: "↓",
+                            value: "↑ \(up)",
+                            reservedValue: "↑ \(reservedRate)",
+                            text: "↓ \(down) ↑ \(up)",
+                            reservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
+                            compactText: "↓ \(down) ↑ \(up)",
+                            compactReservedText: "↓ \(reservedRate) ↑ \(reservedRate)",
+                            symbolName: nil,
+                            fallbackPrefix: nil,
+                            twoLineTopText: "↓ \(down)",
+                            twoLineReservedTopText: "↓ \(reservedRate)"
+                        )
+                    )
+                }
             case .uploadOnly:
                 parts.append(
                     MenuBarPart(
