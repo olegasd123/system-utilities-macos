@@ -141,19 +141,18 @@ public enum MenuBarFormatter {
         }
 
         if menuBar.showBattery, let battery = snapshot.battery {
-            let prefix = isOnPower(battery.state) ? "*" : ""
             let percent = "\(Int(battery.chargePercent.rounded()))%"
-            let value = "\(prefix)\(percent)"
+            let label = battery.state == .charging ? "BAT ⚡" : "BAT"
             parts.append(
                 MenuBarPart(
                     singleLineText: percent,
                     singleLineReservedText: "100%",
                     symbolName: BatterySymbol.name(for: battery),
                     fallbackPrefix: "BAT",
-                    twoLineTopText: "BAT",
-                    twoLineTopReservedText: "BAT",
-                    twoLineBottomText: value,
-                    twoLineBottomReservedText: "*100%"
+                    twoLineTopText: label,
+                    twoLineTopReservedText: "BAT ⚡",
+                    twoLineBottomText: percent,
+                    twoLineBottomReservedText: "100%"
                 )
             )
         }
@@ -331,10 +330,6 @@ public enum MenuBarFormatter {
             || menuBar.showDiskFree
             || menuBar.showBattery
             || menuBar.showNetworkSpeed
-    }
-
-    private static func isOnPower(_ state: BatteryState) -> Bool {
-        state == .charging || state == .full
     }
 
     private static func reservedTemperature(unit: TemperatureUnit) -> String {
