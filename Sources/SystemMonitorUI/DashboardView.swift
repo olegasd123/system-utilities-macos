@@ -171,7 +171,7 @@ public struct DashboardView: View {
         guard let storageTemperature else {
             return freeSpace
         }
-        return "\(freeSpace)\nStorage \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit))"
+        return "\(freeSpace)\nTemp \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit))"
     }
 
     private var storageTemperature: TemperatureSample? {
