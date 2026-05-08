@@ -10,15 +10,29 @@ public final class SystemMonitorModel: ObservableObject {
     private let networkTotalsStore: NetworkTotalsStore
     private let metricsSampler = MetricsSampler()
     private let warningService = WarningService()
+    private let dateProvider: () -> Date
     private var networkBaseline: NetworkDailyBaseline?
     private var isSampling = false
 
-    public init(
+    public convenience init(
         settings: SettingsModel<SystemMonitorSettings>,
         networkTotalsStore: NetworkTotalsStore = .standard
     ) {
+        self.init(
+            settings: settings,
+            networkTotalsStore: networkTotalsStore,
+            dateProvider: Date.init
+        )
+    }
+
+    init(
+        settings: SettingsModel<SystemMonitorSettings>,
+        networkTotalsStore: NetworkTotalsStore,
+        dateProvider: @escaping () -> Date = Date.init
+    ) {
         self.settings = settings
         self.networkTotalsStore = networkTotalsStore
+        self.dateProvider = dateProvider
         self.networkBaseline = networkTotalsStore.load()
     }
 
@@ -51,7 +65,7 @@ public final class SystemMonitorModel: ObservableObject {
         try? networkTotalsStore.save(baseline)
     }
 
-    private func apply(snapshot: Snapshot) {
+    func apply(snapshot: Snapshot) {
         self.snapshot = snapshot
         updateNetworkTotals(snapshot: snapshot)
         warningService.evaluate(snapshot: snapshot, settings: settings.settings)
@@ -90,7 +104,8 @@ public final class SystemMonitorModel: ObservableObject {
         )
     }
 
-    private func localDateKey(date: Date = Date()) -> String {
+    private func localDateKey() -> String {
+        let date = dateProvider()
         let components = Calendar.current.dateComponents([.year, .month, .day], from: date)
         return String(
             format: "%04d-%02d-%02d",

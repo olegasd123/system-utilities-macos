@@ -35,6 +35,18 @@ let package = Package(
                 .linkedFramework("CoreFoundation"),
                 .linkedFramework("IOKit")
             ]
+        ),
+        .testTarget(
+            name: "AppCoreTests",
+            dependencies: ["AppCore"]
+        ),
+        .testTarget(
+            name: "SystemMonitorCoreTests",
+            dependencies: ["AppCore", "SystemMonitorCore"]
+        ),
+        .testTarget(
+            name: "SystemMonitorUITests",
+            dependencies: ["AppCore", "AppUI", "SystemMonitorCore", "SystemMonitorUI"]
         )
     ]
 )
