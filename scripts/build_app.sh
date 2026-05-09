@@ -5,6 +5,7 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 APP_NAME="System Monitor"
 EXECUTABLE_NAME="SystemMonitor"
+APP_EXECUTABLE_NAME="System Monitor"
 CONFIGURATION="${CONFIGURATION:-release}"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"
 APP_PATH="$ROOT_DIR/dist/$APP_NAME.app"
@@ -32,7 +33,7 @@ env \
 rm -rf "$APP_PATH"
 mkdir -p "$MACOS_PATH" "$RESOURCES_PATH"
 
-cp "$ROOT_DIR/.build/$CONFIGURATION/$EXECUTABLE_NAME" "$MACOS_PATH/$EXECUTABLE_NAME"
+cp "$ROOT_DIR/.build/$CONFIGURATION/$EXECUTABLE_NAME" "$MACOS_PATH/$APP_EXECUTABLE_NAME"
 cp "$ROOT_DIR/Packaging/Info.plist" "$CONTENTS_PATH/Info.plist"
 
 ICON_PATH="${APP_ICON_PATH:-$DEFAULT_ICON_PATH}"

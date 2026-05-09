@@ -6,7 +6,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>SystemMonitor</string>
+    <string>System Monitor</string>
     <key>CFBundleIdentifier</key>
     <string>dev.oleg-verhoglyad.SystemMonitor</string>
     <key>CFBundleInfoDictionaryVersion</key>
