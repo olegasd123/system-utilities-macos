@@ -1,6 +1,6 @@
 import Foundation
 
-final class MetricsCollector {
+final class MetricsCollector: @unchecked Sendable {
     private let cpu: CpuMetricSource
     private let memory: MemoryMetricSource
     private let disk: DiskMetricSource

@@ -218,7 +218,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 .receive(on: RunLoop.main)
                 .sink { [weak self] _ in
                     self?.updateStatusItem()
-                    self?.updatePopoverContentSize()
                 }
                 .store(in: &cancellables)
         }
@@ -263,22 +262,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             ? NSStatusItem.squareLength
             : menuBarStatusView.preferredWidth
 
-        guard
-            popoverWindow.isVisible
-        else {
+        if statusItem.length != preferredLength {
             statusItem.length = preferredLength
-            return
-        }
-
-        let frame = popoverWindow.frame
-        statusItem.length = preferredLength
-        popoverWindow.setFrame(frame, display: true)
-        Task { @MainActor [weak self] in
-            await Task.yield()
-            guard self?.popoverWindow.isVisible == true else {
-                return
-            }
-            self?.popoverWindow.setFrame(frame, display: true)
         }
     }
 }

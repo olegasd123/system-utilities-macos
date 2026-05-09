@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CpuSample: Equatable {
+public struct CpuSample: Equatable, Sendable {
     public var usagePercent: Double
     public var coreCount: Int
     public var temperatureC: Double?
@@ -12,7 +12,7 @@ public struct CpuSample: Equatable {
     }
 }
 
-public struct MemorySample: Equatable {
+public struct MemorySample: Equatable, Sendable {
     public var usedBytes: UInt64
     public var totalBytes: UInt64
     public var usedPercent: Double
@@ -24,7 +24,7 @@ public struct MemorySample: Equatable {
     }
 }
 
-public struct DiskSample: Identifiable, Equatable {
+public struct DiskSample: Identifiable, Equatable, Sendable {
     public var id: String { mountPoint }
     public var name: String
     public var mountPoint: String
@@ -53,7 +53,7 @@ public struct DiskSample: Identifiable, Equatable {
     }
 }
 
-public struct NetworkSample: Equatable {
+public struct NetworkSample: Equatable, Sendable {
     public var rxBytesPerSec: UInt64
     public var txBytesPerSec: UInt64
     public var totalRxBytes: UInt64
@@ -78,7 +78,7 @@ public struct NetworkSample: Equatable {
     }
 }
 
-public enum BatteryState: String, Equatable {
+public enum BatteryState: String, Equatable, Sendable {
     case charging
     case discharging
     case empty
@@ -86,7 +86,7 @@ public enum BatteryState: String, Equatable {
     case unknown
 }
 
-public struct BatterySample: Equatable {
+public struct BatterySample: Equatable, Sendable {
     public var chargePercent: Double
     public var state: BatteryState
     public var timeToFullSecs: UInt64?
@@ -111,7 +111,7 @@ public struct BatterySample: Equatable {
     }
 }
 
-public struct TemperatureSample: Identifiable, Equatable {
+public struct TemperatureSample: Identifiable, Equatable, Sendable {
     public var id: String { label }
     public var label: String
     public var temperatureC: Double
@@ -124,7 +124,7 @@ public struct TemperatureSample: Identifiable, Equatable {
     }
 }
 
-public struct FanSample: Identifiable, Equatable {
+public struct FanSample: Identifiable, Equatable, Sendable {
     public var id: String { label }
     public var label: String
     public var rpm: UInt32
@@ -135,7 +135,7 @@ public struct FanSample: Identifiable, Equatable {
     }
 }
 
-public struct Snapshot: Equatable {
+public struct Snapshot: Equatable, Sendable {
     public var cpu: CpuSample
     public var memory: MemorySample
     public var disks: [DiskSample]
