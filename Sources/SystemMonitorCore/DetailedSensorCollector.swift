@@ -14,20 +14,30 @@ final class DetailedSensorCollector: SensorMetricSource {
         }
     }
 
-    func temperatures() -> [TemperatureSample] {
+    func sample(includeFans: Bool, includeBatteryTemperature: Bool) -> SensorSample {
         let hid = readTemperatures(copyFunction: MacSensorCopyHidTemperatures)
-        if !hid.isEmpty {
-            return group(hid).map {
-                TemperatureSample(label: $0.label, temperatureC: $0.temperatureC)
-            }
-        }
+        let rawTemperatures = hid.isEmpty
+            ? readTemperatures(copyFunction: MacSensorCopySmcTemperatures)
+            : hid
+        let visibleTemperatures = hid.isEmpty
+            ? rawTemperatures
+            : group(rawTemperatures)
 
-        return readTemperatures(copyFunction: MacSensorCopySmcTemperatures).map {
+        let temperatures = visibleTemperatures.map {
             TemperatureSample(label: $0.label, temperatureC: $0.temperatureC)
         }
+
+        return SensorSample(
+            temperatures: temperatures,
+            fans: includeFans ? fans() : [],
+            cpuTemperatureC: cpuTemperature(from: temperatures),
+            batteryTemperatureC: includeBatteryTemperature
+                ? batteryTemperatureC(from: rawTemperatures)
+                : nil
+        )
     }
 
-    func fans() -> [FanSample] {
+    private func fans() -> [FanSample] {
         var readingsPointer: UnsafeMutablePointer<MacSensorReading>?
         let count = MacSensorCopyFans(context, &readingsPointer)
         guard let readingsPointer, count > 0 else {
@@ -49,7 +59,7 @@ final class DetailedSensorCollector: SensorMetricSource {
         }
     }
 
-    func cpuTemperature(from temperatures: [TemperatureSample]) -> Double? {
+    private func cpuTemperature(from temperatures: [TemperatureSample]) -> Double? {
         let cluster = temperatures
             .filter {
                 $0.label == SensorLabels.performanceCores
@@ -75,8 +85,8 @@ final class DetailedSensorCollector: SensorMetricSource {
         return temperatures.map(\.temperatureC).max()
     }
 
-    func batteryTemperatureC() -> Double? {
-        let values = readTemperatures(copyFunction: MacSensorCopyHidTemperatures)
+    private func batteryTemperatureC(from temperatures: [RawTemperature]) -> Double? {
+        let values = temperatures
             .filter { isBatteryTemperatureLabel($0.label) }
             .map(\.temperatureC)
         guard !values.isEmpty else {

@@ -69,6 +69,21 @@ final class SystemMonitorModelTests: XCTestCase {
     }
 
     @MainActor
+    func testPartialSampleDoesNotCreateNetworkBaseline() {
+        let bundleId = uniqueBundleId()
+        let store = NetworkTotalsStore(bundleId: bundleId)
+        let model = makeModel(store: store, date: date("2026-05-08"))
+
+        model.apply(
+            snapshot: snapshot(totalRxBytes: 0, totalTxBytes: 0),
+            sampledMetrics: [.cpu]
+        )
+
+        XCTAssertNil(model.networkTotals)
+        XCTAssertNil(store.load())
+    }
+
+    @MainActor
     func testResetNetworkTotalsUsesCurrentSnapshotAsNewBaseline() {
         let bundleId = uniqueBundleId()
         let store = NetworkTotalsStore(bundleId: bundleId)

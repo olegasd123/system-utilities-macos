@@ -4,22 +4,32 @@ import Foundation
 final class MetricsSampler {
     private let worker: MetricsSamplingWorker
     private var samplingTask: Task<Void, Never>?
+    private var request: MetricSampleRequest = .all
 
     init(collector: MetricsCollector = MetricsCollector()) {
         self.worker = MetricsSamplingWorker(collector: collector)
     }
 
-    func start(onSample: @escaping @MainActor (Snapshot) -> Void) {
+    func start(
+        request: MetricSampleRequest,
+        onSample: @escaping @MainActor (Snapshot, MetricSampleRequest) -> Void
+    ) {
         stop()
+        self.request = request
 
-        samplingTask = Task { [worker] in
+        samplingTask = Task { @MainActor [weak self, worker] in
             while !Task.isCancelled {
-                let snapshot = await worker.sample()
+                guard let self else {
+                    return
+                }
+
+                let request = self.request
+                let snapshot = await worker.sample(request: request)
                 guard !Task.isCancelled else {
                     return
                 }
 
-                onSample(snapshot)
+                onSample(snapshot, request)
 
                 do {
                     try await Task.sleep(for: .seconds(1))
@@ -34,6 +44,10 @@ final class MetricsSampler {
         samplingTask?.cancel()
         samplingTask = nil
     }
+
+    func updateRequest(_ request: MetricSampleRequest) {
+        self.request = request
+    }
 }
 
 private actor MetricsSamplingWorker {
@@ -43,7 +57,7 @@ private actor MetricsSamplingWorker {
         self.collector = collector
     }
 
-    func sample() -> Snapshot {
-        collector.sample()
+    func sample(request: MetricSampleRequest) -> Snapshot {
+        collector.sample(request: request)
     }
 }

@@ -36,13 +36,18 @@ public final class SystemMonitorModel: ObservableObject {
         self.networkBaseline = networkTotalsStore.load()
     }
 
-    public func startSampling() {
+    public func startSampling(request: MetricSampleRequest = .all) {
+        guard !request.isEmpty else {
+            stopSampling()
+            return
+        }
         guard !isSampling else {
+            metricsSampler.updateRequest(request)
             return
         }
         isSampling = true
-        metricsSampler.start { [weak self] snapshot in
-            self?.apply(snapshot: snapshot)
+        metricsSampler.start(request: request) { [weak self] snapshot, request in
+            self?.apply(snapshot: snapshot, sampledMetrics: request)
         }
     }
 
@@ -65,9 +70,11 @@ public final class SystemMonitorModel: ObservableObject {
         try? networkTotalsStore.save(baseline)
     }
 
-    func apply(snapshot: Snapshot) {
+    func apply(snapshot: Snapshot, sampledMetrics: MetricSampleRequest = .all) {
         self.snapshot = snapshot
-        updateNetworkTotals(snapshot: snapshot)
+        if sampledMetrics.contains(.network) {
+            updateNetworkTotals(snapshot: snapshot)
+        }
         warningService.evaluate(snapshot: snapshot, settings: settings.settings)
     }
 
