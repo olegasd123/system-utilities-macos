@@ -48,6 +48,6 @@ final class SensorCardFormatterTests: XCTestCase {
     }
 
     private func sample(_ label: String, _ temperatureC: Double) -> TemperatureSample {
-        TemperatureSample(label: label, temperatureC: temperatureC, criticalC: nil)
+        TemperatureSample(label: label, temperatureC: temperatureC)
     }
 }

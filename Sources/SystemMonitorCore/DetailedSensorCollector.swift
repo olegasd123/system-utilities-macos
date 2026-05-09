@@ -18,12 +18,12 @@ final class DetailedSensorCollector: SensorMetricSource {
         let hid = readTemperatures(copyFunction: MacSensorCopyHidTemperatures)
         if !hid.isEmpty {
             return group(hid).map {
-                TemperatureSample(label: $0.label, temperatureC: $0.temperatureC, criticalC: nil)
+                TemperatureSample(label: $0.label, temperatureC: $0.temperatureC)
             }
         }
 
         return readTemperatures(copyFunction: MacSensorCopySmcTemperatures).map {
-            TemperatureSample(label: $0.label, temperatureC: $0.temperatureC, criticalC: nil)
+            TemperatureSample(label: $0.label, temperatureC: $0.temperatureC)
         }
     }
 

@@ -21,7 +21,6 @@ final class NetworkCollector: NetworkMetricSource {
                 txBytesPerSec: 0,
                 totalRxBytes: counters.totalRxBytes,
                 totalTxBytes: counters.totalTxBytes,
-                primaryInterface: counters.primaryInterface,
                 connectionType: counters.connectionType
             )
         }
@@ -34,7 +33,6 @@ final class NetworkCollector: NetworkMetricSource {
             txBytesPerSec: UInt64(Double(txDelta) / elapsed),
             totalRxBytes: counters.totalRxBytes,
             totalTxBytes: counters.totalTxBytes,
-            primaryInterface: counters.primaryInterface,
             connectionType: counters.connectionType
         )
     }
@@ -42,7 +40,7 @@ final class NetworkCollector: NetworkMetricSource {
     private func readCounters() -> NetworkCounters {
         var interfaces: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&interfaces) == 0, let interfaces else {
-            return NetworkCounters(totalRxBytes: 0, totalTxBytes: 0, primaryInterface: nil, connectionType: nil)
+            return NetworkCounters(totalRxBytes: 0, totalTxBytes: 0, connectionType: nil)
         }
         defer {
             freeifaddrs(interfaces)
@@ -91,7 +89,6 @@ final class NetworkCollector: NetworkMetricSource {
         return NetworkCounters(
             totalRxBytes: rx,
             totalTxBytes: tx,
-            primaryInterface: primary,
             connectionType: type
         )
     }
@@ -189,7 +186,6 @@ final class NetworkCollector: NetworkMetricSource {
 private struct NetworkCounters {
     var totalRxBytes: UInt64
     var totalTxBytes: UInt64
-    var primaryInterface: String?
     var connectionType: String?
 }
 

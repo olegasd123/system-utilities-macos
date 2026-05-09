@@ -58,7 +58,6 @@ public struct NetworkSample: Equatable, Sendable {
     public var txBytesPerSec: UInt64
     public var totalRxBytes: UInt64
     public var totalTxBytes: UInt64
-    public var primaryInterface: String?
     public var connectionType: String?
 
     public init(
@@ -66,14 +65,12 @@ public struct NetworkSample: Equatable, Sendable {
         txBytesPerSec: UInt64,
         totalRxBytes: UInt64,
         totalTxBytes: UInt64,
-        primaryInterface: String?,
         connectionType: String?
     ) {
         self.rxBytesPerSec = rxBytesPerSec
         self.txBytesPerSec = txBytesPerSec
         self.totalRxBytes = totalRxBytes
         self.totalTxBytes = totalTxBytes
-        self.primaryInterface = primaryInterface
         self.connectionType = connectionType
     }
 }
@@ -91,7 +88,6 @@ public struct BatterySample: Equatable, Sendable {
     public var state: BatteryState
     public var timeToFullSecs: UInt64?
     public var timeToEmptySecs: UInt64?
-    public var cycleCount: UInt32?
     public var temperatureC: Double?
 
     public init(
@@ -99,14 +95,12 @@ public struct BatterySample: Equatable, Sendable {
         state: BatteryState,
         timeToFullSecs: UInt64?,
         timeToEmptySecs: UInt64?,
-        cycleCount: UInt32?,
         temperatureC: Double? = nil
     ) {
         self.chargePercent = chargePercent
         self.state = state
         self.timeToFullSecs = timeToFullSecs
         self.timeToEmptySecs = timeToEmptySecs
-        self.cycleCount = cycleCount
         self.temperatureC = temperatureC
     }
 }
@@ -115,12 +109,10 @@ public struct TemperatureSample: Identifiable, Equatable, Sendable {
     public var id: String { label }
     public var label: String
     public var temperatureC: Double
-    public var criticalC: Double?
 
-    public init(label: String, temperatureC: Double, criticalC: Double?) {
+    public init(label: String, temperatureC: Double) {
         self.label = label
         self.temperatureC = temperatureC
-        self.criticalC = criticalC
     }
 }
 

@@ -74,7 +74,7 @@ final class WarningServiceTests: XCTestCase {
 
         service.evaluate(
             snapshot: snapshot(cpuTemperatureC: 80, temperatures: [
-                TemperatureSample(label: "Main Chip", temperatureC: 95, criticalC: nil)
+                TemperatureSample(label: "Main Chip", temperatureC: 95)
             ]),
             settings: settings
         )
@@ -83,7 +83,7 @@ final class WarningServiceTests: XCTestCase {
 
         service.evaluate(
             snapshot: snapshot(cpuTemperatureC: 86, temperatures: [
-                TemperatureSample(label: "Main Chip", temperatureC: 70, criticalC: nil)
+                TemperatureSample(label: "Main Chip", temperatureC: 70)
             ]),
             settings: settings
         )
@@ -98,8 +98,8 @@ final class WarningServiceTests: XCTestCase {
 
         service.evaluate(
             snapshot: snapshot(cpuTemperatureC: nil, temperatures: [
-                TemperatureSample(label: "Storage", temperatureC: 70, criticalC: nil),
-                TemperatureSample(label: "Main Chip", temperatureC: 90, criticalC: nil)
+                TemperatureSample(label: "Storage", temperatureC: 70),
+                TemperatureSample(label: "Main Chip", temperatureC: 90)
             ]),
             settings: settings
         )
@@ -134,7 +134,6 @@ final class WarningServiceTests: XCTestCase {
                 txBytesPerSec: 0,
                 totalRxBytes: 0,
                 totalTxBytes: 0,
-                primaryInterface: nil,
                 connectionType: nil
             ),
             battery: battery,
@@ -160,8 +159,7 @@ final class WarningServiceTests: XCTestCase {
             chargePercent: percent,
             state: state,
             timeToFullSecs: nil,
-            timeToEmptySecs: nil,
-            cycleCount: nil
+            timeToEmptySecs: nil
         )
     }
 }

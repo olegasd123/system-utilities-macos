@@ -101,7 +101,6 @@ final class SystemMonitorModelTests: XCTestCase {
                 txBytesPerSec: 0,
                 totalRxBytes: totalRxBytes,
                 totalTxBytes: totalTxBytes,
-                primaryInterface: nil,
                 connectionType: nil
             ),
             battery: nil,
