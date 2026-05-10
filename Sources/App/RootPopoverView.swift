@@ -37,8 +37,8 @@ struct RootPopoverView: View {
         switch router.route {
         case .feature(let id):
             featureHeader(activeId: id)
-        case .settings:
-            settingsHeader
+        case .settings(let featureId):
+            settingsHeader(featureId: featureId)
         }
     }
 
@@ -60,7 +60,7 @@ struct RootPopoverView: View {
             Spacer()
 
             Button {
-                router.showSettings()
+                router.showSettings(for: activeId)
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 14, weight: .medium))
@@ -73,7 +73,7 @@ struct RootPopoverView: View {
         .frame(height: PopoverLayout.titleHeight)
     }
 
-    private var settingsHeader: some View {
+    private func settingsHeader(featureId: String?) -> some View {
         HStack {
             Button {
                 router.dismissSettings()
@@ -89,7 +89,7 @@ struct RootPopoverView: View {
 
             Spacer()
 
-            Text("Preferences")
+            Text(settingsTitle(featureId: featureId))
                 .font(.system(size: 14, weight: .semibold))
 
             Spacer()
@@ -97,6 +97,16 @@ struct RootPopoverView: View {
             Color.clear.frame(width: 28, height: PopoverLayout.titleHeight)
         }
         .frame(height: PopoverLayout.titleHeight)
+    }
+
+    private func settingsTitle(featureId: String?) -> String {
+        guard
+            let featureId,
+            let feature = features.first(where: { $0.id == featureId })
+        else {
+            return "Preferences"
+        }
+        return "\(feature.displayName) Settings"
     }
 
     private func featureTabs(activeId: String) -> some View {
@@ -124,11 +134,12 @@ struct RootPopoverView: View {
             if let feature = features.first(where: { $0.id == id }) as? PopoverFeature {
                 feature.makeRootView()
             }
-        case .settings:
+        case .settings(let featureId):
             SettingsView(
                 generalSettings: generalSettings,
                 launchAtLoginModel: launchAtLoginModel,
-                features: features
+                features: features,
+                focusedFeatureId: featureId
             )
         }
     }

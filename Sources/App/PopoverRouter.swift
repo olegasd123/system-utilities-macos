@@ -19,7 +19,12 @@ final class PopoverRouter: ObservableObject {
         if case .feature(let id) = route {
             activeFeatureId = id
         }
-        route = .settings
+        route = .settings(featureId: nil)
+    }
+
+    func showSettings(for featureId: String) {
+        activeFeatureId = featureId
+        route = .settings(featureId: featureId)
     }
 
     func dismissSettings() {
@@ -29,5 +34,5 @@ final class PopoverRouter: ObservableObject {
 
 enum PopoverRoute: Equatable {
     case feature(id: String)
-    case settings
+    case settings(featureId: String?)
 }
