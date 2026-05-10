@@ -20,6 +20,7 @@ public enum CleanDrivePathScanMode: Sendable {
     case children
     case root
     case childrenOlderThanDays(Int)
+    case downloadsOlderThanDays
     case xcodeArchives
 }
 
@@ -104,6 +105,9 @@ public struct PathCleanDriveCategory: ReclaimableCategory {
             return try item(for: root).map { [$0] } ?? []
         case .childrenOlderThanDays(let days):
             return try scanChildren(of: root).filter { isOlder($0.url, thanDays: days) }
+        case .downloadsOlderThanDays:
+            return try scanChildren(of: root)
+                .filter { isOlder($0.url, thanDays: context.downloadsOlderThanDays) }
         case .xcodeArchives:
             return try scanXcodeArchives(root, olderThanDays: context.xcodeArchivesOlderThanDays)
         }

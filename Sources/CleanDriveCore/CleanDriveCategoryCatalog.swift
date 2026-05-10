@@ -86,12 +86,12 @@ public enum CleanDriveCategoryCatalog {
             ),
             PathCleanDriveCategory(
                 id: .downloadsOld,
-                displayName: "Downloads (older than 30 days)",
+                displayName: "Downloads (old)",
                 symbolName: "arrow.down.circle",
                 requiresFullDiskAccess: false,
                 defaultEnabled: false,
                 roots: [.home(["Downloads"])],
-                scanMode: .childrenOlderThanDays(30),
+                scanMode: .downloadsOlderThanDays,
                 trasher: trasher
             ),
             PathCleanDriveCategory(

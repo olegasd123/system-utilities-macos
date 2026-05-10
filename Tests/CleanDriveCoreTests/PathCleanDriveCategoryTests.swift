@@ -49,6 +49,41 @@ final class PathCleanDriveCategoryTests: XCTestCase {
         XCTAssertEqual(result.items.map(\.url.lastPathComponent), ["old.zip"])
     }
 
+    func testDownloadsUsesScanContextThreshold() async throws {
+        let downloadsURL = rootURL.appendingPathComponent("Downloads", isDirectory: true)
+        try FileManager.default.createDirectory(at: downloadsURL, withIntermediateDirectories: true)
+
+        let oldFile = downloadsURL.appendingPathComponent("old.zip")
+        let middleFile = downloadsURL.appendingPathComponent("middle.zip")
+        try writeFile(oldFile)
+        try writeFile(middleFile)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date().addingTimeInterval(-40 * 24 * 60 * 60)],
+            ofItemAtPath: oldFile.path
+        )
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date().addingTimeInterval(-20 * 24 * 60 * 60)],
+            ofItemAtPath: middleFile.path
+        )
+
+        let category = PathCleanDriveCategory(
+            id: .downloadsOld,
+            displayName: "Downloads",
+            symbolName: "arrow.down.circle",
+            requiresFullDiskAccess: false,
+            defaultEnabled: false,
+            roots: [.home(["Downloads"])],
+            scanMode: .downloadsOlderThanDays,
+            trasher: DirectoryTrash(trashDirectory: trashURL)
+        )
+
+        let result = try await category.scan(
+            CleanDriveScanContext(homeDirectory: rootURL, downloadsOlderThanDays: 30)
+        )
+
+        XCTAssertEqual(result.items.map(\.url.lastPathComponent), ["old.zip"])
+    }
+
     func testHardDeleteRemovesItems() async throws {
         let cacheURL = rootURL.appendingPathComponent("Cache", isDirectory: true)
         try FileManager.default.createDirectory(at: cacheURL, withIntermediateDirectories: true)

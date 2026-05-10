@@ -60,7 +60,7 @@ final class AppComposer {
             general: general,
             model: monitorModel
         )
-        let cleanDriveModel = CleanDriveModel()
+        let cleanDriveModel = CleanDriveModel(settings: cleanDriveSettings)
         let cleanDriveFeature = CleanDriveFeature(
             settings: cleanDriveSettings,
             model: cleanDriveModel

@@ -24,18 +24,18 @@ public final class CleanDriveFeature: ObservableObject, PopoverFeature {
     }
 
     public func makeRootView() -> AnyView {
-        AnyView(CleanDriveView(model: model))
+        AnyView(CleanDriveView(model: model, settingsModel: settings))
     }
 
     public func makeSettingsSection() -> AnyView? {
-        nil
+        AnyView(CleanDriveSettingsView(settings: settings, model: model))
     }
 }
 
 private struct CleanDriveView: View {
     @ObservedObject var model: CleanDriveModel
+    @ObservedObject var settingsModel: SettingsModel<CleanDriveSettings>
     @State private var previewCategory: CleanDriveCategorySnapshot?
-    @State private var reclaimMode: ReclaimMode = .moveToTrash
     @State private var showsHardDeleteConfirmation = false
 
     var body: some View {
@@ -195,9 +195,9 @@ private struct CleanDriveView: View {
             .help("Scan again")
             .disabled(model.isScanning || model.isReclaiming)
 
-            Picker("", selection: $reclaimMode) {
-                Text("Move to Trash").tag(ReclaimMode.moveToTrash)
-                Text("Delete").tag(ReclaimMode.hardDelete)
+            Picker("", selection: $settingsModel.settings.reclaim.permanentlyDelete) {
+                Text("Move to Trash").tag(false)
+                Text("Delete").tag(true)
             }
             .pickerStyle(.segmented)
             .frame(width: 170)
@@ -206,7 +206,7 @@ private struct CleanDriveView: View {
             Spacer()
 
             Button {
-                if reclaimMode == .hardDelete {
+                if settingsModel.settings.reclaim.permanentlyDelete {
                     showsHardDeleteConfirmation = true
                 } else {
                     Task {
@@ -219,7 +219,7 @@ private struct CleanDriveView: View {
                         .controlSize(.small)
                         .frame(width: 16, height: 16)
                 } else {
-                    Text(reclaimMode == .hardDelete ? "Delete" : "Clean Up")
+                    Text(settingsModel.settings.reclaim.permanentlyDelete ? "Delete" : "Clean Up")
                 }
             }
             .keyboardShortcut(.defaultAction)
@@ -281,6 +281,139 @@ private struct CleanDriveView: View {
         }
         NSWorkspace.shared.open(url)
     }
+}
+
+private struct CleanDriveSettingsView: View {
+    @ObservedObject var settingsModel: SettingsModel<CleanDriveSettings>
+    @ObservedObject var model: CleanDriveModel
+
+    init(
+        settings: SettingsModel<CleanDriveSettings>,
+        model: CleanDriveModel
+    ) {
+        self.settingsModel = settings
+        self.model = model
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            categoriesSection
+            remindersSection
+            reclaimSafetySection
+            advancedSection
+        }
+    }
+
+    private var categoriesSection: some View {
+        SettingsSection("Clean Drive categories") {
+            ForEach(model.categories) { category in
+                Toggle(isOn: categoryEnabledBinding(for: category)) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(category.displayName)
+                        if category.requiresFullDiskAccess {
+                            Text("Full Disk Access may be needed")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var remindersSection: some View {
+        SettingsSection("Clean Drive reminders") {
+            Toggle(
+                "Tell me when cleanup is ready",
+                isOn: $settingsModel.settings.reminders.enabled
+            )
+            .onChange(of: settingsModel.settings.reminders.enabled) { _, enabled in
+                if enabled {
+                    NotificationPermissionService.requestPermission()
+                }
+            }
+
+            if settingsModel.settings.reminders.enabled {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("Threshold")
+                        Slider(value: thresholdGBBinding, in: 1...20, step: 1)
+                        Text("\(Int(thresholdGBBinding.wrappedValue)) GB")
+                            .monospacedDigit()
+                            .frame(width: 44, alignment: .trailing)
+                    }
+
+                    Stepper(
+                        "Minimum gap: \(settingsModel.settings.reminders.minHoursBetweenReminders) h",
+                        value: $settingsModel.settings.reminders.minHoursBetweenReminders,
+                        in: 1...168
+                    )
+                }
+                .padding(.leading, 16)
+            }
+        }
+    }
+
+    private var reclaimSafetySection: some View {
+        SettingsSection("Reclaim safety") {
+            Picker(
+                "Clean up mode",
+                selection: $settingsModel.settings.reclaim.permanentlyDelete
+            ) {
+                Text("Move to Trash").tag(false)
+                Text("Permanently delete").tag(true)
+            }
+            .pickerStyle(.radioGroup)
+
+            if settingsModel.settings.reclaim.permanentlyDelete {
+                Text("Files are removed right away. This cannot be undone.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.orange)
+            } else {
+                Text("Files go to Trash. You can restore them later.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var advancedSection: some View {
+        SettingsSection("Advanced") {
+            Stepper(
+                "Downloads older than \(settingsModel.settings.reclaim.downloadsOlderThanDays) days",
+                value: $settingsModel.settings.reclaim.downloadsOlderThanDays,
+                in: 1...365
+            )
+
+            Stepper(
+                "Xcode archives older than \(settingsModel.settings.reclaim.xcodeArchivesOlderThanDays) days",
+                value: $settingsModel.settings.reclaim.xcodeArchivesOlderThanDays,
+                in: 1...365
+            )
+        }
+    }
+
+    private func categoryEnabledBinding(
+        for category: CleanDriveCategorySnapshot
+    ) -> Binding<Bool> {
+        Binding(
+            get: { category.isIncluded },
+            set: { model.setIncluded($0, for: category.id) }
+        )
+    }
+
+    private var thresholdGBBinding: Binding<Double> {
+        Binding(
+            get: {
+                Double(settingsModel.settings.reminders.thresholdBytes) / Self.bytesPerGB
+            },
+            set: { value in
+                settingsModel.settings.reminders.thresholdBytes = UInt64(value * Self.bytesPerGB)
+            }
+        )
+    }
+
+    private static let bytesPerGB = Double(1_024 * 1_024 * 1_024)
 }
 
 private struct CleanDrivePreviewView: View {
