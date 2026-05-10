@@ -379,7 +379,7 @@ Each milestone ends with a runnable, committable state.
 **Exit criteria**: app builds, both tabs render, settings file gains an empty
 `clean-drive` blob after first run.
 
-### M2 — One real category end-to-end (`user-caches`)
+### M2 — One real category end-to-end (`user-caches`) — Done
 - Implement scan + size + items.
 - Implement move-to-Trash reclaim.
 - Render row with checkbox, size, Clean Up button.

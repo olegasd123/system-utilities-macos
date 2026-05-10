@@ -31,7 +31,10 @@ let package = Package(
         ),
         .target(
             name: "CleanDriveCore",
-            dependencies: ["AppCore"]
+            dependencies: ["AppCore"],
+            resources: [
+                .process("Resources")
+            ]
         ),
         .target(
             name: "CleanDriveUI",
