@@ -1,9 +1,9 @@
-# System Monitor for macOS
+# System Utilities for macOS
 
-Native macOS menu bar app for live system metrics.
+Native macOS menu bar app for system metrics and safe disk cleanup.
 
 The app runs without a Dock icon. It shows compact live metrics in the menu bar
-and opens a SwiftUI popover for the full dashboard and preferences.
+and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
 
 ## Requirements
 
@@ -13,6 +13,8 @@ and opens a SwiftUI popover for the full dashboard and preferences.
 - Apple Developer credentials for signed and notarized releases.
 
 ## Features
+
+### System Monitor
 
 - Live CPU, memory, disk, network, battery, temperature, and fan metrics.
 - One-second metric refresh.
@@ -30,14 +32,28 @@ and opens a SwiftUI popover for the full dashboard and preferences.
 - Apple Silicon temperatures through `IOHIDEventSystemClient`.
 - Intel temperatures and fan RPM through AppleSMC.
 
+### Clean Drive
+
+- Reclaimable-space scan in a second popover tab.
+- Safe cleanup by default: files move to Trash.
+- Optional permanent delete mode with confirmation.
+- Preview sheet for files found in each category.
+- User caches, logs, Trash, Xcode data, Homebrew cache, browser caches,
+  Mail downloads, old downloads, and old software updates.
+- Full Disk Access callout for protected categories.
+- Cleanup reminders when reclaimable space is above the configured threshold.
+- Per-category settings, reminder settings, and age thresholds for downloads
+  and Xcode archives.
+
 ## Run
 
 ```bash
 swift run SystemMonitor
 ```
 
-Click the menu bar item to open the dashboard. Right-click it to open the app
-menu.
+Click the menu bar item to open the popover. Use the tab icons to switch
+between System Monitor and Clean Drive. Right-click the menu bar item to open
+the app menu.
 
 Notification delivery and launch at login need a packaged `.app` bundle. They
 are disabled when the app runs as a raw SwiftPM executable.
@@ -110,6 +126,13 @@ The app can still read older flat settings files.
 - Install the app on a clean Mac.
 - Check that the app starts without a Dock icon.
 - Check status item left-click and right-click behavior.
+- Check the two-tab popover with System Monitor and Clean Drive.
+- Run a Clean Drive scan and compare key category sizes with `du -sh`.
+- Check Clean Drive preview sheets for non-empty categories.
+- Check move-to-Trash cleanup with a safe test file or fixture.
+- Check permanent delete confirmation, but do not use it on real data.
+- Check the Full Disk Access callout for protected categories.
+- Check Clean Drive reminder delivery from a packaged app.
 - Check preferences persistence after restart.
 - Check warning notifications from a packaged app.
 - Check launch at login from a signed app.
@@ -123,6 +146,9 @@ The app can still read older flat settings files.
 - `Sources/AppCore`: Shared settings, launch at login, and notification
   runtime helpers.
 - `Sources/AppUI`: Shared SwiftUI and AppKit UI components.
+- `Sources/CleanDriveCore`: Cleanup categories, scanning, reclaim, settings,
+  and reminders.
+- `Sources/CleanDriveUI`: Clean Drive popover and settings UI.
 - `Sources/SystemMonitorCore`: Metric collection, settings, sampling, and
   warning logic.
 - `Sources/SystemMonitorUI`: System Monitor dashboard, settings UI, and menu
@@ -142,4 +168,6 @@ The app can still read older flat settings files.
 - Apple Silicon and Intel Macs expose different sensor names and values.
 - The app uses the main data volume or root volume for the disk card and disk
   warnings.
+- Some Clean Drive categories need Full Disk Access to show complete results.
+- Clean Drive does not scan cloud-sync roots or system-protected paths.
 - Release signing and notarization need Apple Developer credentials.

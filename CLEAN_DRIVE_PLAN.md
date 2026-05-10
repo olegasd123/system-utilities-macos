@@ -411,7 +411,7 @@ gate works for Mail.
 **Exit criteria**: reminder fires once per day max in a packaged build when
 threshold is exceeded; never fires when disabled.
 
-### M6 — Polish & ship
+### M6 — Polish & ship — Done
 - Tab-strip visual check at two features.
 - Update `README.md` with Clean Drive section + features list.
 - Update build/sign/notarize scripts only if new entitlements are needed
