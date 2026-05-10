@@ -10,6 +10,7 @@ import SystemMonitorUI
 final class AppComposer {
     let generalSettings: SettingsModel<GeneralSettings>
     let launchAtLoginModel: LaunchAtLoginModel
+    let cleanDriveReminderService: CleanDriveReminderService
     let features: [any AppFeature]
 
     init(store: AppSettingsStore = .standard) {
@@ -65,9 +66,11 @@ final class AppComposer {
             settings: cleanDriveSettings,
             model: cleanDriveModel
         )
+        let cleanDriveReminderService = CleanDriveReminderService(settings: cleanDriveSettings)
 
         self.generalSettings = general
         self.launchAtLoginModel = launchAtLogin
+        self.cleanDriveReminderService = cleanDriveReminderService
         self.features = [monitorFeature, cleanDriveFeature]
     }
 }

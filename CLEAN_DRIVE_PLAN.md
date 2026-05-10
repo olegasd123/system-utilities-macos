@@ -398,13 +398,13 @@ the Trash and the row updates.
 **Exit criteria**: all rows return realistic sizes on the dev machine; FDA
 gate works for Mail.
 
-### M4 — Settings UI
+### M4 — Settings UI — Done
 - Categories, Reminders, Reclaim safety, Advanced sections.
 - Settings round-trip to JSON.
 
 **Exit criteria**: every settings option is wired and persists across restart.
 
-### M5 — Reminder service
+### M5 — Reminder service — Done
 - Background timer, fast-scan code paths, throttling, notification.
 - Tests for throttle / threshold / disable.
 

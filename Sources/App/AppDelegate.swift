@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         configureStatusItem()
         configurePopover()
         bindStatusItem()
+        composer.cleanDriveReminderService.start()
     }
 
     private func configureStatusItem() {
