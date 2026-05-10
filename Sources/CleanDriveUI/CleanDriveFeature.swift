@@ -83,11 +83,15 @@ private struct CleanDriveView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            Text("Ready for cleanup")
+            Text(summaryStatusText)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var summaryStatusText: String {
+        model.isScanning ? "Collecting cleanup data" : "Ready for cleanup"
     }
 
     private var categoryList: some View {
