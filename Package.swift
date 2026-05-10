@@ -13,7 +13,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "App",
-            dependencies: ["AppCore", "AppUI", "SystemMonitorUI"]
+            dependencies: ["AppCore", "AppUI", "CleanDriveUI", "SystemMonitorUI"]
         ),
         .target(
             name: "AppCore"
@@ -30,6 +30,14 @@ let package = Package(
             dependencies: ["AppCore", "AppUI", "SystemMonitorCore"]
         ),
         .target(
+            name: "CleanDriveCore",
+            dependencies: ["AppCore"]
+        ),
+        .target(
+            name: "CleanDriveUI",
+            dependencies: ["AppCore", "AppUI", "CleanDriveCore"]
+        ),
+        .target(
             name: "MacSensorBridge",
             linkerSettings: [
                 .linkedFramework("CoreFoundation"),
@@ -43,6 +51,10 @@ let package = Package(
         .testTarget(
             name: "SystemMonitorCoreTests",
             dependencies: ["AppCore", "SystemMonitorCore"]
+        ),
+        .testTarget(
+            name: "CleanDriveCoreTests",
+            dependencies: ["AppCore", "CleanDriveCore"]
         ),
         .testTarget(
             name: "SystemMonitorUITests",

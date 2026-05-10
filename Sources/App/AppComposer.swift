@@ -1,5 +1,7 @@
 import AppCore
 import AppUI
+import CleanDriveCore
+import CleanDriveUI
 import Foundation
 import SystemMonitorCore
 import SystemMonitorUI
@@ -31,6 +33,18 @@ final class AppComposer {
                 persist()
             }
         )
+        let cleanDriveSettingsValue = raw.value(for: CleanDriveSettings.self)
+        if raw.features[CleanDriveSettings.featureId] == nil {
+            raw.setValue(cleanDriveSettingsValue)
+            persist()
+        }
+        let cleanDriveSettings = SettingsModel<CleanDriveSettings>(
+            initial: cleanDriveSettingsValue,
+            onChange: { value in
+                raw.setValue(value)
+                persist()
+            }
+        )
 
         let launchAtLogin = LaunchAtLoginModel(
             initiallyLoadedFromDisk: result.loadedFromDisk,
@@ -46,9 +60,14 @@ final class AppComposer {
             general: general,
             model: monitorModel
         )
+        let cleanDriveModel = CleanDriveModel()
+        let cleanDriveFeature = CleanDriveFeature(
+            settings: cleanDriveSettings,
+            model: cleanDriveModel
+        )
 
         self.generalSettings = general
         self.launchAtLoginModel = launchAtLogin
-        self.features = [monitorFeature]
+        self.features = [monitorFeature, cleanDriveFeature]
     }
 }

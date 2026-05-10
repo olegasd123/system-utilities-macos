@@ -369,7 +369,7 @@ temp-dir fixture, never the user's real `~/Library`.
 
 Each milestone ends with a runnable, committable state.
 
-### M1 — Skeleton (no real scanning yet)
+### M1 — Skeleton (no real scanning yet) — Done
 - Add `CleanDriveCore` + `CleanDriveUI` + `CleanDriveCoreTests` targets to
   `Package.swift`.
 - Empty `CleanDriveSettings`, `CleanDriveModel`, `CleanDriveFeature`.
