@@ -221,8 +221,9 @@ private struct CleanDriveView: View {
                 Text("Move to Trash").tag(false)
                 Text("Delete").tag(true)
             }
-            .pickerStyle(.segmented)
-            .frame(width: 170)
+            .pickerStyle(.radioGroup)
+            .horizontalRadioGroupLayout()
+            .labelsHidden()
             .disabled(model.isReclaiming)
 
             Spacer()
