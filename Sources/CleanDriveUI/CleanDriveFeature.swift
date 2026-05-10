@@ -58,7 +58,7 @@ private struct CleanDriveView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task {
-            await model.scan()
+            await model.scanIfNeeded()
         }
         .confirmationDialog(
             "Permanently delete selected items?",

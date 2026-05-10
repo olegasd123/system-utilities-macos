@@ -51,6 +51,7 @@ public final class CleanDriveModel: ObservableObject {
     @Published public private(set) var categories: [CleanDriveCategorySnapshot]
     @Published public private(set) var lastReclaimReport: ReclaimReport?
 
+    private var hasCollectedData = false
     private let reclaimableCategories: [any ReclaimableCategory]
     private let baseScanContext: CleanDriveScanContext
     private let settingsModel: SettingsModel<CleanDriveSettings>?
@@ -145,6 +146,13 @@ public final class CleanDriveModel: ObservableObject {
         categories.first { $0.id == id }?.items ?? []
     }
 
+    public func scanIfNeeded() async {
+        guard !hasCollectedData else {
+            return
+        }
+        await scan()
+    }
+
     public func scan() async {
         guard !isScanning else {
             return
@@ -154,6 +162,7 @@ public final class CleanDriveModel: ObservableObject {
         for category in reclaimableCategories {
             await scan(category)
         }
+        hasCollectedData = true
     }
 
     public func scanCategory(id: CleanDriveCategoryID) async {
