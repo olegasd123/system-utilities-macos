@@ -29,13 +29,7 @@ public struct UserCachesCategory: ReclaimableCategory {
 
         let children = try FileManager.default.contentsOfDirectory(
             at: cacheDirectory,
-            includingPropertiesForKeys: [
-                .fileAllocatedSizeKey,
-                .isDirectoryKey,
-                .isRegularFileKey,
-                .isSymbolicLinkKey,
-                .totalFileAllocatedSizeKey
-            ],
+            includingPropertiesForKeys: CleanDriveSizeReader.defaultResourceKeys,
             options: [.skipsHiddenFiles]
         )
 
@@ -70,28 +64,7 @@ public struct UserCachesCategory: ReclaimableCategory {
         _ items: [CleanDriveItem],
         mode: ReclaimMode
     ) async throws -> ReclaimReport {
-        var report = ReclaimReport()
-        for item in items {
-            try Task.checkCancellation()
-            do {
-                switch mode {
-                case .moveToTrash:
-                    try trasher.trashItem(at: item.url)
-                case .hardDelete:
-                    try FileManager.default.removeItem(at: item.url)
-                }
-                report.bytesReclaimed += item.size
-                report.reclaimedItemCount += 1
-            } catch {
-                report.failures.append(
-                    ReclaimFailure(
-                        path: item.url.path,
-                        reason: error.localizedDescription
-                    )
-                )
-            }
-        }
-        return report
+        try await CleanDriveReclaimer.reclaim(items, mode: mode, trasher: trasher)
     }
 
     public static var defaultBlockedBundleIDs: Set<String> {

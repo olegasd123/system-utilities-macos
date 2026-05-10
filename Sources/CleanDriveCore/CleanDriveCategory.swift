@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 public struct CleanDriveCategoryID: RawRepresentable, Hashable, Codable, Sendable {
     public let rawValue: String
@@ -10,6 +11,17 @@ public struct CleanDriveCategoryID: RawRepresentable, Hashable, Codable, Sendabl
 
 extension CleanDriveCategoryID {
     public static let userCaches = CleanDriveCategoryID(rawValue: "user-caches")
+    public static let userLogs = CleanDriveCategoryID(rawValue: "user-logs")
+    public static let trash = CleanDriveCategoryID(rawValue: "trash")
+    public static let xcodeDerived = CleanDriveCategoryID(rawValue: "xcode-derived")
+    public static let xcodeArchives = CleanDriveCategoryID(rawValue: "xcode-archives")
+    public static let xcodeDeviceSupport = CleanDriveCategoryID(rawValue: "xcode-device-support")
+    public static let xcodeSimulators = CleanDriveCategoryID(rawValue: "xcode-simulators")
+    public static let homebrewCache = CleanDriveCategoryID(rawValue: "homebrew-cache")
+    public static let browserCaches = CleanDriveCategoryID(rawValue: "browser-caches")
+    public static let mailCache = CleanDriveCategoryID(rawValue: "mail-cache")
+    public static let downloadsOld = CleanDriveCategoryID(rawValue: "downloads-old")
+    public static let softwareUpdates = CleanDriveCategoryID(rawValue: "software-updates")
 }
 
 public protocol CleanDriveCategory: Sendable {
@@ -31,9 +43,20 @@ public protocol ReclaimableCategory: CleanDriveCategory {
 
 public struct CleanDriveScanContext: Sendable {
     public var homeDirectory: URL
+    public var userID: Int
+    public var downloadsOlderThanDays: Int
+    public var xcodeArchivesOlderThanDays: Int
 
-    public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) {
+    public init(
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        userID: Int = Int(getuid()),
+        downloadsOlderThanDays: Int = 30,
+        xcodeArchivesOlderThanDays: Int = 60
+    ) {
         self.homeDirectory = homeDirectory
+        self.userID = userID
+        self.downloadsOlderThanDays = downloadsOlderThanDays
+        self.xcodeArchivesOlderThanDays = xcodeArchivesOlderThanDays
     }
 }
 
@@ -69,7 +92,7 @@ public struct CleanDriveItem: Identifiable, Equatable, Sendable {
     }
 }
 
-public enum ReclaimMode: Sendable {
+public enum ReclaimMode: String, CaseIterable, Hashable, Sendable {
     case moveToTrash
     case hardDelete
 }

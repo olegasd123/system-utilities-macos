@@ -388,7 +388,7 @@ Each milestone ends with a runnable, committable state.
 **Exit criteria**: clicking Clean Up actually moves a known fixture file to
 the Trash and the row updates.
 
-### M3 — Remaining categories
+### M3 — Remaining categories — Done
 - Logs, Trash, Xcode (DerivedData / Archives / DeviceSupport / Simulators),
   Homebrew cache, browser caches, Mail cache (with FDA gating), Downloads
   (older than), Software updates.

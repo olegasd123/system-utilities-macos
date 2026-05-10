@@ -1,6 +1,15 @@
 import Foundation
 
 enum CleanDriveSizeReader {
+    static let defaultResourceKeys: [URLResourceKey] = [
+        .fileAllocatedSizeKey,
+        .isDirectoryKey,
+        .isPackageKey,
+        .isRegularFileKey,
+        .isSymbolicLinkKey,
+        .totalFileAllocatedSizeKey
+    ]
+
     static func allocatedSize(of url: URL) throws -> UInt64 {
         let values = try url.resourceValues(forKeys: [
             .fileAllocatedSizeKey,
@@ -35,14 +44,7 @@ enum CleanDriveSizeReader {
     private static func recursiveChildrenSize(of directory: URL) throws -> UInt64 {
         let children = try FileManager.default.contentsOfDirectory(
             at: directory,
-            includingPropertiesForKeys: [
-                .fileAllocatedSizeKey,
-                .isDirectoryKey,
-                .isPackageKey,
-                .isRegularFileKey,
-                .isSymbolicLinkKey,
-                .totalFileAllocatedSizeKey
-            ],
+            includingPropertiesForKeys: defaultResourceKeys,
             options: []
         )
 

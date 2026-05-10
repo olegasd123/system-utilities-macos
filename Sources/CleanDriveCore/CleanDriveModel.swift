@@ -4,36 +4,39 @@ public struct CleanDriveCategorySnapshot: Identifiable, Equatable, Sendable {
     public let id: CleanDriveCategoryID
     public var displayName: String
     public var symbolName: String
+    public var requiresFullDiskAccess: Bool
     public var isIncluded: Bool
     public var isScanning: Bool
     public var isReclaiming: Bool
+    public var permissionDenied: Bool
     public var items: [CleanDriveItem]
     public var notes: [String]
     public var errorMessage: String?
-    public var lastReclaimReport: ReclaimReport?
 
     public init(
         id: CleanDriveCategoryID,
         displayName: String,
         symbolName: String,
+        requiresFullDiskAccess: Bool,
         isIncluded: Bool,
         isScanning: Bool = false,
         isReclaiming: Bool = false,
+        permissionDenied: Bool = false,
         items: [CleanDriveItem] = [],
         notes: [String] = [],
-        errorMessage: String? = nil,
-        lastReclaimReport: ReclaimReport? = nil
+        errorMessage: String? = nil
     ) {
         self.id = id
         self.displayName = displayName
         self.symbolName = symbolName
+        self.requiresFullDiskAccess = requiresFullDiskAccess
         self.isIncluded = isIncluded
         self.isScanning = isScanning
         self.isReclaiming = isReclaiming
+        self.permissionDenied = permissionDenied
         self.items = items
         self.notes = notes
         self.errorMessage = errorMessage
-        self.lastReclaimReport = lastReclaimReport
     }
 
     public var totalBytes: UInt64 {
@@ -43,89 +46,179 @@ public struct CleanDriveCategorySnapshot: Identifiable, Equatable, Sendable {
 
 @MainActor
 public final class CleanDriveModel: ObservableObject {
-    @Published public private(set) var userCaches: CleanDriveCategorySnapshot
+    @Published public private(set) var categories: [CleanDriveCategorySnapshot]
+    @Published public private(set) var lastReclaimReport: ReclaimReport?
 
-    private let userCachesCategory: any ReclaimableCategory
+    private let reclaimableCategories: [any ReclaimableCategory]
     private let scanContext: CleanDriveScanContext
 
     public init(
-        userCachesCategory: any ReclaimableCategory = UserCachesCategory(),
+        categories: [any ReclaimableCategory] = CleanDriveCategoryCatalog.defaultCategories(),
         scanContext: CleanDriveScanContext = CleanDriveScanContext()
     ) {
-        self.userCachesCategory = userCachesCategory
+        self.reclaimableCategories = categories
         self.scanContext = scanContext
-        self.userCaches = CleanDriveCategorySnapshot(
-            id: userCachesCategory.id,
-            displayName: userCachesCategory.displayName,
-            symbolName: userCachesCategory.symbolName,
-            isIncluded: userCachesCategory.defaultEnabled
-        )
+        self.categories = categories.map {
+            CleanDriveCategorySnapshot(
+                id: $0.id,
+                displayName: $0.displayName,
+                symbolName: $0.symbolName,
+                requiresFullDiskAccess: $0.requiresFullDiskAccess,
+                isIncluded: $0.defaultEnabled
+            )
+        }
+    }
+
+    public var userCaches: CleanDriveCategorySnapshot {
+        categories.first { $0.id == .userCaches }
+            ?? CleanDriveCategorySnapshot(
+                id: .userCaches,
+                displayName: "User caches",
+                symbolName: "folder",
+                requiresFullDiskAccess: false,
+                isIncluded: true
+            )
+    }
+
+    public var totalBytes: UInt64 {
+        categories.reduce(0) { $0 + $1.totalBytes }
     }
 
     public var selectedBytes: UInt64 {
-        userCaches.isIncluded ? userCaches.totalBytes : 0
+        categories.reduce(0) { total, snapshot in
+            snapshot.isIncluded ? total + snapshot.totalBytes : total
+        }
+    }
+
+    public var isScanning: Bool {
+        categories.contains { $0.isScanning }
+    }
+
+    public var isReclaiming: Bool {
+        categories.contains { $0.isReclaiming }
     }
 
     public var canReclaimSelectedItems: Bool {
-        selectedBytes > 0 && !userCaches.isScanning && !userCaches.isReclaiming
+        selectedBytes > 0 && !isScanning && !isReclaiming
+    }
+
+    public var selectedCategoryNames: [String] {
+        categories
+            .filter { $0.isIncluded && !$0.items.isEmpty }
+            .map(\.displayName)
     }
 
     public func setUserCachesIncluded(_ isIncluded: Bool) {
-        userCaches.isIncluded = isIncluded
+        setIncluded(isIncluded, for: .userCaches)
+    }
+
+    public func setIncluded(_ isIncluded: Bool, for id: CleanDriveCategoryID) {
+        guard let index = index(for: id) else {
+            return
+        }
+        categories[index].isIncluded = isIncluded
+    }
+
+    public func items(for id: CleanDriveCategoryID) -> [CleanDriveItem] {
+        categories.first { $0.id == id }?.items ?? []
     }
 
     public func scan() async {
-        guard !userCaches.isScanning else {
+        guard !isScanning else {
+            return
+        }
+        lastReclaimReport = nil
+
+        for category in reclaimableCategories {
+            await scan(category)
+        }
+    }
+
+    public func scanCategory(id: CleanDriveCategoryID) async {
+        guard let category = reclaimableCategories.first(where: { $0.id == id }) else {
+            return
+        }
+        await scan(category)
+    }
+
+    @discardableResult
+    public func reclaimSelectedItems(mode: ReclaimMode = .moveToTrash) async -> ReclaimReport? {
+        guard canReclaimSelectedItems else {
+            return nil
+        }
+
+        lastReclaimReport = nil
+        var aggregate = ReclaimReport()
+
+        for category in reclaimableCategories {
+            guard
+                let index = index(for: category.id),
+                categories[index].isIncluded,
+                !categories[index].items.isEmpty
+            else {
+                continue
+            }
+
+            categories[index].isReclaiming = true
+            categories[index].errorMessage = nil
+            let items = categories[index].items
+
+            do {
+                let report = try await Task.detached(priority: .utility) {
+                    try await category.reclaim(items, mode: mode)
+                }.value
+                aggregate.bytesReclaimed += report.bytesReclaimed
+                aggregate.reclaimedItemCount += report.reclaimedItemCount
+                aggregate.failures += report.failures
+            } catch is CancellationError {
+                categories[index].errorMessage = "Clean up canceled."
+            } catch {
+                categories[index].errorMessage = error.localizedDescription
+            }
+
+            categories[index].isReclaiming = false
+        }
+
+        lastReclaimReport = aggregate
+        await scan()
+        lastReclaimReport = aggregate
+        return aggregate
+    }
+
+    private func scan(_ category: any ReclaimableCategory) async {
+        guard let startIndex = index(for: category.id), !categories[startIndex].isScanning else {
             return
         }
 
-        userCaches.isScanning = true
-        userCaches.errorMessage = nil
-        userCaches.lastReclaimReport = nil
+        categories[startIndex].isScanning = true
+        categories[startIndex].permissionDenied = false
+        categories[startIndex].errorMessage = nil
 
-        let category = userCachesCategory
         let context = scanContext
         do {
             let result = try await Task.detached(priority: .utility) {
                 try await category.scan(context)
             }.value
-            userCaches.items = result.items
-            userCaches.notes = result.notes
+            if let currentIndex = self.index(for: category.id) {
+                categories[currentIndex].items = result.items
+                categories[currentIndex].notes = result.notes
+            }
         } catch is CancellationError {
-            userCaches.errorMessage = "Scan canceled."
+            categories[startIndex].errorMessage = "Scan canceled."
+        } catch let error as CleanDrivePermissionDeniedError {
+            categories[startIndex].items = []
+            categories[startIndex].permissionDenied = true
+            categories[startIndex].errorMessage = error.localizedDescription
         } catch {
-            userCaches.errorMessage = error.localizedDescription
+            categories[startIndex].errorMessage = error.localizedDescription
         }
-        userCaches.isScanning = false
+
+        if let currentIndex = index(for: category.id) {
+            categories[currentIndex].isScanning = false
+        }
     }
 
-    @discardableResult
-    public func reclaimSelectedItems() async -> ReclaimReport? {
-        guard canReclaimSelectedItems else {
-            return nil
-        }
-
-        let items = userCaches.items
-        userCaches.isReclaiming = true
-        userCaches.errorMessage = nil
-        userCaches.lastReclaimReport = nil
-
-        let category = userCachesCategory
-        do {
-            let report = try await Task.detached(priority: .utility) {
-                try await category.reclaim(items, mode: .moveToTrash)
-            }.value
-            userCaches.isReclaiming = false
-            await scan()
-            userCaches.lastReclaimReport = report
-            return report
-        } catch is CancellationError {
-            userCaches.errorMessage = "Clean up canceled."
-        } catch {
-            userCaches.errorMessage = error.localizedDescription
-        }
-
-        userCaches.isReclaiming = false
-        return nil
+    private func index(for id: CleanDriveCategoryID) -> Int? {
+        categories.firstIndex { $0.id == id }
     }
 }
