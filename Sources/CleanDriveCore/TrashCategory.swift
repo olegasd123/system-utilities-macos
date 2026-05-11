@@ -4,7 +4,7 @@ public struct TrashCategory: ReclaimableCategory {
     public let id: CleanDriveCategoryID = .trash
     public let displayName = "Trash"
     public let symbolName = "trash"
-    public let requiresFullDiskAccess = false
+    public let requiresFullDiskAccess = true
     public let defaultEnabled = false
 
     private let trasher: any CleanDriveTrashing
