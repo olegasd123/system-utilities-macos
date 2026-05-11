@@ -45,4 +45,44 @@ final class TrashCategoryTests: XCTestCase {
 
         XCTAssertEqual(result.items.map(\.url.lastPathComponent), [".env"])
     }
+
+    func testMoveToTrashLeavesTrashItemsInPlace() async throws {
+        let trashURL = rootURL.appendingPathComponent(".Trash", isDirectory: true)
+        let destinationTrashURL = rootURL.appendingPathComponent("OtherTrash", isDirectory: true)
+        try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true)
+        let fileURL = trashURL.appendingPathComponent("deleted.pdf")
+        try Data(repeating: 1, count: 1_024).write(to: fileURL)
+
+        let category = TrashCategory(trasher: DirectoryTrash(trashDirectory: destinationTrashURL))
+        let result = try await category.scan(CleanDriveScanContext(homeDirectory: rootURL))
+
+        let report = try await category.reclaim(result.items, mode: .moveToTrash)
+
+        XCTAssertEqual(report.reclaimedItemCount, 0)
+        XCTAssertEqual(report.bytesReclaimed, 0)
+        XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path))
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: destinationTrashURL.appendingPathComponent("deleted.pdf").path
+            )
+        )
+    }
+
+    func testHardDeleteRemovesTrashItems() async throws {
+        let trashURL = rootURL.appendingPathComponent(".Trash", isDirectory: true)
+        try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true)
+        let fileURL = trashURL.appendingPathComponent("deleted.pdf")
+        try Data(repeating: 1, count: 1_024).write(to: fileURL)
+
+        let category = TrashCategory()
+        let result = try await category.scan(CleanDriveScanContext(homeDirectory: rootURL))
+
+        let report = try await category.reclaim(result.items, mode: .hardDelete)
+
+        XCTAssertEqual(report.reclaimedItemCount, 1)
+        XCTAssertEqual(report.bytesReclaimed, result.totalBytes)
+        XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
+    }
 }

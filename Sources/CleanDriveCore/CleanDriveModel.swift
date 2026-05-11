@@ -180,6 +180,7 @@ public final class CleanDriveModel: ObservableObject {
 
         lastReclaimReport = nil
         var aggregate = ReclaimReport()
+        var refreshedCategoryIDs: Set<CleanDriveCategoryID> = []
 
         for category in reclaimableCategories {
             guard
@@ -190,9 +191,14 @@ public final class CleanDriveModel: ObservableObject {
                 continue
             }
 
+            if mode == .moveToTrash, category.id == .trash {
+                continue
+            }
+
             categories[index].isReclaiming = true
             categories[index].errorMessage = nil
             let items = categories[index].items
+            refreshedCategoryIDs.insert(category.id)
 
             do {
                 let report = try await Task.detached(priority: .utility) {
@@ -211,7 +217,9 @@ public final class CleanDriveModel: ObservableObject {
         }
 
         lastReclaimReport = aggregate
-        await scan()
+        for category in reclaimableCategories where refreshedCategoryIDs.contains(category.id) {
+            await scan(category)
+        }
         lastReclaimReport = aggregate
         return aggregate
     }

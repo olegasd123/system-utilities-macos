@@ -36,7 +36,11 @@ public struct TrashCategory: ReclaimableCategory {
         _ items: [CleanDriveItem],
         mode: ReclaimMode
     ) async throws -> ReclaimReport {
-        try await CleanDriveReclaimer.reclaim(items, mode: mode, trasher: trasher)
+        guard mode == .hardDelete else {
+            return ReclaimReport()
+        }
+
+        return try await CleanDriveReclaimer.reclaim(items, mode: mode, trasher: trasher)
     }
 
     private func trashRoots(context: CleanDriveScanContext) -> [URL] {
