@@ -32,4 +32,17 @@ final class TrashCategoryTests: XCTestCase {
         XCTAssertEqual(result.items.map(\.url.lastPathComponent), ["deleted.pdf"])
         XCTAssertGreaterThan(result.totalBytes, 0)
     }
+
+    func testScanSkipsFinderMetadataInUserTrash() async throws {
+        let trashURL = rootURL.appendingPathComponent(".Trash", isDirectory: true)
+        try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true)
+        try Data(repeating: 1, count: 1_024)
+            .write(to: trashURL.appendingPathComponent(".DS_Store"))
+        try Data(repeating: 1, count: 1_024)
+            .write(to: trashURL.appendingPathComponent(".env"))
+
+        let result = try await TrashCategory().scan(CleanDriveScanContext(homeDirectory: rootURL))
+
+        XCTAssertEqual(result.items.map(\.url.lastPathComponent), [".env"])
+    }
 }

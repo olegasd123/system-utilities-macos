@@ -25,7 +25,11 @@ public struct TrashCategory: ReclaimableCategory {
             scanMode: .children,
             trasher: trasher
         )
-        return try await category.scan(context)
+        let result = try await category.scan(context)
+        return CleanDriveScanResult(
+            items: result.items.filter { !isTrashMetadata($0.url) },
+            notes: result.notes
+        )
     }
 
     public func reclaim(
@@ -56,5 +60,9 @@ public struct TrashCategory: ReclaimableCategory {
                 .appendingPathComponent(userID, isDirectory: true)
         }
         return roots
+    }
+
+    private func isTrashMetadata(_ url: URL) -> Bool {
+        url.lastPathComponent == ".DS_Store"
     }
 }
