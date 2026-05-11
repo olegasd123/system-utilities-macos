@@ -39,40 +39,90 @@ private struct CleanDriveView: View {
     @State private var showsHardDeleteConfirmation = false
 
     var body: some View {
-        Group {
-            if let previewCategoryID {
-                CleanDrivePreviewView(
-                    model: model,
-                    categoryID: previewCategoryID
-                ) {
-                    self.previewCategoryID = nil
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    summary
-                    categoryList
-                    statusMessage
-                    footer
-                }
+        ZStack {
+            content
+
+            if showsHardDeleteConfirmation {
+                hardDeleteConfirmation
+                    .zIndex(1)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task {
             await model.scanIfNeeded()
         }
-        .confirmationDialog(
-            "Permanently delete selected items?",
-            isPresented: $showsHardDeleteConfirmation
-        ) {
-            Button("Delete Permanently", role: .destructive) {
-                Task {
-                    await model.reclaimSelectedItems(mode: .hardDelete)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if let previewCategoryID {
+            CleanDrivePreviewView(
+                model: model,
+                categoryID: previewCategoryID
+            ) {
+                self.previewCategoryID = nil
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 12) {
+                summary
+                categoryList
+                statusMessage
+                footer
+            }
+        }
+    }
+
+    private var hardDeleteConfirmation: some View {
+        ZStack {
+            Color.black.opacity(0.34)
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Permanently delete selected items?")
+                    .font(.system(size: 16, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("This cannot be undone. \(selectedCategoryText)")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                VStack(spacing: 8) {
+                    Button(role: .destructive) {
+                        confirmHardDelete()
+                    } label: {
+                        Text("Delete Permanently")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                    }
+                    .buttonStyle(.plain)
+                    .background(Color.red.opacity(0.22), in: RoundedRectangle(cornerRadius: 16))
+
+                    Button(role: .cancel) {
+                        showsHardDeleteConfirmation = false
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 14, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                    }
+                    .keyboardShortcut(.cancelAction)
+                    .buttonStyle(.plain)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
                 }
             }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This cannot be undone. \(selectedCategoryText)")
+            .padding(22)
+            .frame(width: 260)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(.secondary.opacity(0.45), lineWidth: 1)
+            }
+            .shadow(radius: 18)
         }
+        .transition(.opacity)
     }
 
     private var summary: some View {
@@ -256,6 +306,13 @@ private struct CleanDriveView: View {
             return ""
         }
         return "Selected categories: \(names.joined(separator: ", "))."
+    }
+
+    private func confirmHardDelete() {
+        showsHardDeleteConfirmation = false
+        Task {
+            await model.reclaimSelectedItems(mode: .hardDelete)
+        }
     }
 
     private var firstErrorMessage: String? {
