@@ -21,43 +21,6 @@ public enum CleanDriveCategoryCatalog {
             ),
             TrashCategory(trasher: trasher),
             PathCleanDriveCategory(
-                id: .xcodeDerived,
-                displayName: "Xcode derived data",
-                symbolName: "hammer",
-                requiresFullDiskAccess: false,
-                defaultEnabled: true,
-                roots: [.home(["Library", "Developer", "Xcode", "DerivedData"])],
-                scanMode: .children,
-                trasher: trasher
-            ),
-            PathCleanDriveCategory(
-                id: .xcodeArchives,
-                displayName: "Xcode archives (old)",
-                symbolName: "archivebox",
-                requiresFullDiskAccess: false,
-                defaultEnabled: false,
-                roots: [.home(["Library", "Developer", "Xcode", "Archives"])],
-                scanMode: .xcodeArchives,
-                trasher: trasher
-            ),
-            PathCleanDriveCategory(
-                id: .xcodeDeviceSupport,
-                displayName: "Xcode device support",
-                symbolName: "iphone",
-                requiresFullDiskAccess: false,
-                defaultEnabled: false,
-                roots: [
-                    .home(["Library", "Developer", "Xcode", "iOS DeviceSupport"]),
-                    .home(["Library", "Developer", "Xcode", "watchOS DeviceSupport"]),
-                    .home(["Library", "Developer", "Xcode", "tvOS DeviceSupport"]),
-                    .home(["Library", "Developer", "Xcode", "visionOS DeviceSupport"])
-                ],
-                scanMode: .children,
-                trasher: trasher
-            ),
-            UnavailableSimulatorsCategory(trasher: trasher),
-            HomebrewCacheCategory(trasher: trasher),
-            PathCleanDriveCategory(
                 id: .browserCaches,
                 displayName: "Browser caches",
                 symbolName: "globe",
@@ -106,7 +69,44 @@ public enum CleanDriveCategoryCatalog {
                 ],
                 scanMode: .root,
                 trasher: trasher
-            )
+            ),
+            HomebrewCacheCategory(trasher: trasher),
+            PathCleanDriveCategory(
+                id: .xcodeDerived,
+                displayName: "Xcode derived data",
+                symbolName: "hammer",
+                requiresFullDiskAccess: false,
+                defaultEnabled: true,
+                roots: [.home(["Library", "Developer", "Xcode", "DerivedData"])],
+                scanMode: .children,
+                trasher: trasher
+            ),
+            PathCleanDriveCategory(
+                id: .xcodeArchives,
+                displayName: "Xcode archives (old)",
+                symbolName: "archivebox",
+                requiresFullDiskAccess: false,
+                defaultEnabled: false,
+                roots: [.home(["Library", "Developer", "Xcode", "Archives"])],
+                scanMode: .xcodeArchives,
+                trasher: trasher
+            ),
+            PathCleanDriveCategory(
+                id: .xcodeDeviceSupport,
+                displayName: "Xcode device support",
+                symbolName: "iphone",
+                requiresFullDiskAccess: false,
+                defaultEnabled: false,
+                roots: [
+                    .home(["Library", "Developer", "Xcode", "iOS DeviceSupport"]),
+                    .home(["Library", "Developer", "Xcode", "watchOS DeviceSupport"]),
+                    .home(["Library", "Developer", "Xcode", "tvOS DeviceSupport"]),
+                    .home(["Library", "Developer", "Xcode", "visionOS DeviceSupport"])
+                ],
+                scanMode: .children,
+                trasher: trasher
+            ),
+            UnavailableSimulatorsCategory(trasher: trasher)
         ]
     }
 }

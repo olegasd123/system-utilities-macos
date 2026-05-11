@@ -123,15 +123,15 @@ final class PathCleanDriveCategoryTests: XCTestCase {
             .userCaches,
             .userLogs,
             .trash,
-            .xcodeDerived,
-            .xcodeArchives,
-            .xcodeDeviceSupport,
-            .xcodeSimulators,
-            .homebrewCache,
             .browserCaches,
             .mailCache,
             .downloadsOld,
-            .softwareUpdates
+            .softwareUpdates,
+            .homebrewCache,
+            .xcodeDerived,
+            .xcodeArchives,
+            .xcodeDeviceSupport,
+            .xcodeSimulators
         ])
     }
 

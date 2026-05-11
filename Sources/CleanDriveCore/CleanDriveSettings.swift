@@ -26,15 +26,15 @@ public struct CleanDriveSettings: FeatureSettings {
             .userCaches: CleanDriveCategorySettings(enabled: true),
             .userLogs: CleanDriveCategorySettings(enabled: true),
             .trash: CleanDriveCategorySettings(enabled: false),
-            .xcodeDerived: CleanDriveCategorySettings(enabled: true),
-            .xcodeArchives: CleanDriveCategorySettings(enabled: false),
-            .xcodeDeviceSupport: CleanDriveCategorySettings(enabled: false),
-            .xcodeSimulators: CleanDriveCategorySettings(enabled: false),
-            .homebrewCache: CleanDriveCategorySettings(enabled: true),
             .browserCaches: CleanDriveCategorySettings(enabled: false),
             .mailCache: CleanDriveCategorySettings(enabled: false),
             .downloadsOld: CleanDriveCategorySettings(enabled: false),
-            .softwareUpdates: CleanDriveCategorySettings(enabled: false)
+            .softwareUpdates: CleanDriveCategorySettings(enabled: false),
+            .homebrewCache: CleanDriveCategorySettings(enabled: true),
+            .xcodeDerived: CleanDriveCategorySettings(enabled: true),
+            .xcodeArchives: CleanDriveCategorySettings(enabled: false),
+            .xcodeDeviceSupport: CleanDriveCategorySettings(enabled: false),
+            .xcodeSimulators: CleanDriveCategorySettings(enabled: false)
         ],
         reminders: .defaultValue,
         reclaim: .defaultValue
