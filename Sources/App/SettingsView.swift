@@ -6,20 +6,30 @@ struct SettingsView: View {
     @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let features: [any AppFeature]
+    var focusedFeatureId: String?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                ForEach(features, id: \.id) { feature in
+                ForEach(visibleFeatures, id: \.id) { feature in
                     if let section = feature.makeSettingsSection() {
                         section
                     }
                 }
 
-                startupSection
+                if focusedFeatureId == nil {
+                    startupSection
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var visibleFeatures: [any AppFeature] {
+        guard let focusedFeatureId else {
+            return features
+        }
+        return features.filter { $0.id == focusedFeatureId }
     }
 
     private var startupSection: some View {

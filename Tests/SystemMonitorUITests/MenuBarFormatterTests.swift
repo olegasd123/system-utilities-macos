@@ -137,18 +137,16 @@ final class MenuBarFormatterTests: XCTestCase {
                 txBytesPerSec: 1024,
                 totalRxBytes: 10_000,
                 totalTxBytes: 5_000,
-                primaryInterface: "en0",
                 connectionType: "Wi-Fi"
             ),
             battery: BatterySample(
                 chargePercent: 78,
                 state: .discharging,
                 timeToFullSecs: nil,
-                timeToEmptySecs: 7_200,
-                cycleCount: 100
+                timeToEmptySecs: 7_200
             ),
             temperatures: [
-                TemperatureSample(label: "Performance Cores", temperatureC: 55, criticalC: nil)
+                TemperatureSample(label: "Performance Cores", temperatureC: 55)
             ],
             fans: [
                 FanSample(label: "Fan 1", rpm: 2400)

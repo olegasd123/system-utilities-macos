@@ -77,6 +77,9 @@ typedef struct {
 struct MacSensorContext {
     IOHIDEventSystemClientRef hidClient;
     CFArrayRef hidServices;
+    char **hidServiceLabels;
+    size_t hidServiceLabelCount;
+    CFAbsoluteTime hidServicesRefreshTime;
     io_connect_t smcConnection;
 };
 
@@ -99,6 +102,10 @@ static char *copyCString(const char *string);
 static void appendReading(MacSensorReading **readings, size_t *count, const char *label, double value);
 static CFDictionaryRef createHidTemperatureMatching(void);
 static void refreshHidServices(MacSensorContext *context);
+static void refreshHidServicesIfNeeded(MacSensorContext *context, CFTimeInterval minimumInterval);
+static void clearHidServiceLabels(MacSensorContext *context);
+static void cacheHidServiceLabels(MacSensorContext *context);
+static const char *cachedHidProductName(MacSensorContext *context, size_t index);
 static char *copyHidProductName(IOHIDServiceClientRef service, size_t index);
 static io_connect_t openSmcConnection(void);
 static int smcReadKey(io_connect_t connection, const char *key, SmcValue *value);
@@ -133,6 +140,7 @@ void MacSensorContextDestroy(MacSensorContext *context) {
     if (context->hidServices != NULL) {
         CFRelease(context->hidServices);
     }
+    clearHidServiceLabels(context);
     if (context->hidClient != NULL) {
         CFRelease(context->hidClient);
     }
@@ -150,7 +158,7 @@ size_t MacSensorCopyHidTemperatures(MacSensorContext *context, MacSensorReading 
     if (context == NULL) {
         return 0;
     }
-    refreshHidServices(context);
+    refreshHidServicesIfNeeded(context, 30);
     if (context->hidServices == NULL) {
         return 0;
     }
@@ -186,9 +194,13 @@ size_t MacSensorCopyHidTemperatures(MacSensorContext *context, MacSensorReading 
             continue;
         }
 
-        char *label = copyHidProductName(service, (size_t)index);
+        char fallback[32] = {0};
+        const char *label = cachedHidProductName(context, (size_t)index);
+        if (label == NULL) {
+            snprintf(fallback, sizeof(fallback), "Sensor %zu", (size_t)index);
+            label = fallback;
+        }
         appendReading(readings, &count, label, value);
-        free(label);
     }
 
     return count;
@@ -289,17 +301,20 @@ static void appendReading(MacSensorReading **readings, size_t *count, const char
         return;
     }
 
+    char *labelCopy = copyCString(label);
+    if (labelCopy == NULL) {
+        return;
+    }
+
     MacSensorReading *next = realloc(*readings, sizeof(MacSensorReading) * (*count + 1));
     if (next == NULL) {
+        free(labelCopy);
         return;
     }
 
     *readings = next;
-    (*readings)[*count].label = copyCString(label);
+    (*readings)[*count].label = labelCopy;
     (*readings)[*count].value = value;
-    if ((*readings)[*count].label == NULL) {
-        return;
-    }
     *count += 1;
 }
 
@@ -350,6 +365,7 @@ static void refreshHidServices(MacSensorContext *context) {
     CFRelease(matching);
 
     CFArrayRef services = IOHIDEventSystemClientCopyServices(context->hidClient);
+    context->hidServicesRefreshTime = CFAbsoluteTimeGetCurrent();
     if (services == NULL) {
         return;
     }
@@ -358,6 +374,74 @@ static void refreshHidServices(MacSensorContext *context) {
         CFRelease(context->hidServices);
     }
     context->hidServices = services;
+    cacheHidServiceLabels(context);
+}
+
+static void refreshHidServicesIfNeeded(MacSensorContext *context, CFTimeInterval minimumInterval) {
+    if (context == NULL) {
+        return;
+    }
+
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    if (context->hidServices != NULL &&
+        now - context->hidServicesRefreshTime < minimumInterval) {
+        return;
+    }
+
+    refreshHidServices(context);
+}
+
+static void clearHidServiceLabels(MacSensorContext *context) {
+    if (context == NULL || context->hidServiceLabels == NULL) {
+        return;
+    }
+
+    for (size_t index = 0; index < context->hidServiceLabelCount; index++) {
+        free(context->hidServiceLabels[index]);
+    }
+    free(context->hidServiceLabels);
+    context->hidServiceLabels = NULL;
+    context->hidServiceLabelCount = 0;
+}
+
+static void cacheHidServiceLabels(MacSensorContext *context) {
+    if (context == NULL || context->hidServices == NULL) {
+        return;
+    }
+
+    clearHidServiceLabels(context);
+    CFIndex serviceCount = CFArrayGetCount(context->hidServices);
+    if (serviceCount <= 0) {
+        return;
+    }
+
+    context->hidServiceLabels = calloc((size_t)serviceCount, sizeof(char *));
+    if (context->hidServiceLabels == NULL) {
+        return;
+    }
+
+    context->hidServiceLabelCount = (size_t)serviceCount;
+    for (CFIndex index = 0; index < serviceCount; index++) {
+        IOHIDServiceClientRef service = (IOHIDServiceClientRef)CFArrayGetValueAtIndex(
+            context->hidServices,
+            index
+        );
+        if (service == NULL) {
+            continue;
+        }
+
+        context->hidServiceLabels[index] = copyHidProductName(service, (size_t)index);
+    }
+}
+
+static const char *cachedHidProductName(MacSensorContext *context, size_t index) {
+    if (context == NULL ||
+        context->hidServiceLabels == NULL ||
+        index >= context->hidServiceLabelCount) {
+        return NULL;
+    }
+
+    return context->hidServiceLabels[index];
 }
 
 static char *copyHidProductName(IOHIDServiceClientRef service, size_t index) {

@@ -2,29 +2,62 @@ import Foundation
 
 @MainActor
 final class MetricsSampler {
-    private let collector: MetricsCollector
-    private var timer: Timer?
+    private let worker: MetricsSamplingWorker
+    private var samplingTask: Task<Void, Never>?
+    private var request: MetricSampleRequest = .all
 
     init(collector: MetricsCollector = MetricsCollector()) {
-        self.collector = collector
+        self.worker = MetricsSamplingWorker(collector: collector)
     }
 
-    func start(onSample: @escaping @MainActor (Snapshot) -> Void) {
+    func start(
+        request: MetricSampleRequest,
+        onSample: @escaping @MainActor (Snapshot, MetricSampleRequest) -> Void
+    ) {
         stop()
-        sample(onSample: onSample)
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.sample(onSample: onSample)
+        self.request = request
+
+        samplingTask = Task { @MainActor [weak self, worker] in
+            while !Task.isCancelled {
+                guard let self else {
+                    return
+                }
+
+                let request = self.request
+                let snapshot = await worker.sample(request: request)
+                guard !Task.isCancelled else {
+                    return
+                }
+
+                onSample(snapshot, request)
+
+                do {
+                    try await Task.sleep(for: .seconds(1))
+                } catch {
+                    return
+                }
             }
         }
     }
 
     func stop() {
-        timer?.invalidate()
-        timer = nil
+        samplingTask?.cancel()
+        samplingTask = nil
     }
 
-    private func sample(onSample: @MainActor (Snapshot) -> Void) {
-        onSample(collector.sample())
+    func updateRequest(_ request: MetricSampleRequest) {
+        self.request = request
+    }
+}
+
+private actor MetricsSamplingWorker {
+    private let collector: MetricsCollector
+
+    init(collector: MetricsCollector) {
+        self.collector = collector
+    }
+
+    func sample(request: MetricSampleRequest) -> Snapshot {
+        collector.sample(request: request)
     }
 }

@@ -3,12 +3,20 @@ import Foundation
 import SystemConfiguration
 
 final class NetworkCollector: NetworkMetricSource {
+    private let dynamicStore: SCDynamicStore?
+    private var cachedServiceTypes: [String: String] = [:]
+    private var serviceTypesRefreshDate = Date.distantPast
+    private let serviceTypesRefreshInterval: TimeInterval = 30
     private var previous: NetworkCounters?
     private var previousDate = Date()
 
+    init() {
+        dynamicStore = SCDynamicStoreCreate(nil, "SystemMonitor" as CFString, nil, nil)
+    }
+
     func sample() -> NetworkSample {
         let now = Date()
-        let counters = readCounters()
+        let counters = readCounters(now: now)
         let elapsed = max(now.timeIntervalSince(previousDate), 0.001)
         defer {
             previous = counters
@@ -21,7 +29,6 @@ final class NetworkCollector: NetworkMetricSource {
                 txBytesPerSec: 0,
                 totalRxBytes: counters.totalRxBytes,
                 totalTxBytes: counters.totalTxBytes,
-                primaryInterface: counters.primaryInterface,
                 connectionType: counters.connectionType
             )
         }
@@ -34,15 +41,14 @@ final class NetworkCollector: NetworkMetricSource {
             txBytesPerSec: UInt64(Double(txDelta) / elapsed),
             totalRxBytes: counters.totalRxBytes,
             totalTxBytes: counters.totalTxBytes,
-            primaryInterface: counters.primaryInterface,
             connectionType: counters.connectionType
         )
     }
 
-    private func readCounters() -> NetworkCounters {
+    private func readCounters(now: Date) -> NetworkCounters {
         var interfaces: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&interfaces) == 0, let interfaces else {
-            return NetworkCounters(totalRxBytes: 0, totalTxBytes: 0, primaryInterface: nil, connectionType: nil)
+            return NetworkCounters(totalRxBytes: 0, totalTxBytes: 0, connectionType: nil)
         }
         defer {
             freeifaddrs(interfaces)
@@ -83,7 +89,7 @@ final class NetworkCollector: NetworkMetricSource {
         }
 
         let primary = primaryInterface(from: activityByInterface)
-        let serviceTypes = serviceTypesByInterface()
+        let serviceTypes = serviceTypesByInterface(now: now)
         let type = primary.flatMap {
             Self.connectionType(for: $0, serviceType: serviceTypes[$0])
         }
@@ -91,7 +97,6 @@ final class NetworkCollector: NetworkMetricSource {
         return NetworkCounters(
             totalRxBytes: rx,
             totalTxBytes: tx,
-            primaryInterface: primary,
             connectionType: type
         )
     }
@@ -117,18 +122,23 @@ final class NetworkCollector: NetworkMetricSource {
     }
 
     private func primaryInterface(for key: String) -> String? {
-        guard let store = SCDynamicStoreCreate(nil, "SystemMonitor" as CFString, nil, nil),
-              let state = SCDynamicStoreCopyValue(store, key as CFString) as? [String: Any] else {
+        guard let dynamicStore,
+              let state = SCDynamicStoreCopyValue(dynamicStore, key as CFString) as? [String: Any] else {
             return nil
         }
 
         return state["PrimaryInterface"] as? String
     }
 
-    private func serviceTypesByInterface() -> [String: String] {
+    private func serviceTypesByInterface(now: Date) -> [String: String] {
+        guard now.timeIntervalSince(serviceTypesRefreshDate) >= serviceTypesRefreshInterval else {
+            return cachedServiceTypes
+        }
+
         guard let preferences = SCPreferencesCreate(nil, "SystemMonitor" as CFString, nil),
               let services = SCNetworkServiceCopyAll(preferences) as? [SCNetworkService] else {
-            return [:]
+            serviceTypesRefreshDate = now
+            return cachedServiceTypes
         }
 
         var types: [String: String] = [:]
@@ -141,8 +151,10 @@ final class NetworkCollector: NetworkMetricSource {
 
             types[name] = type
         }
+        cachedServiceTypes = types
+        serviceTypesRefreshDate = now
 
-        return types
+        return cachedServiceTypes
     }
 
     static func connectionType(for interface: String, serviceType: String?) -> String? {
@@ -189,7 +201,6 @@ final class NetworkCollector: NetworkMetricSource {
 private struct NetworkCounters {
     var totalRxBytes: UInt64
     var totalTxBytes: UInt64
-    var primaryInterface: String?
     var connectionType: String?
 }
 

@@ -1,5 +1,7 @@
 import AppCore
 import AppUI
+import CleanDriveCore
+import CleanDriveUI
 import Foundation
 import SystemMonitorCore
 import SystemMonitorUI
@@ -8,6 +10,7 @@ import SystemMonitorUI
 final class AppComposer {
     let generalSettings: SettingsModel<GeneralSettings>
     let launchAtLoginModel: LaunchAtLoginModel
+    let cleanDriveReminderService: CleanDriveReminderService
     let features: [any AppFeature]
 
     init(store: AppSettingsStore = .standard) {
@@ -31,6 +34,18 @@ final class AppComposer {
                 persist()
             }
         )
+        let cleanDriveSettingsValue = raw.value(for: CleanDriveSettings.self)
+        if raw.features[CleanDriveSettings.featureId] == nil {
+            raw.setValue(cleanDriveSettingsValue)
+            persist()
+        }
+        let cleanDriveSettings = SettingsModel<CleanDriveSettings>(
+            initial: cleanDriveSettingsValue,
+            onChange: { value in
+                raw.setValue(value)
+                persist()
+            }
+        )
 
         let launchAtLogin = LaunchAtLoginModel(
             initiallyLoadedFromDisk: result.loadedFromDisk,
@@ -46,9 +61,16 @@ final class AppComposer {
             general: general,
             model: monitorModel
         )
+        let cleanDriveModel = CleanDriveModel(settings: cleanDriveSettings)
+        let cleanDriveFeature = CleanDriveFeature(
+            settings: cleanDriveSettings,
+            model: cleanDriveModel
+        )
+        let cleanDriveReminderService = CleanDriveReminderService(settings: cleanDriveSettings)
 
         self.generalSettings = general
         self.launchAtLoginModel = launchAtLogin
-        self.features = [monitorFeature]
+        self.cleanDriveReminderService = cleanDriveReminderService
+        self.features = [monitorFeature, cleanDriveFeature]
     }
 }

@@ -57,17 +57,17 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
 
         Publishers.CombineLatest($isActive, settings.publisher)
             .map { active, settings in
-                active || Self.menuBarOrWarningsNeedSampling(settings)
+                Self.samplingRequest(active: active, settings: settings)
             }
             .removeDuplicates()
-            .sink { [weak self] needsSampling in
+            .sink { [weak self] request in
                 guard let self else {
                     return
                 }
-                if needsSampling {
-                    self.model.startSampling()
-                } else {
+                if request.isEmpty {
                     self.model.stopSampling()
+                } else {
+                    self.model.startSampling(request: request)
                 }
             }
             .store(in: &cancellables)
@@ -77,15 +77,56 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         isActive = active
     }
 
-    private static func menuBarOrWarningsNeedSampling(_ settings: SystemMonitorSettings) -> Bool {
+    private static func samplingRequest(
+        active: Bool,
+        settings: SystemMonitorSettings
+    ) -> MetricSampleRequest {
+        if active {
+            return .all
+        }
+
+        var request: MetricSampleRequest = []
         let menuBar = settings.menuBar
-        return menuBar.showCpuLoad
-            || menuBar.showTemperature
-            || menuBar.showMemoryUsage
-            || menuBar.showDiskFree
-            || menuBar.showBattery
-            || menuBar.showNetworkSpeed
-            || settings.warningsEnabled
+        if menuBar.showCpuLoad {
+            request.insert(.cpu)
+        }
+        if menuBar.showTemperature {
+            request.insert(.temperatures)
+        }
+        if menuBar.showMemoryUsage {
+            request.insert(.memory)
+        }
+        if menuBar.showDiskFree {
+            request.insert(.disk)
+        }
+        if menuBar.showBattery {
+            request.insert(.battery)
+        }
+        if menuBar.showNetworkSpeed {
+            request.insert(.network)
+        }
+
+        guard settings.warningsEnabled else {
+            return request
+        }
+
+        let thresholds = settings.warningThresholds
+        if thresholds.cpuEnabled {
+            request.insert(.cpu)
+        }
+        if thresholds.memoryEnabled {
+            request.insert(.memory)
+        }
+        if thresholds.diskEnabled {
+            request.insert(.disk)
+        }
+        if thresholds.batteryEnabled {
+            request.insert(.battery)
+        }
+        if thresholds.temperatureEnabled {
+            request.insert(.temperatures)
+        }
+        return request
     }
 
     public func makeRootView() -> AnyView {

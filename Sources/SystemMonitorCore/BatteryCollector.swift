@@ -28,8 +28,7 @@ struct BatteryCollector: BatteryMetricSource {
                 chargePercent: chargePercent,
                 state: Self.state(description: description, chargePercent: chargePercent),
                 timeToFullSecs: Self.secondsFromMinutes(description[kIOPSTimeToFullChargeKey]),
-                timeToEmptySecs: Self.secondsFromMinutes(description[kIOPSTimeToEmptyKey]),
-                cycleCount: Self.cycleCount(description: description)
+                timeToEmptySecs: Self.secondsFromMinutes(description[kIOPSTimeToEmptyKey])
             )
         }
 
@@ -53,12 +52,6 @@ struct BatteryCollector: BatteryMetricSource {
             return .discharging
         }
         return .unknown
-    }
-
-    private static func cycleCount(description: [String: Any]) -> UInt32? {
-        number(description["CycleCount"])
-            .orElse(number(description["Cycle Count"]))
-            .flatMap { UInt32(exactly: $0) }
     }
 
     private static func secondsFromMinutes(_ value: Any?) -> UInt64? {
@@ -86,11 +79,5 @@ struct BatteryCollector: BatteryMetricSource {
             return value.boolValue
         }
         return false
-    }
-}
-
-private extension Optional {
-    func orElse(_ fallback: @autoclosure () -> Wrapped?) -> Wrapped? {
-        self ?? fallback()
     }
 }

@@ -21,8 +21,12 @@ protocol BatteryMetricSource {
 }
 
 protocol SensorMetricSource {
-    func temperatures() -> [TemperatureSample]
-    func fans() -> [FanSample]
-    func cpuTemperature(from temperatures: [TemperatureSample]) -> Double?
-    func batteryTemperatureC() -> Double?
+    func sample(includeFans: Bool, includeBatteryTemperature: Bool) -> SensorSample
+}
+
+struct SensorSample: Equatable, Sendable {
+    var temperatures: [TemperatureSample]
+    var fans: [FanSample]
+    var cpuTemperatureC: Double?
+    var batteryTemperatureC: Double?
 }

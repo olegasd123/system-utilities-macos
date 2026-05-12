@@ -28,8 +28,7 @@ final class BatterySymbolTests: XCTestCase {
             chargePercent: chargePercent,
             state: state,
             timeToFullSecs: nil,
-            timeToEmptySecs: nil,
-            cycleCount: nil
+            timeToEmptySecs: nil
         )
     }
 }

@@ -11,7 +11,6 @@ final class WarningService {
     private var disk = WarningModuleState()
     private var battery = WarningModuleState()
     private var temperature = WarningModuleState()
-    private var permissionRequested = false
 
     init(
         notificationSender: any WarningNotificationSending = UserNotificationWarningSender(),
@@ -19,14 +18,6 @@ final class WarningService {
     ) {
         self.notificationSender = notificationSender
         self.now = now
-    }
-
-    func requestPermission() {
-        guard !permissionRequested, NotificationRuntime.canUseUserNotifications else {
-            return
-        }
-        permissionRequested = true
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
     func evaluate(snapshot: Snapshot, settings: SystemMonitorSettings) {
