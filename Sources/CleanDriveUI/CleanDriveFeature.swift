@@ -638,11 +638,14 @@ private struct CleanDrivePreviewView: View {
                     .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)
 
-                Text(item.url.deletingLastPathComponent().path)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                Button {
+                    openFolderInFinder(item.url.deletingLastPathComponent())
+                } label: {
+                    FinderPathLinkLabel(path: item.url.deletingLastPathComponent().path)
+                }
+                .buttonStyle(.plain)
+                .help("Open in Finder")
+                .accessibilityLabel("Open folder in Finder")
             }
 
             Spacer(minLength: 8)
@@ -659,6 +662,25 @@ private struct CleanDrivePreviewView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(.secondary.opacity(0.18), lineWidth: 1)
         }
+    }
+
+    private func openFolderInFinder(_ url: URL) {
+        NSWorkspace.shared.open(url)
+    }
+}
+
+private struct FinderPathLinkLabel: View {
+    let path: String
+    @State private var isHovering = false
+
+    var body: some View {
+        Text(path)
+            .font(.system(size: 10))
+            .foregroundStyle(isHovering ? .blue : .secondary)
+            .underline(isHovering)
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .onHover { isHovering = $0 }
     }
 }
 
