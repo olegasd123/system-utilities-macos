@@ -135,6 +135,25 @@ final class PathCleanDriveCategoryTests: XCTestCase {
         ])
     }
 
+    func testBrowserCachesIncludesOpera() async throws {
+        let operaCacheURL = rootURL
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Caches", isDirectory: true)
+            .appendingPathComponent("com.operasoftware.Opera", isDirectory: true)
+        try FileManager.default.createDirectory(at: operaCacheURL, withIntermediateDirectories: true)
+        try writeFile(operaCacheURL.appendingPathComponent("cache.bin"))
+
+        let category = try XCTUnwrap(
+            CleanDriveCategoryCatalog.defaultCategories(
+                trasher: DirectoryTrash(trashDirectory: trashURL)
+            ).first { $0.id == .browserCaches }
+        )
+
+        let result = try await category.scan(CleanDriveScanContext(homeDirectory: rootURL))
+
+        XCTAssertEqual(result.items.map(\.url.lastPathComponent), ["com.operasoftware.Opera"])
+    }
+
     private func writeFile(_ url: URL) throws {
         try Data(repeating: 1, count: 1_024).write(to: url)
     }

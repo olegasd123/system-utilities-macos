@@ -30,7 +30,8 @@ public enum CleanDriveCategoryCatalog {
                     .home(["Library", "Containers", "com.apple.Safari", "Data", "Library", "Caches"]),
                     .home(["Library", "Caches", "Google", "Chrome"]),
                     .home(["Library", "Caches", "Company The Browser Company", "Arc"]),
-                    .home(["Library", "Caches", "Firefox", "Profiles"])
+                    .home(["Library", "Caches", "Firefox", "Profiles"]),
+                    .home(["Library", "Caches", "com.operasoftware.Opera"])
                 ],
                 scanMode: .root,
                 trasher: trasher

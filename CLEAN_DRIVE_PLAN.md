@@ -125,7 +125,7 @@ Re-scoped vs. the mockup so every row has a realistic chance of finding bytes.
 | `xcode-device-support`| Xcode device support      | `~/Library/Developer/Xcode/iOS DeviceSupport`, `watchOS DeviceSupport`, etc.                          | no           | no        |
 | `xcode-simulators`    | Unavailable simulators    | `xcrun simctl delete unavailable` (dry-run sizes via `~/Library/Developer/CoreSimulator/Caches`)      | no           | no        |
 | `homebrew-cache`      | Homebrew cache            | `brew --cache` directory                                                                              | no           | yes       |
-| `browser-caches`      | Browser caches            | Safari, Chrome, Arc, Firefox cache dirs (only browsers that exist on disk)                            | yes (Safari) | no        |
+| `browser-caches`      | Browser caches            | Safari, Chrome, Arc, Firefox, Opera cache dirs (only browsers that exist on disk)                     | yes (Safari) | no        |
 | `mail-cache`          | Mail cache                | `~/Library/Containers/com.apple.mail/Data/Library/Mail Downloads`                                     | yes          | no        |
 | `downloads-old`       | Downloads (older than N)  | `~/Downloads/*` mtime older than threshold; **preview-only by default**                               | no           | no        |
 | `software-updates`    | Old updates               | `/Library/Updates`, `~/Library/Application Support/SoftwareUpdate`                                    | no           | no        |
