@@ -201,10 +201,7 @@ private struct CleanDriveView: View {
     private func trailingControls(for category: CleanDriveCategorySnapshot) -> some View {
         if category.isScanning {
             HStack(spacing: 8) {
-                Button("Show files...") {
-                    previewCategoryID = category.id
-                }
-                .controlSize(.small)
+                showFilesButton(for: category)
 
                 ProgressView()
                     .controlSize(.small)
@@ -220,10 +217,7 @@ private struct CleanDriveView: View {
         } else {
             HStack(spacing: 8) {
                 if category.totalBytes > 0 {
-                    Button("Show files...") {
-                        previewCategoryID = category.id
-                    }
-                    .controlSize(.small)
+                    showFilesButton(for: category)
                 }
 
                 Text(CleanDriveFormatter.bytes(category.totalBytes))
@@ -233,6 +227,20 @@ private struct CleanDriveView: View {
                     .frame(minWidth: 66, alignment: .trailing)
             }
         }
+    }
+
+    private func showFilesButton(for category: CleanDriveCategorySnapshot) -> some View {
+        Button {
+            previewCategoryID = category.id
+        } label: {
+            Image(systemName: "folder")
+                .font(.system(size: 12, weight: .medium))
+                .frame(width: 22, height: 20)
+        }
+        .controlSize(.small)
+        .buttonStyle(.plain)
+        .help("Show files")
+        .accessibilityLabel("Show files")
     }
 
     @ViewBuilder
