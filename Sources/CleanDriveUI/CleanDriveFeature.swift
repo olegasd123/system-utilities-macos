@@ -386,6 +386,7 @@ private struct CleanDriveSettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             categoriesSection
+            customFoldersSection
             remindersSection
             reclaimSafetySection
             advancedSection
@@ -406,6 +407,67 @@ private struct CleanDriveSettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var customFoldersSection: some View {
+        SettingsSection("Custom folders") {
+            Text("Clean folder contents. The folders stay.")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+
+            if settingsModel.settings.customFolders.isEmpty {
+                Text("No custom folders.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(settingsModel.settings.customFolders) { folder in
+                        customFolderRow(folder)
+                    }
+                }
+            }
+
+            Button {
+                addCustomFolder()
+            } label: {
+                Label("Add Folder...", systemImage: "plus")
+            }
+            .controlSize(.small)
+        }
+    }
+
+    private func customFolderRow(_ folder: CleanDriveCustomFolder) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "folder")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(folder.url.lastPathComponent)
+                    .font(.system(size: 12, weight: .medium))
+                    .lineLimit(1)
+
+                Text(folder.path)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+
+            Spacer(minLength: 8)
+
+            Button {
+                removeCustomFolder(folder)
+            } label: {
+                Image(systemName: "minus.circle")
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 20, height: 20)
+            }
+            .buttonStyle(.plain)
+            .help("Remove folder")
+            .accessibilityLabel("Remove folder")
         }
     }
 
@@ -478,6 +540,56 @@ private struct CleanDriveSettingsView: View {
                 value: $settingsModel.settings.reclaim.xcodeArchivesOlderThanDays,
                 in: 1...365
             )
+        }
+    }
+
+    private func addCustomFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = true
+        panel.canCreateDirectories = false
+        panel.prompt = "Add"
+        panel.message = "Choose folders to clean."
+
+        guard panel.runModal() == .OK else {
+            return
+        }
+
+        var settings = settingsModel.settings
+        var knownPaths = Set(settings.customFolders.map(\.path))
+        for url in panel.urls.map(\.standardizedFileURL) {
+            guard CleanDriveCustomFolder.canUse(url) else {
+                continue
+            }
+            let folder = CleanDriveCustomFolder(path: url.path)
+            guard !knownPaths.contains(folder.path) else {
+                continue
+            }
+            settings.customFolders.append(folder)
+            knownPaths.insert(folder.path)
+        }
+
+        guard settings != settingsModel.settings else {
+            return
+        }
+
+        settings.setCategoryEnabled(true, id: .customFolders)
+        settingsModel.settings = settings
+        Task {
+            await model.scanCategory(id: .customFolders)
+        }
+    }
+
+    private func removeCustomFolder(_ folder: CleanDriveCustomFolder) {
+        var settings = settingsModel.settings
+        settings.customFolders.removeAll { $0.path == folder.path }
+        if settings.customFolders.isEmpty {
+            settings.setCategoryEnabled(false, id: .customFolders)
+        }
+        settingsModel.settings = settings
+        Task {
+            await model.scanCategory(id: .customFolders)
         }
     }
 

@@ -71,6 +71,7 @@ public enum CleanDriveCategoryCatalog {
                 scanMode: .root,
                 trasher: trasher
             ),
+            CustomFoldersCategory(trasher: trasher),
             HomebrewCacheCategory(trasher: trasher),
             PathCleanDriveCategory(
                 id: .xcodeDerived,

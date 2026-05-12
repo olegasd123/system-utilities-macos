@@ -270,7 +270,8 @@ public final class CleanDriveModel: ObservableObject {
             homeDirectory: baseScanContext.homeDirectory,
             userID: baseScanContext.userID,
             downloadsOlderThanDays: settings.reclaim.downloadsOlderThanDays,
-            xcodeArchivesOlderThanDays: settings.reclaim.xcodeArchivesOlderThanDays
+            xcodeArchivesOlderThanDays: settings.reclaim.xcodeArchivesOlderThanDays,
+            customFolderURLs: settings.customFolders.map(\.url)
         )
     }
 

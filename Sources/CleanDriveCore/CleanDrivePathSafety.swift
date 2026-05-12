@@ -9,6 +9,31 @@ enum CleanDrivePathSafety {
         canTouch(url)
     }
 
+    static func canUseCustomFolder(_ url: URL, homeDirectory: URL) -> Bool {
+        let folderPath = url.standardizedFileURL.path
+        guard canTouch(url), !isBroadRoot(folderPath) else {
+            return false
+        }
+
+        let homePath = homeDirectory.standardizedFileURL.path
+        if folderPath == homePath {
+            return false
+        }
+
+        let components = url.standardizedFileURL.pathComponents
+        if components.first == "/", components.dropFirst().first == "Volumes" {
+            return components.count > 3
+        }
+        return true
+    }
+
+    private static func isBroadRoot(_ path: String) -> Bool {
+        if URL(fileURLWithPath: path).standardizedFileURL.pathComponents.count <= 2 {
+            return true
+        }
+        return path == "/private" || path == "/private/tmp" || path == "/private/var"
+    }
+
     private static func canTouch(_ url: URL) -> Bool {
         let path = url.standardizedFileURL.path
         if path == "/System" || path.hasPrefix("/System/") {

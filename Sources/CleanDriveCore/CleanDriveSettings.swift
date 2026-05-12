@@ -5,17 +5,20 @@ public struct CleanDriveSettings: FeatureSettings {
     public static let featureId = "clean-drive"
 
     public var categories: [CleanDriveCategoryID: CleanDriveCategorySettings]
+    public var customFolders: [CleanDriveCustomFolder]
     public var reminders: CleanDriveReminderSettings
     public var reclaim: CleanDriveReclaimSettings
     public var lastReminderAt: Date?
 
     public init(
         categories: [CleanDriveCategoryID: CleanDriveCategorySettings],
+        customFolders: [CleanDriveCustomFolder] = [],
         reminders: CleanDriveReminderSettings,
         reclaim: CleanDriveReclaimSettings,
         lastReminderAt: Date? = nil
     ) {
         self.categories = categories
+        self.customFolders = customFolders
         self.reminders = reminders
         self.reclaim = reclaim
         self.lastReminderAt = lastReminderAt
@@ -30,6 +33,7 @@ public struct CleanDriveSettings: FeatureSettings {
             .mailCache: CleanDriveCategorySettings(enabled: false),
             .downloadsOld: CleanDriveCategorySettings(enabled: false),
             .softwareUpdates: CleanDriveCategorySettings(enabled: false),
+            .customFolders: CleanDriveCategorySettings(enabled: false),
             .homebrewCache: CleanDriveCategorySettings(enabled: true),
             .xcodeDerived: CleanDriveCategorySettings(enabled: true),
             .xcodeArchives: CleanDriveCategorySettings(enabled: false),
@@ -42,6 +46,7 @@ public struct CleanDriveSettings: FeatureSettings {
 
     enum CodingKeys: String, CodingKey {
         case categories
+        case customFolders = "custom_folders"
         case reminders
         case reclaim
         case lastReminderAt = "last_reminder_at"
@@ -62,6 +67,10 @@ public struct CleanDriveSettings: FeatureSettings {
         } else {
             categories = defaults.categories
         }
+        customFolders = try container.decodeIfPresent(
+            [CleanDriveCustomFolder].self,
+            forKey: .customFolders
+        ) ?? defaults.customFolders
         reminders = try container.decodeIfPresent(
             CleanDriveReminderSettings.self,
             forKey: .reminders
@@ -79,6 +88,7 @@ public struct CleanDriveSettings: FeatureSettings {
             uniqueKeysWithValues: categories.map { ($0.key.rawValue, $0.value) }
         )
         try container.encode(rawCategories, forKey: .categories)
+        try container.encode(customFolders, forKey: .customFolders)
         try container.encode(reminders, forKey: .reminders)
         try container.encode(reclaim, forKey: .reclaim)
         try container.encodeIfPresent(lastReminderAt, forKey: .lastReminderAt)
@@ -93,6 +103,26 @@ public struct CleanDriveSettings: FeatureSettings {
         id: CleanDriveCategoryID
     ) {
         categories[id] = CleanDriveCategorySettings(enabled: enabled)
+    }
+}
+
+public struct CleanDriveCustomFolder: Codable, Equatable, Identifiable, Sendable {
+    public var path: String
+    public var id: String { path }
+
+    public init(path: String) {
+        self.path = URL(fileURLWithPath: path).standardizedFileURL.path
+    }
+
+    public var url: URL {
+        URL(fileURLWithPath: path)
+    }
+
+    public static func canUse(
+        _ url: URL,
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+    ) -> Bool {
+        CleanDrivePathSafety.canUseCustomFolder(url, homeDirectory: homeDirectory)
     }
 }
 

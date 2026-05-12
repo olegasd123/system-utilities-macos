@@ -127,6 +127,7 @@ final class PathCleanDriveCategoryTests: XCTestCase {
             .mailCache,
             .downloadsOld,
             .softwareUpdates,
+            .customFolders,
             .homebrewCache,
             .xcodeDerived,
             .xcodeArchives,
@@ -152,6 +153,48 @@ final class PathCleanDriveCategoryTests: XCTestCase {
         let result = try await category.scan(CleanDriveScanContext(homeDirectory: rootURL))
 
         XCTAssertEqual(result.items.map(\.url.lastPathComponent), ["com.operasoftware.Opera"])
+    }
+
+    func testCustomFoldersScanDirectChildrenOnly() async throws {
+        let customURL = rootURL.appendingPathComponent("Custom", isDirectory: true)
+        let nestedURL = customURL.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nestedURL, withIntermediateDirectories: true)
+        try writeFile(customURL.appendingPathComponent("one.bin"))
+        try writeFile(nestedURL.appendingPathComponent("two.bin"))
+
+        let category = CustomFoldersCategory(
+            trasher: DirectoryTrash(trashDirectory: trashURL)
+        )
+
+        let result = try await category.scan(
+            CleanDriveScanContext(
+                homeDirectory: rootURL,
+                customFolderURLs: [customURL]
+            )
+        )
+
+        XCTAssertEqual(
+            result.items.map(\.url.lastPathComponent).sorted(),
+            ["Nested", "one.bin"]
+        )
+        XCTAssertFalse(result.items.contains { $0.url == customURL })
+    }
+
+    func testCustomFoldersSkipHomeDirectoryItself() async throws {
+        try writeFile(rootURL.appendingPathComponent("one.bin"))
+        let category = CustomFoldersCategory(
+            trasher: DirectoryTrash(trashDirectory: trashURL)
+        )
+
+        let result = try await category.scan(
+            CleanDriveScanContext(
+                homeDirectory: rootURL,
+                customFolderURLs: [rootURL]
+            )
+        )
+
+        XCTAssertTrue(result.items.isEmpty)
+        XCTAssertEqual(result.notes.count, 1)
     }
 
     private func writeFile(_ url: URL) throws {

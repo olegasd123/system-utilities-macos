@@ -22,6 +22,7 @@ extension CleanDriveCategoryID {
     public static let mailCache = CleanDriveCategoryID(rawValue: "mail-cache")
     public static let downloadsOld = CleanDriveCategoryID(rawValue: "downloads-old")
     public static let softwareUpdates = CleanDriveCategoryID(rawValue: "software-updates")
+    public static let customFolders = CleanDriveCategoryID(rawValue: "custom-folders")
 }
 
 public protocol CleanDriveCategory: Sendable {
@@ -46,17 +47,20 @@ public struct CleanDriveScanContext: Sendable {
     public var userID: Int
     public var downloadsOlderThanDays: Int
     public var xcodeArchivesOlderThanDays: Int
+    public var customFolderURLs: [URL]
 
     public init(
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
         userID: Int = Int(getuid()),
         downloadsOlderThanDays: Int = 30,
-        xcodeArchivesOlderThanDays: Int = 60
+        xcodeArchivesOlderThanDays: Int = 60,
+        customFolderURLs: [URL] = []
     ) {
         self.homeDirectory = homeDirectory
         self.userID = userID
         self.downloadsOlderThanDays = downloadsOlderThanDays
         self.xcodeArchivesOlderThanDays = xcodeArchivesOlderThanDays
+        self.customFolderURLs = customFolderURLs
     }
 }
 
