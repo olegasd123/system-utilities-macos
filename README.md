@@ -38,8 +38,10 @@ and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
 - Safe cleanup by default: files move to Trash.
 - Optional permanent delete mode with confirmation.
 - Preview sheet for files found in each category.
-- User caches, logs, Trash, Xcode data, Homebrew cache, browser caches,
-  Mail downloads, old downloads, and old software updates.
+- User caches, logs, Trash, custom folders, Homebrew cache, browser caches,
+  Mail downloads, old downloads, old software updates, and Xcode data.
+- Xcode cleanup for derived data, old archives, device support, unavailable
+  simulators, and simulator caches.
 - Full Disk Access callout for protected categories.
 - Cleanup reminders when reclaimable space is above the configured threshold.
 - Per-category settings, reminder settings, and age thresholds for downloads
@@ -57,6 +59,14 @@ the app menu.
 
 Notification delivery and launch at login need a packaged `.app` bundle. They
 are disabled when the app runs as a raw SwiftPM executable.
+
+## Test
+
+Run the test suite:
+
+```bash
+swift test
+```
 
 ## Build An App Bundle
 
