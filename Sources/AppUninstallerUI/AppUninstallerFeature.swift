@@ -35,10 +35,11 @@ private struct AppUninstallerView: View {
     @ObservedObject var model: AppUninstallerModel
     @ObservedObject var settingsModel: SettingsModel<AppUninstallerSettings>
     @State private var showsConfirmation = false
+    private let appListHeight: CGFloat = 220
 
     var body: some View {
         ZStack {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 searchField
                 appList
                 detailPane
@@ -77,7 +78,7 @@ private struct AppUninstallerView: View {
             }
             .padding(.vertical, 1)
         }
-        .frame(height: 152)
+        .frame(height: appListHeight)
     }
 
     private func appRow(_ app: InstalledApp) -> some View {
@@ -137,7 +138,7 @@ private struct AppUninstallerView: View {
         if model.isScanningLeftovers {
             loadingRow("Scanning leftovers...")
                 .frame(maxHeight: .infinity, alignment: .top)
-        } else if let result = model.scanResult {
+        } else if let result = model.scanResult, !result.leftovers.isEmpty {
             leftoverList(result)
                 .frame(maxHeight: .infinity, alignment: .top)
         } else {
@@ -152,10 +153,6 @@ private struct AppUninstallerView: View {
                 candidateGroup("Exact match", candidates: group(.exactBundleID, in: result))
                 candidateGroup("Related", candidates: group(.bundleIDPrefix, in: result))
                 candidateGroup("Possible", candidates: group(.nameHeuristic, in: result))
-
-                if result.leftovers.isEmpty {
-                    emptyRow("No leftovers found.")
-                }
 
                 ForEach(result.notes, id: \.self) { note in
                     Text(note)
