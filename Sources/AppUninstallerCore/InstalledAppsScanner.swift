@@ -1,3 +1,4 @@
+import AppCore
 import Foundation
 
 public struct InstalledAppsScanner: Sendable {
@@ -86,6 +87,7 @@ public struct InstalledAppsScanner: Sendable {
         let iconURL = iconURL(from: info, bundleURL: bundleURL)
         let appGroups = info["com.apple.security.application-groups"] as? [String] ?? []
         let isSystem = isSystemApp(bundleIdentifier: bundleIdentifier, bundleURL: bundleURL)
+        let bundleSize = (try? FileSizeReader.recursiveLogicalSize(of: bundleURL)) ?? 0
 
         return InstalledApp(
             bundleIdentifier: bundleIdentifier,
@@ -93,6 +95,7 @@ public struct InstalledAppsScanner: Sendable {
             version: info["CFBundleShortVersionString"] as? String,
             iconURL: iconURL,
             bundleURL: bundleURL,
+            bundleSize: bundleSize,
             sourceLocation: sourceRoot.path,
             executableName: info["CFBundleExecutable"] as? String,
             isSystem: isSystem,

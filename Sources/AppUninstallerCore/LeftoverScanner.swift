@@ -141,10 +141,10 @@ public struct LeftoverScanner: Sendable {
 
     private func bundleCandidate(for app: InstalledApp) throws -> LeftoverCandidate {
         let size: UInt64
-        do {
-            size = try FileSizeReader.recursiveLogicalSize(of: app.bundleURL)
-        } catch {
-            size = 0
+        if app.bundleSize > 0 {
+            size = app.bundleSize
+        } else {
+            size = (try? FileSizeReader.recursiveLogicalSize(of: app.bundleURL)) ?? 0
         }
         return LeftoverCandidate(
             url: app.bundleURL,

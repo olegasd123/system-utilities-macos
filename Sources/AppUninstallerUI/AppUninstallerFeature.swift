@@ -101,6 +101,13 @@ private struct AppUninstallerView: View {
                 }
 
                 Spacer(minLength: 8)
+
+                Text(AppUninstallerFormatter.bytes(app.bundleSize))
+                    .font(.system(size: 10, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .frame(width: 62, alignment: .trailing)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 7)
@@ -131,39 +138,12 @@ private struct AppUninstallerView: View {
             loadingRow("Scanning leftovers...")
                 .frame(maxHeight: .infinity, alignment: .top)
         } else if let result = model.scanResult {
-            VStack(alignment: .leading, spacing: 8) {
-                bundleRow(result.bundle)
-                leftoverList(result)
-            }
-            .frame(maxHeight: .infinity, alignment: .top)
-        } else {
-            emptyRow("Select an app.")
+            leftoverList(result)
                 .frame(maxHeight: .infinity, alignment: .top)
+        } else {
+            Color.clear
+                .frame(maxHeight: .infinity)
         }
-    }
-
-    private func bundleRow(_ candidate: LeftoverCandidate) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "shippingbox")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.cyan)
-                .frame(width: 20)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("App bundle")
-                    .font(.system(size: 12, weight: .semibold))
-                Text(candidate.url.path)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-            Spacer()
-            Text(AppUninstallerFormatter.bytes(candidate.size))
-                .font(.system(size: 11, weight: .medium))
-                .monospacedDigit()
-        }
-        .padding(8)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
     }
 
     private func leftoverList(_ result: LeftoverScanResult) -> some View {
@@ -470,6 +450,9 @@ private struct AppUninstallerSettingsView: View {
 
 private enum AppUninstallerFormatter {
     static func bytes(_ bytes: UInt64) -> String {
-        ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+        if bytes == 0 {
+            return "0 KB"
+        }
+        return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
     }
 }

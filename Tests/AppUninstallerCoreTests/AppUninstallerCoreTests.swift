@@ -49,6 +49,7 @@ final class AppUninstallerCoreTests: XCTestCase {
 
         XCTAssertEqual(apps.map(\.name), ["Demo"])
         XCTAssertEqual(apps.first?.bundleIdentifier, "com.example.Demo")
+        XCTAssertGreaterThanOrEqual(apps.first?.bundleSize ?? 0, 1_024)
     }
 
     func testLeftoverScannerMatchesConfidenceTiers() throws {
