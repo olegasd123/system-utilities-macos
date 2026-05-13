@@ -224,15 +224,15 @@ private struct AppUninstallerView: View {
                 .frame(width: 18)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text(candidate.url.lastPathComponent)
-                    .font(.system(size: 11, weight: .medium))
-                    .lineLimit(1)
+                FinderLinkLabel(url: candidate.url)
+
                 Text(candidate.url.deletingLastPathComponent().path)
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer(minLength: 6)
 
@@ -414,6 +414,27 @@ private struct AppUninstallerView: View {
             .foregroundStyle(.secondary)
             .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct FinderLinkLabel: View {
+    let url: URL
+    @State private var isHovering = false
+
+    var body: some View {
+        Button {
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } label: {
+            Text(url.lastPathComponent)
+                .font(.system(size: 11, weight: .medium))
+                .lineLimit(1)
+                .underline(isHovering)
+                .foregroundStyle(.link)
+        }
+        .buttonStyle(.plain)
+        .help("Show in Finder")
+        .accessibilityLabel("Show \(url.lastPathComponent) in Finder")
+        .onHover { isHovering = $0 }
     }
 }
 
