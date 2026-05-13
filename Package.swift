@@ -13,7 +13,13 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "App",
-            dependencies: ["AppCore", "AppUI", "CleanDriveUI", "SystemMonitorUI"]
+            dependencies: [
+                "AppCore",
+                "AppUI",
+                "AppUninstallerUI",
+                "CleanDriveUI",
+                "SystemMonitorUI"
+            ]
         ),
         .target(
             name: "AppCore"
@@ -41,6 +47,14 @@ let package = Package(
             dependencies: ["AppCore", "AppUI", "CleanDriveCore"]
         ),
         .target(
+            name: "AppUninstallerCore",
+            dependencies: ["AppCore"]
+        ),
+        .target(
+            name: "AppUninstallerUI",
+            dependencies: ["AppCore", "AppUI", "AppUninstallerCore"]
+        ),
+        .target(
             name: "MacSensorBridge",
             linkerSettings: [
                 .linkedFramework("CoreFoundation"),
@@ -58,6 +72,10 @@ let package = Package(
         .testTarget(
             name: "CleanDriveCoreTests",
             dependencies: ["AppCore", "CleanDriveCore"]
+        ),
+        .testTarget(
+            name: "AppUninstallerCoreTests",
+            dependencies: ["AppCore", "AppUninstallerCore"]
         ),
         .testTarget(
             name: "SystemMonitorUITests",

@@ -47,6 +47,17 @@ and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
 - Per-category settings, reminder settings, and age thresholds for downloads
   and Xcode archives.
 
+### App Uninstaller
+
+- Installed-app list from `/Applications`, `/Applications/Utilities`, and
+  `~/Applications`.
+- Leftover scan for related files in `~/Library` and best-effort `/Library`
+  paths.
+- Conservative matching by bundle ID by default, with optional name matches.
+- Uninstall by moving the app and selected leftovers to Trash by default.
+- Optional permanent delete mode with confirmation.
+- Running apps are asked to quit before removal.
+
 ## Run
 
 ```bash
@@ -143,6 +154,7 @@ The app can still read older flat settings files.
 - Check permanent delete confirmation, but do not use it on real data.
 - Check the Full Disk Access callout for protected categories.
 - Check Clean Drive reminder delivery from a packaged app.
+- Check App Uninstaller with a throwaway `.app` bundle and test leftovers.
 - Check preferences persistence after restart.
 - Check warning notifications from a packaged app.
 - Check launch at login from a signed app.

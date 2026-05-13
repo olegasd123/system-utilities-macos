@@ -1,5 +1,6 @@
 import Foundation
 import Darwin
+import AppCore
 
 public struct CleanDriveCategoryID: RawRepresentable, Hashable, Codable, Sendable {
     public let rawValue: String
@@ -78,12 +79,8 @@ public struct CleanDriveScanResult: Equatable, Sendable {
     }
 }
 
-public struct CleanDriveItem: Identifiable, Equatable, Sendable {
-    public enum Kind: String, Codable, Sendable {
-        case file
-        case directory
-    }
-
+public struct CleanDriveItem: Identifiable, Equatable, Sendable, FileReclaimItem {
+    public typealias Kind = FileReclaimKind
     public var id: String { url.path }
     public var url: URL
     public var size: UInt64
@@ -93,36 +90,5 @@ public struct CleanDriveItem: Identifiable, Equatable, Sendable {
         self.url = url
         self.size = size
         self.kind = kind
-    }
-}
-
-public enum ReclaimMode: String, CaseIterable, Hashable, Sendable {
-    case moveToTrash
-    case hardDelete
-}
-
-public struct ReclaimReport: Equatable, Sendable {
-    public var bytesReclaimed: UInt64
-    public var reclaimedItemCount: Int
-    public var failures: [ReclaimFailure]
-
-    public init(
-        bytesReclaimed: UInt64 = 0,
-        reclaimedItemCount: Int = 0,
-        failures: [ReclaimFailure] = []
-    ) {
-        self.bytesReclaimed = bytesReclaimed
-        self.reclaimedItemCount = reclaimedItemCount
-        self.failures = failures
-    }
-}
-
-public struct ReclaimFailure: Equatable, Sendable {
-    public var path: String
-    public var reason: String
-
-    public init(path: String, reason: String) {
-        self.path = path
-        self.reason = reason
     }
 }
