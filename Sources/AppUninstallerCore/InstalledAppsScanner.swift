@@ -5,6 +5,7 @@ public struct InstalledAppsScanner: Sendable {
     private let searchRoots: [URL]
     private let ownBundleIdentifier: String?
     private let protectedBundleIdentifiers: Set<String>
+    private let scanOverride: (@Sendable () throws -> [InstalledApp])?
 
     public init(
         searchRoots: [URL] = InstalledAppsScanner.defaultSearchRoots(),
@@ -14,6 +15,14 @@ public struct InstalledAppsScanner: Sendable {
         self.searchRoots = searchRoots
         self.ownBundleIdentifier = ownBundleIdentifier
         self.protectedBundleIdentifiers = protectedBundleIdentifiers
+        scanOverride = nil
+    }
+
+    init(scan: @escaping @Sendable () throws -> [InstalledApp]) {
+        searchRoots = []
+        ownBundleIdentifier = nil
+        protectedBundleIdentifiers = []
+        scanOverride = scan
     }
 
     public static func defaultSearchRoots(
@@ -27,6 +36,10 @@ public struct InstalledAppsScanner: Sendable {
     }
 
     public func scan() throws -> [InstalledApp] {
+        if let scanOverride {
+            return try scanOverride()
+        }
+
         var apps: [InstalledApp] = []
         var seenPaths: Set<String> = []
 

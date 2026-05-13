@@ -42,7 +42,9 @@ private struct AppUninstallerView: View {
             VStack(alignment: .leading, spacing: 8) {
                 searchField
                 appList
-                detailPane
+                if showsLeftoverPane {
+                    detailPane
+                }
                 statusMessage
                 footer
             }
@@ -63,8 +65,13 @@ private struct AppUninstallerView: View {
             .textFieldStyle(.roundedBorder)
     }
 
+    private var showsLeftoverPane: Bool {
+        model.isScanningLeftovers || model.scanResult?.leftovers.isEmpty == false
+    }
+
+    @ViewBuilder
     private var appList: some View {
-        ScrollView {
+        let list = ScrollView {
             LazyVStack(spacing: 6) {
                 if model.isLoadingApps {
                     loadingRow("Scanning installed apps...")
@@ -78,7 +85,12 @@ private struct AppUninstallerView: View {
             }
             .padding(.vertical, 1)
         }
-        .frame(height: appListHeight)
+
+        if showsLeftoverPane {
+            list.frame(height: appListHeight)
+        } else {
+            list.frame(maxHeight: .infinity)
+        }
     }
 
     private func appRow(_ app: InstalledApp) -> some View {

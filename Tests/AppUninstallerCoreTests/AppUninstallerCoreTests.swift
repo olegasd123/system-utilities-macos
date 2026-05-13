@@ -1,5 +1,5 @@
 import AppCore
-import AppUninstallerCore
+@testable import AppUninstallerCore
 import XCTest
 
 final class AppUninstallerCoreTests: XCTestCase {
@@ -222,6 +222,52 @@ final class AppUninstallerCoreTests: XCTestCase {
         )
     }
 
+    @MainActor
+    func testRefreshingAppsClearsCurrentLeftoversDuringScan() async throws {
+        let appsURL = rootURL.appendingPathComponent("Applications", isDirectory: true)
+        let libraryURL = rootURL.appendingPathComponent("Library", isDirectory: true)
+        let supportURL = libraryURL.appendingPathComponent("Application Support", isDirectory: true)
+        try FileManager.default.createDirectory(at: appsURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: supportURL, withIntermediateDirectories: true)
+
+        let appURL = try makeApp(
+            in: appsURL,
+            name: "Demo",
+            bundleIdentifier: "com.example.Demo"
+        )
+        try writeFile(supportURL.appendingPathComponent("com.example.Demo"))
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.example.Demo",
+            name: "Demo",
+            bundleURL: appURL,
+            sourceLocation: appsURL.path,
+            isSystem: false
+        )
+        let gate = AppScanGate(app: app)
+        let model = AppUninstallerModel(
+            appScanner: InstalledAppsScanner(scan: gate.scan),
+            leftoverScanner: LeftoverScanner(homeDirectory: rootURL, userScanRoots: [supportURL])
+        )
+
+        await model.loadApps()
+        XCTAssertEqual(model.scanResult?.leftovers.count, 1)
+        XCTAssertFalse(model.selectedLeftoverIDs.isEmpty)
+
+        let refreshTask = Task {
+            await model.loadApps()
+        }
+        await gate.waitForBlockedRefresh()
+
+        XCTAssertTrue(model.isLoadingApps)
+        XCTAssertNil(model.scanResult)
+        XCTAssertTrue(model.selectedLeftoverIDs.isEmpty)
+
+        gate.finishRefresh()
+        await refreshTask.value
+        XCTAssertEqual(model.scanResult?.leftovers.count, 1)
+    }
+
     private func makeApp(
         in directory: URL,
         name: String,
@@ -253,5 +299,44 @@ final class AppUninstallerCoreTests: XCTestCase {
             withIntermediateDirectories: true
         )
         try Data(repeating: 1, count: size).write(to: url)
+    }
+}
+
+private final class AppScanGate: @unchecked Sendable {
+    private let app: InstalledApp
+    private let lock = NSLock()
+    private let blockedRefresh = DispatchSemaphore(value: 0)
+    private let releaseRefresh = DispatchSemaphore(value: 0)
+    private var callCount = 0
+
+    init(app: InstalledApp) {
+        self.app = app
+    }
+
+    func scan() throws -> [InstalledApp] {
+        lock.lock()
+        callCount += 1
+        let currentCall = callCount
+        lock.unlock()
+
+        if currentCall == 2 {
+            blockedRefresh.signal()
+            releaseRefresh.wait()
+        }
+
+        return [app]
+    }
+
+    func waitForBlockedRefresh() async {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                self.blockedRefresh.wait()
+                continuation.resume()
+            }
+        }
+    }
+
+    func finishRefresh() {
+        releaseRefresh.signal()
     }
 }

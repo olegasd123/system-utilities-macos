@@ -93,6 +93,8 @@ public final class AppUninstallerModel: ObservableObject {
         }
         isLoadingApps = true
         errorMessage = nil
+        scanResult = nil
+        selectedLeftoverIDs = []
         lastReclaimReport = nil
 
         do {
