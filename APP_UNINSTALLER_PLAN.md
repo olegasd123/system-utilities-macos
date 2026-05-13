@@ -27,10 +27,19 @@ apps, surface their leftovers across the filesystem, and uninstall them
 
 Mirror the Clean Drive split.
 
+- Prep refactor:
+  - Move generic reclaim and sizing primitives out of `CleanDriveCore`
+    before adding this feature. Good candidates:
+    - `ReclaimMode`, `ReclaimReport`, `ReclaimFailure`
+    - the generic item removal loop now in `CleanDriveReclaimer`
+    - allocated-size helpers now in `CleanDriveSizeReader`
+  - Prefer `AppCore` if the surface stays small. If it grows, add a
+    small shared target like `FileReclaimCore`.
+  - Keep Clean Drive category-specific types in `CleanDriveCore`.
 - `Sources/AppUninstallerCore/`
   - `InstalledAppsScanner.swift` — enumerate `.app` bundles.
   - `InstalledApp.swift` — model: bundle ID, name, version, icon URL,
-    bundle URL, source location, isSystem.
+    bundle URL, source location, executable name, isSystem.
   - `LeftoverScanner.swift` — given an `InstalledApp`, find related
     paths in `~/Library` and `/Library`.
   - `LeftoverCandidate.swift` — model: URL, size, kind, match
@@ -46,7 +55,7 @@ Mirror the Clean Drive split.
   - `AppUninstallerView.swift` — apps list + leftover detail pane.
   - `UninstallConfirmSheet.swift` — final confirmation, hard-delete
     toggle, failure list.
-- `Sources/AppUninstallerCoreTests/` — unit tests for scanner/matcher.
+- `Tests/AppUninstallerCoreTests/` — unit tests for scanner/matcher.
 
 Update `Package.swift` to add the two targets and the test target;
 add `AppUninstallerUI` to `App` deps. Update `AppComposer.swift` to
@@ -87,9 +96,18 @@ For each `*.app` bundle:
 - Capture the bundle's icon URL (Info.plist `CFBundleIconFile`, expanded
   to `Contents/Resources/<name>.icns`) so SwiftUI can render it via
   `NSWorkspace.shared.icon(forFile:)`.
-- Determine `isSystem`: codesign team identifier == Apple's, or path
-  starts with `/System/`. Hide system apps from the list (do not even
-  offer the Uninstall button).
+- Capture the executable name from `CFBundleExecutable`. It is useful
+  for matching helper files and for detecting running apps.
+- Determine `isSystem` conservatively:
+  - `true` when the path starts with `/System/`.
+  - `true` for a small protected bundle-id denylist if needed.
+  - **Do not** hide every Apple-signed app. Apple-signed apps in
+    `/Applications`, such as Xcode or GarageBand, can be valid
+    uninstall candidates.
+  - Always refuse to uninstall this app itself by comparing the bundle
+    ID with `Bundle.main.bundleIdentifier`.
+- Hide true system apps from the list (do not even offer the Uninstall
+  button).
 
 Sort the list alphabetically; the UI can filter by typed query.
 
@@ -154,18 +172,36 @@ immediate children and decide whether each name belongs to this app.
 Special case: `~/Library/Containers/<bundle id>` and
 `~/Library/Group Containers/<group id>`. The container directory is
 named after the bundle ID (rule 1). Group containers are trickier:
-they use a group ID like `XXXXXXXXXX.com.example.shared`. We can read
-the app's `Info.plist` `com.apple.security.application-groups`
-entitlement (via `codesign -d --entitlements -`) and look up exactly
-those group IDs, but for v1 keep it simple: scan group containers and
-match on bundle ID prefix only.
+they use a group ID like `XXXXXXXXXX.com.example.shared`.
+
+For v1, prefer exact app-group IDs from the app's entitlements. Read
+`com.apple.security.application-groups` from `codesign -d --entitlements -`
+or an equivalent structured API, then include only those exact group
+container directories. If entitlement reading is not available or fails,
+skip group containers and add a note. Do not use broad name-only group
+container guesses by default.
 
 ### Sizing
 
-Use the existing `CleanDriveSizeReader` (move to a shared helper if
-needed) to compute on-disk sizes for each candidate. This is the slow
-part; do it after match enumeration so we can show "Scanning sizes…"
-in the UI and stream results in.
+Use the shared size helper from the prep refactor to compute on-disk
+sizes for each candidate. This is the slow part; do it after match
+enumeration so we can show "Scanning sizes…" in the UI and stream
+results in.
+
+### Safety
+
+Add an App Uninstaller path safety gate before anything is shown as a
+deletable candidate and again before removal. It should:
+
+- Only allow the selected `.app` bundle and candidates under the known
+  scan roots.
+- Reject root paths such as `/`, `/System`, `/Library`, `~/Library`,
+  and the user's home directory.
+- Reject paths that are parents of known scan roots.
+- Do not follow symlinks. If a symlink itself is matched, trash only the
+  link, never its target.
+- Reject candidates whose standardized path escapes the scan root.
+- Keep this logic covered by unit tests.
 
 ### Output
 
@@ -204,9 +240,13 @@ Steps:
    the failure list using the same formatting Clean Drive already has.
 
 We deliberately reuse `ReclaimMode`, `ReclaimReport`, `ReclaimFailure`
-from `CleanDriveCore` rather than defining parallel types. If those
-types feel too Clean-Drive-specific, lift them to `AppCore` in a small
-prep refactor before this feature lands.
+from the shared reclaim helper rather than defining parallel types.
+
+Permission behavior is best-effort in v1. The app will not install or
+run a privileged helper, and it will not prompt for admin credentials.
+Paths under `/Library` may fail to delete; those failures become
+`ReclaimFailure` entries. The UI should explain that some items may
+need manual removal or Full Disk Access.
 
 ## UI Flow — `AppUninstallerView`
 
@@ -239,6 +279,8 @@ Empty / loading states:
 
 - **App is itself.** Refuse to uninstall System Monitor (compare
   bundle ID against our own).
+- **Apple-signed app in `/Applications`.** Do not treat this as system
+  by signature alone. Xcode and similar apps should be removable.
 - **App is currently running.** Confirm sheet must require the user
   to quit it; we send `terminate()` on confirm and wait briefly.
   Force-terminate is out of scope.
@@ -256,7 +298,8 @@ Empty / loading states:
   --cask <name>` to update Homebrew's records.") if we can detect it
   (the bundle's parent dir is `/Applications` but Homebrew records the
   install in `/opt/homebrew/Caskroom/<name>` or
-  `/usr/local/Caskroom/<name>` — check existence).
+  `/usr/local/Caskroom/<name>` — check existence). Keep this as a
+  note only; do not modify Homebrew metadata.
 
 ## Tests (`AppUninstallerCoreTests`)
 
@@ -265,6 +308,8 @@ Empty / loading states:
   confidence tier.
 - `InstalledAppsScanner` filters: malformed Info.plist, missing bundle
   ID, system app exclusion.
+- Path safety: rejects root paths, scan-root parents, escaped
+  standardized paths, and symlink targets.
 - `AppUninstaller` happy path with an injected `CleanDriveTrashing`
   (use `DirectoryTrash` pointed at a temp dir); assert files moved
   and report numbers correct.
@@ -277,7 +322,8 @@ Empty / loading states:
       `AppUninstallerCoreTests` targets; add `AppUninstallerUI` to `App`
       dependencies.
 - [ ] `RawAppSettings`: register `AppUninstallerSettings` with
-      `featureId = "app-uninstaller"`.
+      `featureId = "app-uninstaller"` and persist defaults from
+      `AppComposer` when missing.
 - [ ] `AppComposer.swift`: construct the model, settings, and feature;
       append to `features`.
 - [ ] `PopoverRouter`: nothing to change — feature ID routing already
@@ -308,10 +354,9 @@ Empty / loading states:
 - Does `RootPopoverView` build its tab bar from `composer.features`
   dynamically, or is the tab list hand-rolled? If hand-rolled, the
   wiring step needs an extra edit there.
-- Should we lift `ReclaimMode` / `ReclaimReport` into `AppCore` now
-  (small refactor) or duplicate them in `AppUninstallerCore` for v1
-  and consolidate later? Lean toward lifting now — it stays one
-  concept across features.
+- Should the shared reclaim/sizing helpers live in `AppCore`, or should
+  we add a small `FileReclaimCore` target? Lean toward `AppCore` unless
+  the shared surface grows during implementation.
 - Do we want any opt-in telemetry for "leftovers found per app" so we
   can tune match rules? Probably no — keep it local-only, consistent
   with the rest of the app.
