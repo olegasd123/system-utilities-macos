@@ -783,7 +783,7 @@ private struct FinderItemLinkLabel: View {
         } label: {
             Text(url.lastPathComponent)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.link)
+                .foregroundStyle(isHovering ? .blue : .primary)
                 .underline(isHovering)
                 .lineLimit(1)
         }

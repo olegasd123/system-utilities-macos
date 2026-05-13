@@ -429,7 +429,7 @@ private struct FinderLinkLabel: View {
                 .font(.system(size: 11, weight: .medium))
                 .lineLimit(1)
                 .underline(isHovering)
-                .foregroundStyle(.link)
+                .foregroundStyle(isHovering ? .blue : .primary)
         }
         .buttonStyle(.plain)
         .help("Show in Finder")
