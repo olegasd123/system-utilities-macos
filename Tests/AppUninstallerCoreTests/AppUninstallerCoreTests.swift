@@ -97,6 +97,32 @@ final class AppUninstallerCoreTests: XCTestCase {
         })
     }
 
+    func testAppBundleSizeIncludesNestedPackageContents() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Demo",
+            bundleIdentifier: "com.example.Demo"
+        )
+        let frameworkURL = appURL
+            .appendingPathComponent("Contents", isDirectory: true)
+            .appendingPathComponent("Frameworks", isDirectory: true)
+            .appendingPathComponent("Nested.framework", isDirectory: true)
+        try writeFile(frameworkURL.appendingPathComponent("Nested"), size: 20_000)
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.example.Demo",
+            name: "Demo",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(homeDirectory: rootURL, userScanRoots: [])
+
+        let result = try scanner.scan(app: app, settings: .defaultValue)
+
+        XCTAssertGreaterThanOrEqual(result.bundle.size, 21_024)
+    }
+
     func testGroupContainersRequireExactAppGroupID() throws {
         let appURL = try makeApp(
             in: rootURL,
@@ -220,11 +246,11 @@ final class AppUninstallerCoreTests: XCTestCase {
         return appURL
     }
 
-    private func writeFile(_ url: URL) throws {
+    private func writeFile(_ url: URL, size: Int = 1_024) throws {
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-        try Data(repeating: 1, count: 1_024).write(to: url)
+        try Data(repeating: 1, count: size).write(to: url)
     }
 }

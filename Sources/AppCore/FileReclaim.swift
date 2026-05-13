@@ -101,10 +101,12 @@ public struct ReclaimFailure: Equatable, Sendable {
 public enum FileSizeReader {
     public static let defaultResourceKeys: [URLResourceKey] = [
         .fileAllocatedSizeKey,
+        .fileSizeKey,
         .isDirectoryKey,
         .isPackageKey,
         .isRegularFileKey,
         .isSymbolicLinkKey,
+        .totalFileSizeKey,
         .totalFileAllocatedSizeKey
     ]
 
@@ -114,6 +116,15 @@ public enum FileSizeReader {
             .totalFileAllocatedSizeKey
         ])
         let size = values.totalFileAllocatedSize ?? values.fileAllocatedSize ?? 0
+        return UInt64(max(size, 0))
+    }
+
+    public static func logicalSize(of url: URL) throws -> UInt64 {
+        let values = try url.resourceValues(forKeys: [
+            .fileSizeKey,
+            .totalFileSizeKey
+        ])
+        let size = values.totalFileSize ?? values.fileSize ?? 0
         return UInt64(max(size, 0))
     }
 
@@ -137,6 +148,10 @@ public enum FileSizeReader {
 
     public static func recursiveAllocatedSize(of directory: URL) throws -> UInt64 {
         try allocatedSize(of: directory) + recursiveChildrenSize(of: directory)
+    }
+
+    public static func recursiveLogicalSize(of directory: URL) throws -> UInt64 {
+        try logicalSize(of: directory) + recursiveLogicalChildrenSize(of: directory)
     }
 
     private static func recursiveChildrenSize(of directory: URL) throws -> UInt64 {
@@ -163,6 +178,30 @@ public enum FileSizeReader {
                 } else {
                     total += try recursiveAllocatedSize(of: child)
                 }
+            }
+        }
+        return total
+    }
+
+    private static func recursiveLogicalChildrenSize(of directory: URL) throws -> UInt64 {
+        let children = try FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: defaultResourceKeys,
+            options: []
+        )
+
+        var total: UInt64 = 0
+        for child in children {
+            try Task.checkCancellation()
+            guard let kind = try itemKind(at: child) else {
+                continue
+            }
+
+            switch kind {
+            case .file:
+                total += try logicalSize(of: child)
+            case .directory:
+                total += try recursiveLogicalSize(of: child)
             }
         }
         return total

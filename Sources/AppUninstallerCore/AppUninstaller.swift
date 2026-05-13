@@ -26,7 +26,7 @@ public struct AppUninstaller: Sendable {
             scanRoots: scanRoots,
             homeDirectory: homeDirectory
         )
-        let bundleSize = (try? FileSizeReader.recursiveAllocatedSize(of: app.bundleURL)) ?? 0
+        let bundleSize = (try? FileSizeReader.recursiveLogicalSize(of: app.bundleURL)) ?? 0
         let bundle = LeftoverCandidate(
             url: app.bundleURL,
             size: bundleSize,
