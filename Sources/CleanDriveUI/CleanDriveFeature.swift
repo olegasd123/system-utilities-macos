@@ -746,18 +746,13 @@ private struct CleanDrivePreviewView: View {
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.url.lastPathComponent)
-                    .font(.system(size: 12, weight: .medium))
-                    .lineLimit(1)
+                FinderItemLinkLabel(url: item.url)
 
-                Button {
-                    openFolderInFinder(item.url.deletingLastPathComponent())
-                } label: {
-                    FinderPathLinkLabel(path: item.url.deletingLastPathComponent().path)
-                }
-                .buttonStyle(.plain)
-                .help("Open in Finder")
-                .accessibilityLabel("Open folder in Finder")
+                Text(item.url.deletingLastPathComponent().path)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
 
             Spacer(minLength: 8)
@@ -776,23 +771,26 @@ private struct CleanDrivePreviewView: View {
         }
     }
 
-    private func openFolderInFinder(_ url: URL) {
-        NSWorkspace.shared.open(url)
-    }
 }
 
-private struct FinderPathLinkLabel: View {
-    let path: String
+private struct FinderItemLinkLabel: View {
+    let url: URL
     @State private var isHovering = false
 
     var body: some View {
-        Text(path)
-            .font(.system(size: 10))
-            .foregroundStyle(isHovering ? .blue : .secondary)
-            .underline(isHovering)
-            .lineLimit(1)
-            .truncationMode(.middle)
-            .onHover { isHovering = $0 }
+        Button {
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } label: {
+            Text(url.lastPathComponent)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.link)
+                .underline(isHovering)
+                .lineLimit(1)
+        }
+        .buttonStyle(.plain)
+        .help("Show in Finder")
+        .accessibilityLabel("Show \(url.lastPathComponent) in Finder")
+        .onHover { isHovering = $0 }
     }
 }
 
