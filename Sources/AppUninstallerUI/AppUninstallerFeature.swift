@@ -265,12 +265,12 @@ private struct AppUninstallerView: View {
             .disabled(model.isLoadingApps || model.isScanningLeftovers || model.isUninstalling)
 
             Picker("", selection: $settingsModel.settings.defaultReclaimMode) {
-                Text("Trash").tag(ReclaimMode.moveToTrash)
+                Text("Move to Trash").tag(ReclaimMode.moveToTrash)
                 Text("Delete").tag(ReclaimMode.hardDelete)
             }
-            .pickerStyle(.segmented)
+            .pickerStyle(.radioGroup)
+            .horizontalRadioGroupLayout()
             .labelsHidden()
-            .frame(width: 132)
             .disabled(model.isUninstalling)
 
             Spacer()
