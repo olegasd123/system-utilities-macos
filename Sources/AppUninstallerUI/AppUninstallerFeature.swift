@@ -35,6 +35,7 @@ private struct AppUninstallerView: View {
     @ObservedObject var model: AppUninstallerModel
     @ObservedObject var settingsModel: SettingsModel<AppUninstallerSettings>
     @State private var showsConfirmation = false
+    @State private var isLeftoverListExpanded = false
     private let appListHeight: CGFloat = 220
 
     var body: some View {
@@ -57,6 +58,9 @@ private struct AppUninstallerView: View {
         }
         .task {
             await model.loadAppsIfNeeded()
+        }
+        .onChange(of: model.scanResult?.app.id) {
+            isLeftoverListExpanded = false
         }
     }
 
@@ -86,7 +90,7 @@ private struct AppUninstallerView: View {
             .padding(.vertical, 1)
         }
 
-        if showsLeftoverPane {
+        if showsLeftoverPane && isLeftoverListExpanded {
             list.frame(height: appListHeight)
         } else {
             list.frame(maxHeight: .infinity)
@@ -148,12 +152,59 @@ private struct AppUninstallerView: View {
     @ViewBuilder
     private var detailPane: some View {
         if let result = model.scanResult, !result.leftovers.isEmpty {
-            leftoverList(result)
-                .frame(maxHeight: .infinity, alignment: .top)
+            VStack(alignment: .leading, spacing: 7) {
+                leftoverHeader(result)
+
+                if isLeftoverListExpanded {
+                    leftoverList(result)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         } else {
             Color.clear
                 .frame(maxHeight: .infinity)
         }
+    }
+
+    private func leftoverHeader(_ result: LeftoverScanResult) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.16)) {
+                isLeftoverListExpanded.toggle()
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .rotationEffect(.degrees(isLeftoverListExpanded ? 90 : 0))
+                    .frame(width: 14, height: 14)
+
+                Text("Leftovers")
+                    .font(.system(size: 12, weight: .semibold))
+
+                Text("\(result.leftovers.count) found")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                Spacer(minLength: 8)
+
+                Text(AppUninstallerFormatter.bytes(leftoverBytes(result)))
+                    .font(.system(size: 10, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 7)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(.secondary.opacity(0.18), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .help(isLeftoverListExpanded ? "Hide leftovers" : "Show leftovers")
     }
 
     private func leftoverList(_ result: LeftoverScanResult) -> some View {
@@ -169,8 +220,13 @@ private struct AppUninstallerView: View {
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-            }.padding(.top, 20)
+            }
+            .padding(.top, 2)
         }
+    }
+
+    private func leftoverBytes(_ result: LeftoverScanResult) -> UInt64 {
+        result.leftovers.reduce(0) { $0 + $1.size }
     }
 
     private func group(
