@@ -66,7 +66,7 @@ private struct AppUninstallerView: View {
     }
 
     private var showsLeftoverPane: Bool {
-        model.isScanningLeftovers || model.scanResult?.leftovers.isEmpty == false
+        model.scanResult?.leftovers.isEmpty == false
     }
 
     @ViewBuilder
@@ -147,10 +147,7 @@ private struct AppUninstallerView: View {
 
     @ViewBuilder
     private var detailPane: some View {
-        if model.isScanningLeftovers {
-            loadingRow("Scanning leftovers...")
-                .frame(maxHeight: .infinity, alignment: .top)
-        } else if let result = model.scanResult, !result.leftovers.isEmpty {
+        if let result = model.scanResult, !result.leftovers.isEmpty {
             leftoverList(result)
                 .frame(maxHeight: .infinity, alignment: .top)
         } else {
