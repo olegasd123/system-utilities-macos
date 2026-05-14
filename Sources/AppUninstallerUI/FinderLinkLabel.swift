@@ -1,7 +1,9 @@
+import AppCore
 import AppKit
 import SwiftUI
 
 struct FinderLinkLabel: View {
+    @Environment(\.appLocalization) private var localization
     let url: URL
     @State private var isHovering = false
 
@@ -16,8 +18,8 @@ struct FinderLinkLabel: View {
                 .foregroundStyle(isHovering ? .blue : .primary)
         }
         .buttonStyle(.plain)
-        .help("Show in Finder")
-        .accessibilityLabel("Show \(url.lastPathComponent) in Finder")
+        .help(localization("Show in Finder"))
+        .accessibilityLabel(localization("Show %@ in Finder", url.lastPathComponent))
         .onHover { isHovering = $0 }
     }
 }

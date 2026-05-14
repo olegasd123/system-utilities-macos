@@ -20,7 +20,11 @@ final class WarningService {
         self.now = now
     }
 
-    func evaluate(snapshot: Snapshot, settings: SystemMonitorSettings) {
+    func evaluate(
+        snapshot: Snapshot,
+        settings: SystemMonitorSettings,
+        localization: AppLocalization = AppLocalization(selection: .english)
+    ) {
         if !settings.warningsEnabled {
             reset()
             return
@@ -33,14 +37,16 @@ final class WarningService {
             state: &cpu,
             enabled: thresholds.cpuEnabled,
             value: snapshot.cpu.usagePercent,
-            threshold: thresholds.cpuPercent
+            threshold: thresholds.cpuPercent,
+            localization: localization
         )
         check(
             module: .memory,
             state: &memory,
             enabled: thresholds.memoryEnabled,
             value: snapshot.memory.usedPercent,
-            threshold: thresholds.memoryPercent
+            threshold: thresholds.memoryPercent,
+            localization: localization
         )
 
         if let diskFreePercent = primaryDiskFreePercent(snapshot) {
@@ -49,7 +55,8 @@ final class WarningService {
                 state: &disk,
                 enabled: thresholds.diskEnabled,
                 value: diskFreePercent,
-                threshold: thresholds.diskFreePercent
+                threshold: thresholds.diskFreePercent,
+                localization: localization
             )
         } else {
             disk.active = false
@@ -61,7 +68,8 @@ final class WarningService {
                 state: &battery,
                 enabled: thresholds.batteryEnabled && isBatteryDropping(sample.state),
                 value: sample.chargePercent,
-                threshold: thresholds.batteryPercent
+                threshold: thresholds.batteryPercent,
+                localization: localization
             )
         } else {
             battery.active = false
@@ -73,7 +81,8 @@ final class WarningService {
                 state: &temperature,
                 enabled: thresholds.temperatureEnabled,
                 value: temperatureC,
-                threshold: thresholds.temperatureC
+                threshold: thresholds.temperatureC,
+                localization: localization
             )
         } else {
             temperature.active = false
@@ -85,7 +94,8 @@ final class WarningService {
         state: inout WarningModuleState,
         enabled: Bool,
         value: Double,
-        threshold: Double
+        threshold: Double,
+        localization: AppLocalization
     ) {
         guard enabled, value.isFinite, threshold.isFinite else {
             state.active = false
@@ -94,7 +104,12 @@ final class WarningService {
 
         if isWarningValue(module: module, value: value, threshold: threshold) {
             if !state.active, canNotify(state.lastNotifiedAt) {
-                sendNotification(module: module, value: value, threshold: threshold)
+                sendNotification(
+                    module: module,
+                    value: value,
+                    threshold: threshold,
+                    localization: localization
+                )
                 state.lastNotifiedAt = now()
             }
             state.active = true
@@ -160,8 +175,18 @@ final class WarningService {
         state == .discharging || state == .empty || state == .unknown
     }
 
-    private func sendNotification(module: WarningModule, value: Double, threshold: Double) {
-        let text = notificationText(module: module, value: value, threshold: threshold)
+    private func sendNotification(
+        module: WarningModule,
+        value: Double,
+        threshold: Double,
+        localization: AppLocalization
+    ) {
+        let text = notificationText(
+            module: module,
+            value: value,
+            threshold: threshold,
+            localization: localization
+        )
         notificationSender.send(
             WarningNotification(
                 identifier: "system-monitor-\(module.rawValue)-\(Int(now().timeIntervalSince1970))",
@@ -174,33 +199,54 @@ final class WarningService {
     private func notificationText(
         module: WarningModule,
         value: Double,
-        threshold: Double
+        threshold: Double,
+        localization: AppLocalization
     ) -> (title: String, body: String) {
         switch module {
         case .cpu:
             return (
-                "CPU warning",
-                "CPU load is \(Int(value.rounded()))%. Limit is \(Int(threshold.rounded()))%."
+                localization("CPU warning"),
+                localization(
+                    "CPU load is %d%%. Limit is %d%%.",
+                    Int(value.rounded()),
+                    Int(threshold.rounded())
+                )
             )
         case .memory:
             return (
-                "Memory warning",
-                "Memory use is \(Int(value.rounded()))%. Limit is \(Int(threshold.rounded()))%."
+                localization("Memory warning"),
+                localization(
+                    "Memory use is %d%%. Limit is %d%%.",
+                    Int(value.rounded()),
+                    Int(threshold.rounded())
+                )
             )
         case .disk:
             return (
-                "Disk warning",
-                "Free disk space is \(Int(value.rounded()))%. Limit is \(Int(threshold.rounded()))%."
+                localization("Disk warning"),
+                localization(
+                    "Free disk space is %d%%. Limit is %d%%.",
+                    Int(value.rounded()),
+                    Int(threshold.rounded())
+                )
             )
         case .battery:
             return (
-                "Battery warning",
-                "Battery charge is \(Int(value.rounded()))%. Limit is \(Int(threshold.rounded()))%."
+                localization("Battery warning"),
+                localization(
+                    "Battery charge is %d%%. Limit is %d%%.",
+                    Int(value.rounded()),
+                    Int(threshold.rounded())
+                )
             )
         case .temperature:
             return (
-                "Temperature warning",
-                "Temperature is \(Int(value.rounded())) C. Limit is \(Int(threshold.rounded())) C."
+                localization("Temperature warning"),
+                localization(
+                    "Temperature is %d C. Limit is %d C.",
+                    Int(value.rounded()),
+                    Int(threshold.rounded())
+                )
             )
         }
     }

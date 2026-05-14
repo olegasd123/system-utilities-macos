@@ -4,6 +4,7 @@ import AppUninstallerCore
 import SwiftUI
 
 struct AppUninstallerView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var model: AppUninstallerModel
     @ObservedObject var settingsModel: SettingsModel<AppUninstallerSettings>
     @State private var showsConfirmation = false
@@ -44,7 +45,7 @@ struct AppUninstallerView: View {
     }
 
     private var searchField: some View {
-        TextField("Search apps", text: $model.query)
+        TextField(localization("Search apps"), text: $model.query)
             .textFieldStyle(.roundedBorder)
     }
 
@@ -57,9 +58,9 @@ struct AppUninstallerView: View {
         let list = ScrollView {
             LazyVStack(spacing: 6) {
                 if model.isLoadingApps {
-                    AppUninstallerLoadingRow(text: "Scanning installed apps...")
+                    AppUninstallerLoadingRow(text: localization("Scanning installed apps..."))
                 } else if model.filteredApps.isEmpty {
-                    AppUninstallerEmptyRow(text: "No apps found.")
+                    AppUninstallerEmptyRow(text: localization("No apps found."))
                 } else {
                     ForEach(model.filteredApps) { app in
                         appRow(app)
@@ -154,12 +155,12 @@ struct AppUninstallerView: View {
                     .frame(width: 24, height: 24)
             }
             .buttonStyle(.borderless)
-            .help("Scan again")
+            .help(localization("Scan again"))
             .disabled(model.isLoadingApps || model.isScanningLeftovers || model.isUninstalling)
 
             Picker("", selection: $settingsModel.settings.defaultReclaimMode) {
-                Text("Move to Trash").tag(ReclaimMode.moveToTrash)
-                Text("Delete").tag(ReclaimMode.hardDelete)
+                Text(localization("Move to Trash")).tag(ReclaimMode.moveToTrash)
+                Text(localization("Delete")).tag(ReclaimMode.hardDelete)
             }
             .pickerStyle(.radioGroup)
             .horizontalRadioGroupLayout()
@@ -181,7 +182,7 @@ struct AppUninstallerView: View {
                         .controlSize(.small)
                         .frame(width: 16, height: 16)
                 } else {
-                    Text(settingsModel.settings.defaultReclaimMode == .hardDelete ? "Delete" : "Uninstall")
+                    Text(localization(settingsModel.settings.defaultReclaimMode == .hardDelete ? "Delete" : "Uninstall"))
                 }
             }
             .keyboardShortcut(.defaultAction)
@@ -191,8 +192,12 @@ struct AppUninstallerView: View {
 
     private func reportSummary(_ report: ReclaimReport) -> String {
         if report.failures.isEmpty {
-            return "Reclaimed \(AppUninstallerFormatter.bytes(report.bytesReclaimed))."
+            return localization("Reclaimed %@.", AppUninstallerFormatter.bytes(report.bytesReclaimed))
         }
-        return "Reclaimed \(AppUninstallerFormatter.bytes(report.bytesReclaimed)). \(report.failures.count) failed."
+        return localization(
+            "Reclaimed %@. %d failed.",
+            AppUninstallerFormatter.bytes(report.bytesReclaimed),
+            report.failures.count
+        )
     }
 }

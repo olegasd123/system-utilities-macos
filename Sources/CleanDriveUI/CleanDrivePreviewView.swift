@@ -1,7 +1,9 @@
+import AppCore
 import CleanDriveCore
 import SwiftUI
 
 struct CleanDrivePreviewView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var model: CleanDriveModel
     let categoryID: CleanDriveCategoryID
     let onBack: () -> Void
@@ -18,7 +20,7 @@ struct CleanDrivePreviewView: View {
                 previewSummary(for: category)
                 previewContent(for: category)
             } else {
-                emptyMessage("Category is not available.")
+                emptyMessage(localization("Category is not available."))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -35,10 +37,10 @@ struct CleanDrivePreviewView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Back")
-            .accessibilityLabel("Back")
+            .help(localization("Back"))
+            .accessibilityLabel(localization("Back"))
 
-            Text(category?.displayName ?? "Files")
+            Text(category.map { localizedCategoryName($0.displayName) } ?? localization("Files"))
                 .font(.system(size: 16, weight: .semibold))
                 .lineLimit(1)
 
@@ -53,7 +55,7 @@ struct CleanDrivePreviewView: View {
                 systemImage: category.symbolName
             )
 
-            Text("\(category.items.count) \(category.items.count == 1 ? "item" : "items")")
+            Text(itemCountText(category.items.count))
                 .foregroundStyle(.secondary)
 
             if category.isScanning {
@@ -69,13 +71,13 @@ struct CleanDrivePreviewView: View {
     @ViewBuilder
     private func previewContent(for category: CleanDriveCategorySnapshot) -> some View {
         if category.permissionDenied {
-            emptyMessage("Full Disk Access is needed.")
+            emptyMessage(localization("Full Disk Access is needed."))
         } else if let errorMessage = category.errorMessage {
             emptyMessage(errorMessage)
         } else if category.isScanning && category.items.isEmpty {
             loadingMessage
         } else if category.items.isEmpty {
-            emptyMessage("No files found.")
+            emptyMessage(localization("No files found."))
         } else {
             fileList(for: category)
         }
@@ -85,7 +87,7 @@ struct CleanDrivePreviewView: View {
         VStack(spacing: 8) {
             ProgressView()
                 .controlSize(.small)
-            Text("Loading files...")
+            Text(localization("Loading files..."))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         }
@@ -111,7 +113,7 @@ struct CleanDrivePreviewView: View {
                 }
 
                 if category.items.count > visibleItems.count {
-                    Text("Showing largest \(visibleItems.count) files.")
+                    Text(localization("Showing largest %d files.", visibleItems.count))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -154,5 +156,27 @@ struct CleanDrivePreviewView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(.secondary.opacity(0.18), lineWidth: 1)
         }
+    }
+
+    private func itemCountText(_ count: Int) -> String {
+        count == 1 ? localization("%d item", count) : localization("%d items", count)
+    }
+
+    private func localizedCategoryName(_ name: String) -> String {
+        if let days = olderThanDays(in: name, prefix: "Downloads (older than ") {
+            return localization("Downloads (older than %d days)", days)
+        }
+        if let days = olderThanDays(in: name, prefix: "Xcode archives (older than ") {
+            return localization("Xcode archives (older than %d days)", days)
+        }
+        return localization(name)
+    }
+
+    private func olderThanDays(in name: String, prefix: String) -> Int? {
+        guard name.hasPrefix(prefix), name.hasSuffix(" days)") else {
+            return nil
+        }
+        let value = name.dropFirst(prefix.count).dropLast(" days)".count)
+        return Int(value)
     }
 }

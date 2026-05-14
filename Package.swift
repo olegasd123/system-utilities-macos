@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "SystemUtilitiesMacOS",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14)
     ],
@@ -22,10 +23,14 @@ let package = Package(
             ]
         ),
         .target(
-            name: "AppCore"
+            name: "AppCore",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .target(
-            name: "AppUI"
+            name: "AppUI",
+            dependencies: ["AppCore"]
         ),
         .target(
             name: "SystemMonitorCore",

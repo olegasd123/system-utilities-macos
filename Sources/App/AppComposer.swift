@@ -69,7 +69,10 @@ final class AppComposer {
             }
         )
 
-        let monitorModel = SystemMonitorModel(settings: monitorSettings)
+        let monitorModel = SystemMonitorModel(
+            settings: monitorSettings,
+            generalSettings: general
+        )
         let monitorFeature = SystemMonitorFeature(
             settings: monitorSettings,
             general: general,

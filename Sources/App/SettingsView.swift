@@ -3,6 +3,7 @@ import AppUI
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
     let features: [any AppFeature]
@@ -19,6 +20,7 @@ struct SettingsView: View {
 
                 if focusedFeatureId == nil {
                     startupSection
+                    languageSection
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -34,21 +36,36 @@ struct SettingsView: View {
 
     private var startupSection: some View {
         SettingsSection("Startup") {
-            Toggle("Open when Mac starts", isOn: launchAtLoginBinding)
+            Toggle(localization("Open when Mac starts"), isOn: launchAtLoginBinding)
                 .disabled(!launchAtLoginModel.status.canChange)
 
             if let message = launchAtLoginModel.status.message {
-                Text(message)
+                Text(localization(message))
                     .font(.system(size: 12))
                     .foregroundStyle(launchAtLoginMessageColor)
             }
 
             if launchAtLoginModel.status.needsApproval {
-                Button("Open Login Items") {
+                Button(localization("Open Login Items")) {
                     launchAtLoginModel.openLoginItemsSettings()
                 }
                 .controlSize(.small)
             }
+        }
+    }
+
+    private var languageSection: some View {
+        SettingsSection("Language") {
+            Picker(
+                localization("Language"),
+                selection: $generalSettings.settings.language
+            ) {
+                ForEach(AppLanguage.allCases) { language in
+                    Text(localization(language.displayNameKey)).tag(language)
+                }
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
         }
     }
 

@@ -17,7 +17,11 @@ final class AppSettingsStoreTests: XCTestCase {
         let bundleId = uniqueBundleId()
         let store = AppSettingsStore(bundleId: bundleId)
         var raw = RawAppSettings(
-            general: GeneralSettings(temperatureUnit: .fahrenheit, launchAtLogin: false),
+            general: GeneralSettings(
+                temperatureUnit: .fahrenheit,
+                launchAtLogin: false,
+                language: .russian
+            ),
             features: [:]
         )
         var monitor = SystemMonitorSettings.defaultValue

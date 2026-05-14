@@ -5,6 +5,7 @@ import CleanDriveCore
 import SwiftUI
 
 struct CleanDriveSettingsView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var settingsModel: SettingsModel<CleanDriveSettings>
     @ObservedObject var model: CleanDriveModel
 
@@ -31,9 +32,9 @@ struct CleanDriveSettingsView: View {
             ForEach(model.categories) { category in
                 Toggle(isOn: categoryEnabledBinding(for: category)) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(category.displayName)
+                        Text(localizedCategoryName(category.displayName))
                         if category.requiresFullDiskAccess {
-                            Text("Full Disk Access may be needed")
+                            Text(localization("Full Disk Access may be needed"))
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
                         }
@@ -45,12 +46,12 @@ struct CleanDriveSettingsView: View {
 
     private var customFoldersSection: some View {
         SettingsSection("Custom folders") {
-            Text("Clean folder contents. The folders stay.")
+            Text(localization("Clean folder contents. The folders stay."))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
 
             if settingsModel.settings.customFolders.isEmpty {
-                Text("No custom folders.")
+                Text(localization("No custom folders."))
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             } else {
@@ -64,7 +65,7 @@ struct CleanDriveSettingsView: View {
             Button {
                 addCustomFolder()
             } label: {
-                Label("Add Folder...", systemImage: "plus")
+                Label(localization("Add Folder..."), systemImage: "plus")
             }
             .controlSize(.small)
         }
@@ -99,15 +100,15 @@ struct CleanDriveSettingsView: View {
                     .frame(width: 20, height: 20)
             }
             .buttonStyle(.plain)
-            .help("Remove folder")
-            .accessibilityLabel("Remove folder")
+            .help(localization("Remove folder"))
+            .accessibilityLabel(localization("Remove folder"))
         }
     }
 
     private var remindersSection: some View {
         SettingsSection("Clean Drive reminders") {
             Toggle(
-                "Tell me when cleanup is ready",
+                localization("Tell me when cleanup is ready"),
                 isOn: $settingsModel.settings.reminders.enabled
             )
             .onChange(of: settingsModel.settings.reminders.enabled) { _, enabled in
@@ -119,7 +120,7 @@ struct CleanDriveSettingsView: View {
             if settingsModel.settings.reminders.enabled {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text("Threshold")
+                        Text(localization("Threshold"))
                         Slider(value: thresholdGBBinding, in: 1...20, step: 1)
                         Text("\(Int(thresholdGBBinding.wrappedValue)) GB")
                             .monospacedDigit()
@@ -127,7 +128,10 @@ struct CleanDriveSettingsView: View {
                     }
 
                     Stepper(
-                        "Minimum gap: \(settingsModel.settings.reminders.minHoursBetweenReminders) h",
+                        localization(
+                            "Minimum gap: %d h",
+                            settingsModel.settings.reminders.minHoursBetweenReminders
+                        ),
                         value: $settingsModel.settings.reminders.minHoursBetweenReminders,
                         in: 1...168
                     )
@@ -140,20 +144,20 @@ struct CleanDriveSettingsView: View {
     private var reclaimSafetySection: some View {
         SettingsSection("Reclaim safety") {
             Picker(
-                "Clean up mode",
+                localization("Clean up mode"),
                 selection: $settingsModel.settings.reclaim.permanentlyDelete
             ) {
-                Text("Move to Trash").tag(false)
-                Text("Permanently delete").tag(true)
+                Text(localization("Move to Trash")).tag(false)
+                Text(localization("Permanently delete")).tag(true)
             }
             .pickerStyle(.radioGroup)
 
             if settingsModel.settings.reclaim.permanentlyDelete {
-                Text("Files are removed right away. This cannot be undone.")
+                Text(localization("Files are removed right away. This cannot be undone."))
                     .font(.system(size: 12))
                     .foregroundStyle(.orange)
             } else {
-                Text("Files go to Trash. You can restore them later.")
+                Text(localization("Files go to Trash. You can restore them later."))
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
@@ -163,13 +167,19 @@ struct CleanDriveSettingsView: View {
     private var advancedSection: some View {
         SettingsSection("Advanced") {
             Stepper(
-                "Downloads older than \(settingsModel.settings.reclaim.downloadsOlderThanDays) days",
+                localization(
+                    "Downloads older than %d days",
+                    settingsModel.settings.reclaim.downloadsOlderThanDays
+                ),
                 value: $settingsModel.settings.reclaim.downloadsOlderThanDays,
                 in: 1...365
             )
 
             Stepper(
-                "Xcode archives older than \(settingsModel.settings.reclaim.xcodeArchivesOlderThanDays) days",
+                localization(
+                    "Xcode archives older than %d days",
+                    settingsModel.settings.reclaim.xcodeArchivesOlderThanDays
+                ),
                 value: $settingsModel.settings.reclaim.xcodeArchivesOlderThanDays,
                 in: 1...365
             )
@@ -182,8 +192,8 @@ struct CleanDriveSettingsView: View {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
         panel.canCreateDirectories = false
-        panel.prompt = "Add"
-        panel.message = "Choose folders to clean."
+        panel.prompt = localization("Add")
+        panel.message = localization("Choose folders to clean.")
 
         guard panel.runModal() == .OK else {
             return
@@ -247,4 +257,22 @@ struct CleanDriveSettingsView: View {
     }
 
     private static let bytesPerGB = Double(1_024 * 1_024 * 1_024)
+
+    private func localizedCategoryName(_ name: String) -> String {
+        if let days = olderThanDays(in: name, prefix: "Downloads (older than ") {
+            return localization("Downloads (older than %d days)", days)
+        }
+        if let days = olderThanDays(in: name, prefix: "Xcode archives (older than ") {
+            return localization("Xcode archives (older than %d days)", days)
+        }
+        return localization(name)
+    }
+
+    private func olderThanDays(in name: String, prefix: String) -> Int? {
+        guard name.hasPrefix(prefix), name.hasSuffix(" days)") else {
+            return nil
+        }
+        let value = name.dropFirst(prefix.count).dropLast(" days)".count)
+        return Int(value)
+    }
 }

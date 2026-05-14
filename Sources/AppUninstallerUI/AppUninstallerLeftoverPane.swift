@@ -1,7 +1,9 @@
+import AppCore
 import AppUninstallerCore
 import SwiftUI
 
 struct AppUninstallerLeftoverPane: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var model: AppUninstallerModel
     @Binding var isExpanded: Bool
 
@@ -29,7 +31,7 @@ struct AppUninstallerLeftoverPane: View {
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .frame(width: 14, height: 14)
 
-                Text("Leftovers")
+                Text(localization("Leftovers"))
                     .font(.system(size: 12, weight: .semibold))
 
                 if showsScanProgress {
@@ -62,19 +64,19 @@ struct AppUninstallerLeftoverPane: View {
             }
         }
         .buttonStyle(.plain)
-        .help(isExpanded ? "Hide leftovers" : "Show leftovers")
+        .help(localization(isExpanded ? "Hide leftovers" : "Show leftovers"))
     }
 
     @ViewBuilder
     private var content: some View {
         if let result = model.scanResult {
             if result.leftovers.isEmpty {
-                AppUninstallerEmptyRow(text: "No leftovers found.")
+                AppUninstallerEmptyRow(text: localization("No leftovers found."))
             } else {
                 leftoverList(result)
             }
         } else {
-            AppUninstallerLoadingRow(text: "Scanning leftovers...")
+            AppUninstallerLoadingRow(text: localization("Scanning leftovers..."))
         }
     }
 
@@ -84,21 +86,21 @@ struct AppUninstallerLeftoverPane: View {
 
     private func headerSubtitle(_ result: LeftoverScanResult?) -> String {
         if showsScanProgress {
-            return "Scanning"
+            return localization("Scanning")
         }
         guard let result else {
-            return "Not scanned"
+            return localization("Not scanned")
         }
-        return "\(result.leftovers.count) found"
+        return localization("%d found", result.leftovers.count)
     }
 
     private func leftoverList(_ result: LeftoverScanResult) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 7) {
-                candidateGroup("Exact match", candidates: group(.exactBundleID, in: result))
-                candidateGroup("Related", candidates: group(.bundleIDPrefix, in: result))
-                candidateGroup("Possible", candidates: group(.nameHeuristic, in: result))
-                candidateGroup("User folder", candidates: group(.userHome, in: result))
+                candidateGroup(localization("Exact match"), candidates: group(.exactBundleID, in: result))
+                candidateGroup(localization("Related"), candidates: group(.bundleIDPrefix, in: result))
+                candidateGroup(localization("Possible"), candidates: group(.nameHeuristic, in: result))
+                candidateGroup(localization("User folder"), candidates: group(.userHome, in: result))
 
                 ForEach(result.notes, id: \.self) { note in
                     Text(note)

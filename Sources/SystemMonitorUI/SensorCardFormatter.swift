@@ -4,10 +4,11 @@ import SystemMonitorCore
 enum SensorCardFormatter {
     static func subtitle(
         temperatures: [TemperatureSample],
-        temperatureUnit: TemperatureUnit
+        temperatureUnit: TemperatureUnit,
+        localization: AppLocalization = AppLocalization(selection: .english)
     ) -> String {
         guard !temperatures.isEmpty else {
-            return "Waiting for detailed sensors"
+            return localization("Waiting for detailed sensors")
         }
 
         let preferredTemperatures = preferredLabels.compactMap { label in
@@ -18,7 +19,9 @@ enum SensorCardFormatter {
             : preferredTemperatures
 
         return visibleTemperatures
-            .map { "\($0.label) \(SystemFormatters.temperature($0.temperatureC, unit: temperatureUnit))" }
+            .map {
+                "\(localization($0.label)) \(SystemFormatters.temperature($0.temperatureC, unit: temperatureUnit))"
+            }
             .joined(separator: "\n")
     }
 

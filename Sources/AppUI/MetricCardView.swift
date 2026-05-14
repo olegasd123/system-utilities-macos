@@ -1,6 +1,8 @@
+import AppCore
 import SwiftUI
 
 public struct MetricCardView: View {
+    @Environment(\.appLocalization) private var localization
     public let symbol: String
     public let label: String
     public let value: String
@@ -41,7 +43,7 @@ public struct MetricCardView: View {
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(accent)
 
-                Text(label)
+                Text(localization(label))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
 

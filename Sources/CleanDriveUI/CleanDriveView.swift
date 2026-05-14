@@ -5,6 +5,7 @@ import CleanDriveCore
 import SwiftUI
 
 struct CleanDriveView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var model: CleanDriveModel
     @ObservedObject var settingsModel: SettingsModel<CleanDriveSettings>
     @State private var previewCategoryID: CleanDriveCategoryID?
@@ -50,11 +51,11 @@ struct CleanDriveView: View {
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 16) {
-                Text("Permanently delete selected items?")
+                Text(localization("Permanently delete selected items?"))
                     .font(.system(size: 16, weight: .semibold))
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text("This cannot be undone. \(selectedCategoryText)")
+                Text(localization("This cannot be undone. %@", selectedCategoryText))
                     .font(.system(size: 14))
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -63,7 +64,7 @@ struct CleanDriveView: View {
                     Button(role: .destructive) {
                         confirmHardDelete()
                     } label: {
-                        Text("Delete Permanently")
+                        Text(localization("Delete Permanently"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity)
@@ -75,7 +76,7 @@ struct CleanDriveView: View {
                     Button(role: .cancel) {
                         showsHardDeleteConfirmation = false
                     } label: {
-                        Text("Cancel")
+                        Text(localization("Cancel"))
                             .font(.system(size: 14, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 11)
@@ -113,7 +114,7 @@ struct CleanDriveView: View {
     }
 
     private var summaryStatusText: String {
-        model.isScanning ? "Collecting cleanup data" : "Ready for cleanup"
+        model.isScanning ? localization("Collecting cleanup data") : localization("Ready for cleanup")
     }
 
     private var categoryList: some View {
@@ -146,7 +147,7 @@ struct CleanDriveView: View {
                 .frame(width: 22)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(category.displayName)
+                Text(localizedCategoryName(category.displayName))
                     .font(.system(size: 13, weight: .medium))
                     .lineLimit(1)
 
@@ -182,7 +183,7 @@ struct CleanDriveView: View {
             ProgressView()
                 .controlSize(.small)
         } else if category.permissionDenied {
-            Button("Grant Access") {
+            Button(localization("Grant Access")) {
                 openFullDiskAccess()
             }
             .controlSize(.small)
@@ -211,8 +212,8 @@ struct CleanDriveView: View {
         }
         .controlSize(.small)
         .buttonStyle(.plain)
-        .help("Show files")
-        .accessibilityLabel("Show files")
+        .help(localization("Show files"))
+        .accessibilityLabel(localization("Show files"))
     }
 
     @ViewBuilder
@@ -227,7 +228,7 @@ struct CleanDriveView: View {
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         } else if model.totalBytes == 0, !model.isScanning {
-            Text("Nothing to clean.")
+            Text(localization("Nothing to clean."))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         }
@@ -244,12 +245,12 @@ struct CleanDriveView: View {
                     .frame(width: 24, height: 24)
             }
             .buttonStyle(.borderless)
-            .help("Scan again")
+            .help(localization("Scan again"))
             .disabled(model.isScanning || model.isReclaiming)
 
             Picker("", selection: $settingsModel.settings.reclaim.permanentlyDelete) {
-                Text("Move to Trash").tag(false)
-                Text("Delete").tag(true)
+                Text(localization("Move to Trash")).tag(false)
+                Text(localization("Delete")).tag(true)
             }
             .pickerStyle(.radioGroup)
             .horizontalRadioGroupLayout()
@@ -272,7 +273,7 @@ struct CleanDriveView: View {
                         .controlSize(.small)
                         .frame(width: 16, height: 16)
                 } else {
-                    Text(settingsModel.settings.reclaim.permanentlyDelete ? "Delete" : "Clean Up")
+                    Text(localization(settingsModel.settings.reclaim.permanentlyDelete ? "Delete" : "Clean Up"))
                 }
             }
             .keyboardShortcut(.defaultAction)
@@ -285,7 +286,7 @@ struct CleanDriveView: View {
         guard !names.isEmpty else {
             return ""
         }
-        return "Selected categories: \(names.joined(separator: ", "))."
+        return localization("Selected categories: %@.", names.map(localizedCategoryName).joined(separator: ", "))
     }
 
     private func confirmHardDelete() {
@@ -301,19 +302,21 @@ struct CleanDriveView: View {
 
     private func rowSubtitle(for category: CleanDriveCategorySnapshot) -> String {
         if category.permissionDenied {
-            return "Full Disk Access needed"
+            return localization("Full Disk Access needed")
         }
         if category.isScanning {
-            return "Scanning"
+            return localization("Scanning")
         }
         if category.isReclaiming {
-            return "Cleaning"
+            return localization("Cleaning")
         }
         if category.items.isEmpty {
-            return "No items found"
+            return localization("No items found")
         }
         let count = category.items.count
-        return "\(count) \(count == 1 ? "item" : "items") found"
+        return count == 1
+            ? localization("%d item found", count)
+            : localization("%d items found", count)
     }
 
     private func rowAccent(for category: CleanDriveCategorySnapshot) -> Color {
@@ -328,9 +331,31 @@ struct CleanDriveView: View {
 
     private func cleanupSummary(_ report: ReclaimReport) -> String {
         if report.failures.isEmpty {
-            return "Reclaimed \(CleanDriveFormatter.bytes(report.bytesReclaimed))."
+            return localization("Reclaimed %@.", CleanDriveFormatter.bytes(report.bytesReclaimed))
         }
-        return "Reclaimed \(CleanDriveFormatter.bytes(report.bytesReclaimed)). \(report.failures.count) failed."
+        return localization(
+            "Reclaimed %@. %d failed.",
+            CleanDriveFormatter.bytes(report.bytesReclaimed),
+            report.failures.count
+        )
+    }
+
+    private func localizedCategoryName(_ name: String) -> String {
+        if let days = olderThanDays(in: name, prefix: "Downloads (older than ") {
+            return localization("Downloads (older than %d days)", days)
+        }
+        if let days = olderThanDays(in: name, prefix: "Xcode archives (older than ") {
+            return localization("Xcode archives (older than %d days)", days)
+        }
+        return localization(name)
+    }
+
+    private func olderThanDays(in name: String, prefix: String) -> Int? {
+        guard name.hasPrefix(prefix), name.hasSuffix(" days)") else {
+            return nil
+        }
+        let value = name.dropFirst(prefix.count).dropLast(" days)".count)
+        return Int(value)
     }
 
     private func openFullDiskAccess() {

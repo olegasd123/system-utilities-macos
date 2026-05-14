@@ -3,6 +3,7 @@ import AppUninstallerCore
 import SwiftUI
 
 struct AppUninstallerConfirmationOverlay: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject var model: AppUninstallerModel
     @ObservedObject var settingsModel: SettingsModel<AppUninstallerSettings>
     @Binding var isPresented: Bool
@@ -34,7 +35,7 @@ struct AppUninstallerConfirmationOverlay: View {
                     .buttonStyle(.plain)
                     .background(confirmButtonBackground, in: RoundedRectangle(cornerRadius: 8))
 
-                    Button("Cancel") {
+                    Button(localization("Cancel")) {
                         isPresented = false
                     }
                     .keyboardShortcut(.cancelAction)
@@ -58,22 +59,26 @@ struct AppUninstallerConfirmationOverlay: View {
 
     private var confirmationTitle: String {
         settingsModel.settings.defaultReclaimMode == .hardDelete
-            ? "Permanently delete app?"
-            : "Uninstall app?"
+            ? localization("Permanently delete app?")
+            : localization("Uninstall app?")
     }
 
     private var confirmationMessage: String {
         let count = 1 + model.selectedLeftovers.count
         let mode = settingsModel.settings.defaultReclaimMode == .hardDelete
-            ? "deleted right away"
-            : "moved to Trash"
-        return "\(count) items will be \(mode). Running app will be asked to quit."
+            ? localization("deleted right away")
+            : localization("moved to Trash")
+        return localization(
+            "%d items will be %@. Running app will be asked to quit.",
+            count,
+            mode
+        )
     }
 
     private var confirmationButtonTitle: String {
         settingsModel.settings.defaultReclaimMode == .hardDelete
-            ? "Delete Permanently"
-            : "Move to Trash"
+            ? localization("Delete Permanently")
+            : localization("Move to Trash")
     }
 
     private var confirmButtonBackground: some ShapeStyle {

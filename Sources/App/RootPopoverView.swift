@@ -30,6 +30,12 @@ struct RootPopoverView: View {
             width: PopoverLayout.contentSize.width,
             height: PopoverLayout.contentSize.height
         )
+        .environment(\.appLocalization, localization)
+        .environment(\.locale, localization.locale)
+    }
+
+    private var localization: AppLocalization {
+        AppLocalization(selection: generalSettings.settings.language)
     }
 
     @ViewBuilder
@@ -53,7 +59,7 @@ struct RootPopoverView: View {
             Spacer()
 
             if let feature = features.first(where: { $0.id == activeId }) {
-                Text(feature.displayName)
+                Text(localization(feature.displayName))
                     .font(.system(size: 14, weight: .semibold))
             }
 
@@ -68,7 +74,7 @@ struct RootPopoverView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Settings")
+            .help(localization("Settings"))
         }
         .frame(height: PopoverLayout.titleHeight)
     }
@@ -84,8 +90,8 @@ struct RootPopoverView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Back")
-            .accessibilityLabel("Back")
+            .help(localization("Back"))
+            .accessibilityLabel(localization("Back"))
 
             Spacer()
 
@@ -104,9 +110,9 @@ struct RootPopoverView: View {
             let featureId,
             let feature = features.first(where: { $0.id == featureId })
         else {
-            return "Preferences"
+            return localization("Preferences")
         }
-        return "\(feature.displayName) Settings"
+        return localization("%@ Settings", localization(feature.displayName))
     }
 
     private func featureTabs(activeId: String) -> some View {
@@ -122,7 +128,7 @@ struct RootPopoverView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help(feature.displayName)
+                .help(localization(feature.displayName))
             }
         }
     }
