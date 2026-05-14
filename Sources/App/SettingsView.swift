@@ -12,15 +12,15 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                if focusedFeatureId == nil {
+                    languageSection
+                    startupSection
+                }
+
                 ForEach(visibleFeatures, id: \.id) { feature in
                     if let section = feature.makeSettingsSection() {
                         section
                     }
-                }
-
-                if focusedFeatureId == nil {
-                    startupSection
-                    languageSection
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
