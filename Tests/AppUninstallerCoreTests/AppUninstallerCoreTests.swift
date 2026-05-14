@@ -319,12 +319,54 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertTrue(optInResult.leftovers.allSatisfy { !$0.isSelectedByDefault })
     }
 
+    func testUserHomeLeftoversMatchNormalizedAppNamePatterns() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Demo App",
+            bundleIdentifier: "com.example.demo-app"
+        )
+        try FileManager.default.createDirectory(
+            at: rootURL.appendingPathComponent(".demoapp", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        try writeFile(rootURL.appendingPathComponent(".demoapp.json"))
+        try writeFile(rootURL.appendingPathComponent(".demoapp.settings.json"))
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.example.demo-app",
+            name: "Demo App",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(homeDirectory: rootURL)
+
+        let defaultResult = try scanner.scan(app: app, settings: .defaultValue)
+        XCTAssertTrue(defaultResult.leftovers.isEmpty)
+
+        let optInResult = try scanner.scan(
+            app: app,
+            settings: AppUninstallerSettings(
+                includeNameHeuristicMatches: false,
+                includeSystemLibraryPaths: false,
+                includeUserHomePaths: true,
+                defaultReclaimMode: .moveToTrash
+            )
+        )
+
+        XCTAssertEqual(optInResult.leftovers.map(\.url.lastPathComponent), [
+            ".demoapp",
+            ".demoapp.json"
+        ])
+        XCTAssertTrue(optInResult.leftovers.allSatisfy { $0.confidence == .userHome })
+        XCTAssertTrue(optInResult.leftovers.allSatisfy { !$0.isSelectedByDefault })
+    }
+
     func testKnownUserHomeAliasesMatchGivenApps() throws {
         let apps: [(name: String, bundleIdentifier: String, leftoverName: String)] = [
             ("Docker", "com.docker.docker", ".docker"),
             ("Claude", "com.anthropic.claudefordesktop", ".claude.json"),
             ("Claude", "com.anthropic.claudefordesktop", ".claude"),
-            ("Apache JMeter", "org.apache.jmeter", "jMeter"),
             ("Epic Games Launcher", "com.epicgames.EpicGamesLauncher", "UnrealEngine"),
             ("Parallels Desktop", "com.parallels.desktop.console", "Parallels")
         ]

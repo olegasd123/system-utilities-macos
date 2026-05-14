@@ -322,6 +322,14 @@ public struct LeftoverScanner: Sendable {
 
     private func appLeftoverAliases(for app: InstalledApp) -> AppLeftoverAliases {
         var aliases = AppLeftoverAliases()
+        let normalizedAppName = normalizeName(app.name)
+        if !normalizedAppName.isEmpty {
+            aliases.userHomeNames += [
+                ".\(normalizedAppName)",
+                ".\(normalizedAppName).json"
+            ]
+        }
+
         switch app.bundleIdentifier {
         case "com.docker.docker":
             aliases.bundleIdentifiers.append("com.electron.dockerdesktop")
@@ -334,16 +342,9 @@ public struct LeftoverScanner: Sendable {
             aliases.userHomeNames.append(".docker")
         }
         if app.matchesAppAlias("lmstudio") {
-            aliases.userHomeNames += [".lmstudio", ".lmstudio-home-pointer"]
+            aliases.userHomeNames += [".lmstudio-home-pointer"]
         }
-        if app.matchesAppAlias("claude")
-            || app.bundleIdentifier.localizedCaseInsensitiveContains("anthropic") {
-            aliases.userHomeNames += [".claude", ".claude.json"]
-        }
-        if app.matchesAppAlias("jmeter") || app.matchesAppAlias("apachejmeter") {
-            aliases.userHomeNames.append("jMeter")
-        }
-        if app.matchesAppAlias("parallels") || app.matchesAppAlias("parallelsdesktop") {
+        if app.bundleIdentifier == "com.parallels.desktop.console" {
             aliases.userHomeNames.append("Parallels")
         }
         if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher"
