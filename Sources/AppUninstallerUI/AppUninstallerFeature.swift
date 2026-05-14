@@ -35,7 +35,7 @@ private struct AppUninstallerView: View {
     @ObservedObject var model: AppUninstallerModel
     @ObservedObject var settingsModel: SettingsModel<AppUninstallerSettings>
     @State private var showsConfirmation = false
-    private let appListHeight: CGFloat = 220
+    private let appListHeight: CGFloat = 280
 
     var body: some View {
         ZStack {
@@ -169,7 +169,7 @@ private struct AppUninstallerView: View {
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-            }
+            }.padding(.top, 20)
         }
     }
 
