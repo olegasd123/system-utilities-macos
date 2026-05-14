@@ -150,6 +150,105 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), ["TEAM.com.example.shared"])
     }
 
+    func testCrashReporterMatchesProcessNamesAsPossibleLeftovers() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Demo App",
+            bundleIdentifier: "com.example.Demo",
+            executableName: "DemoApp"
+        )
+        let supportURL = rootURL.appendingPathComponent(
+            "Application Support",
+            isDirectory: true
+        )
+        let crashReporterURL = supportURL.appendingPathComponent(
+            "CrashReporter",
+            isDirectory: true
+        )
+        try writeFile(
+            crashReporterURL.appendingPathComponent(
+                "DemoApp_4FB707EB-00B3-5077-A850-C63680C3F280.plist"
+            )
+        )
+        try writeFile(
+            crashReporterURL.appendingPathComponent(
+                "Other_4FB707EB-00B3-5077-A850-C63680C3F280.plist"
+            )
+        )
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.example.Demo",
+            name: "Demo App",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            executableName: "DemoApp",
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(
+            homeDirectory: rootURL,
+            userScanRoots: [supportURL, crashReporterURL]
+        )
+
+        let conservative = try scanner.scan(app: app, settings: .defaultValue)
+        XCTAssertTrue(conservative.leftovers.isEmpty)
+
+        let heuristic = try scanner.scan(
+            app: app,
+            settings: AppUninstallerSettings(
+                includeNameHeuristicMatches: true,
+                includeSystemLibraryPaths: false,
+                defaultReclaimMode: .moveToTrash
+            )
+        )
+
+        XCTAssertEqual(heuristic.leftovers.map(\.url.lastPathComponent), [
+            "DemoApp_4FB707EB-00B3-5077-A850-C63680C3F280.plist"
+        ])
+        XCTAssertEqual(heuristic.leftovers.first?.confidence, .nameHeuristic)
+    }
+
+    func testCrashReporterMatchesEpicUnrealProcessNamesAsPossibleLeftovers() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Epic Games Launcher",
+            bundleIdentifier: "com.epicgames.EpicGamesLauncher",
+            executableName: "EpicGamesLauncher-Mac-Shipping"
+        )
+        let crashReporterURL = rootURL
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Application Support", isDirectory: true)
+            .appendingPathComponent("CrashReporter", isDirectory: true)
+        try writeFile(
+            crashReporterURL.appendingPathComponent(
+                "UnrealEditorServices_4FB707EB-00B3-5077-A850-C63680C3F280.plist"
+            )
+        )
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.epicgames.EpicGamesLauncher",
+            name: "Epic Games Launcher",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            executableName: "EpicGamesLauncher-Mac-Shipping",
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(homeDirectory: rootURL)
+
+        let result = try scanner.scan(
+            app: app,
+            settings: AppUninstallerSettings(
+                includeNameHeuristicMatches: true,
+                includeSystemLibraryPaths: false,
+                defaultReclaimMode: .moveToTrash
+            )
+        )
+
+        XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), [
+            "UnrealEditorServices_4FB707EB-00B3-5077-A850-C63680C3F280.plist"
+        ])
+        XCTAssertEqual(result.leftovers.first?.confidence, .nameHeuristic)
+    }
+
     func testPathSafetyRejectsRootsAndEscapedPaths() {
         let appURL = rootURL.appendingPathComponent("Demo.app", isDirectory: true)
         let scanRoot = rootURL.appendingPathComponent("Library", isDirectory: true)

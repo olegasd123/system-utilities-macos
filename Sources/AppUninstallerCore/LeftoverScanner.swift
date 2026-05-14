@@ -112,6 +112,7 @@ public struct LeftoverScanner: Sendable {
         let library = homeDirectory.appendingPathComponent("Library", isDirectory: true)
         return [
             "Application Support",
+            "Application Support/CrashReporter",
             "Caches",
             "Preferences",
             "Logs",
@@ -130,6 +131,7 @@ public struct LeftoverScanner: Sendable {
         let library = URL(fileURLWithPath: "/Library", isDirectory: true)
         return [
             "Application Support",
+            "Application Support/CrashReporter",
             "Caches",
             "Preferences",
             "Logs",
@@ -199,6 +201,14 @@ public struct LeftoverScanner: Sendable {
             return appGroupIdentifiers.contains(name) ? .exactBundleID : nil
         }
 
+        if root.lastPathComponent == "CrashReporter" {
+            return crashReporterMatchConfidence(
+                for: name,
+                app: app,
+                includeNameHeuristicMatches: includeNameHeuristicMatches
+            )
+        }
+
         let plistTrimmed = name.hasSuffix(".plist") ? String(name.dropLast(6)) : name
 
         if name == app.bundleIdentifier || plistTrimmed == app.bundleIdentifier {
@@ -223,6 +233,41 @@ public struct LeftoverScanner: Sendable {
             return .nameHeuristic
         }
         return nil
+    }
+
+    private func crashReporterMatchConfidence(
+        for name: String,
+        app: InstalledApp,
+        includeNameHeuristicMatches: Bool
+    ) -> LeftoverConfidence? {
+        guard includeNameHeuristicMatches else {
+            return nil
+        }
+
+        let plistTrimmed = name.hasSuffix(".plist") ? String(name.dropLast(6)) : name
+        let processName = plistTrimmed.split(separator: "_", maxSplits: 1).first.map(String.init)
+            ?? plistTrimmed
+        let normalizedProcessName = normalizeName(processName)
+
+        return crashReporterProcessNames(for: app).contains(normalizedProcessName)
+            ? .nameHeuristic
+            : nil
+    }
+
+    private func crashReporterProcessNames(for app: InstalledApp) -> Set<String> {
+        var names = [app.name]
+        if let executableName = app.executableName {
+            names.append(executableName)
+        }
+
+        if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher" {
+            names += [
+                "UnrealEditor",
+                "UnrealEditorServices"
+            ]
+        }
+
+        return Set(names.map(normalizeName))
     }
 
     private func normalizeName(_ name: String) -> String {
