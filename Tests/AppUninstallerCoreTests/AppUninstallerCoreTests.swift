@@ -150,6 +150,86 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), ["TEAM.com.example.shared"])
     }
 
+    func testLaunchAgentsMatchCompactBundleIDHelperNames() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Steam",
+            bundleIdentifier: "com.valvesoftware.steam",
+            executableName: "steam_osx"
+        )
+        let launchAgentsURL = rootURL.appendingPathComponent(
+            "LaunchAgents",
+            isDirectory: true
+        )
+        try writeFile(
+            launchAgentsURL.appendingPathComponent("com.valvesoftware.steamclean.plist")
+        )
+        try writeFile(
+            launchAgentsURL.appendingPathComponent("com.valvesoftware.other.plist")
+        )
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.valvesoftware.steam",
+            name: "Steam",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            executableName: "steam_osx",
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(homeDirectory: rootURL, userScanRoots: [launchAgentsURL])
+
+        let result = try scanner.scan(app: app, settings: .defaultValue)
+
+        XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), [
+            "com.valvesoftware.steamclean.plist"
+        ])
+        XCTAssertEqual(result.leftovers.first?.confidence, .bundleIDPrefix)
+    }
+
+    func testTemporaryDirectoryMatchesAppNamePrefixesAsPossibleLeftovers() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Steam",
+            bundleIdentifier: "com.valvesoftware.steam",
+            executableName: "steam_osx"
+        )
+        let temporaryURL = rootURL.appendingPathComponent("T", isDirectory: true)
+        try writeFile(temporaryURL.appendingPathComponent("steam"), size: 0)
+        try writeFile(temporaryURL.appendingPathComponent("steamittkMu"), size: 0)
+        try writeFile(temporaryURL.appendingPathComponent("other"), size: 0)
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.valvesoftware.steam",
+            name: "Steam",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            executableName: "steam_osx",
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(
+            homeDirectory: rootURL,
+            temporaryDirectory: temporaryURL
+        )
+
+        let conservative = try scanner.scan(app: app, settings: .defaultValue)
+        XCTAssertTrue(conservative.leftovers.isEmpty)
+
+        let heuristic = try scanner.scan(
+            app: app,
+            settings: AppUninstallerSettings(
+                includeNameHeuristicMatches: true,
+                includeSystemLibraryPaths: false,
+                defaultReclaimMode: .moveToTrash
+            )
+        )
+
+        XCTAssertEqual(Set(heuristic.leftovers.map(\.url.lastPathComponent)), [
+            "steam",
+            "steamittkMu"
+        ])
+        XCTAssertTrue(heuristic.leftovers.allSatisfy { $0.confidence == .nameHeuristic })
+    }
+
     func testCrashReporterMatchesProcessNamesAsPossibleLeftovers() throws {
         let appURL = try makeApp(
             in: rootURL,
@@ -232,7 +312,10 @@ final class AppUninstallerCoreTests: XCTestCase {
             executableName: "EpicGamesLauncher-Mac-Shipping",
             isSystem: false
         )
-        let scanner = LeftoverScanner(homeDirectory: rootURL)
+        let scanner = LeftoverScanner(
+            homeDirectory: rootURL,
+            temporaryDirectory: rootURL.appendingPathComponent("T", isDirectory: true)
+        )
 
         let result = try scanner.scan(
             app: app,

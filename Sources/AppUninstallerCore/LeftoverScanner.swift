@@ -3,15 +3,18 @@ import Foundation
 
 public struct LeftoverScanner: Sendable {
     private let homeDirectory: URL
+    private let temporaryDirectory: URL
     private let userScanRoots: [URL]?
     private let systemScanRoots: [URL]?
 
     public init(
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        temporaryDirectory: URL = FileManager.default.temporaryDirectory,
         userScanRoots: [URL]? = nil,
         systemScanRoots: [URL]? = nil
     ) {
         self.homeDirectory = homeDirectory
+        self.temporaryDirectory = temporaryDirectory
         self.userScanRoots = userScanRoots
         self.systemScanRoots = systemScanRoots
     }
@@ -60,6 +63,7 @@ public struct LeftoverScanner: Sendable {
                         app: app,
                         root: root,
                         appGroupIdentifiers: appGroupIdentifiers,
+                        temporaryDirectory: temporaryDirectory,
                         includeNameHeuristicMatches: settings.includeNameHeuristicMatches
                     ),
                     safety.canShowCandidate(child)
@@ -101,7 +105,10 @@ public struct LeftoverScanner: Sendable {
     }
 
     public func scanRoots(includeSystem: Bool) -> [URL] {
-        var roots = userScanRoots ?? Self.defaultUserScanRoots(homeDirectory: homeDirectory)
+        var roots = userScanRoots ?? Self.defaultUserScanRoots(
+            homeDirectory: homeDirectory,
+            temporaryDirectory: temporaryDirectory
+        )
         if includeSystem {
             roots += systemScanRoots ?? Self.defaultSystemScanRoots()
         }
@@ -109,8 +116,18 @@ public struct LeftoverScanner: Sendable {
     }
 
     public static func defaultUserScanRoots(homeDirectory: URL) -> [URL] {
+        defaultUserScanRoots(
+            homeDirectory: homeDirectory,
+            temporaryDirectory: FileManager.default.temporaryDirectory
+        )
+    }
+
+    public static func defaultUserScanRoots(
+        homeDirectory: URL,
+        temporaryDirectory: URL
+    ) -> [URL] {
         let library = homeDirectory.appendingPathComponent("Library", isDirectory: true)
-        return [
+        let libraryRoots = [
             "Application Support",
             "Application Support/CrashReporter",
             "Caches",
@@ -125,6 +142,7 @@ public struct LeftoverScanner: Sendable {
             "Application Scripts",
             "LaunchAgents"
         ].map { library.appendingPathComponent($0, isDirectory: true) }
+        return libraryRoots + [temporaryDirectory]
     }
 
     public static func defaultSystemScanRoots() -> [URL] {
@@ -194,6 +212,7 @@ public struct LeftoverScanner: Sendable {
         app: InstalledApp,
         root: URL,
         appGroupIdentifiers: [String],
+        temporaryDirectory: URL,
         includeNameHeuristicMatches: Bool
     ) -> LeftoverConfidence? {
         let name = url.lastPathComponent
@@ -218,9 +237,16 @@ public struct LeftoverScanner: Sendable {
             || plistTrimmed.hasPrefix("\(app.bundleIdentifier).") {
             return .bundleIDPrefix
         }
+        if isLaunchServiceRoot(root), plistTrimmed.hasPrefix(app.bundleIdentifier) {
+            return .bundleIDPrefix
+        }
 
         guard includeNameHeuristicMatches else {
             return nil
+        }
+
+        if root.standardizedFileURL.path == temporaryDirectory.standardizedFileURL.path {
+            return temporaryMatchConfidence(for: name, app: app)
         }
 
         let normalizedName = normalizeName(name)
@@ -233,6 +259,17 @@ public struct LeftoverScanner: Sendable {
             return .nameHeuristic
         }
         return nil
+    }
+
+    private func temporaryMatchConfidence(
+        for name: String,
+        app: InstalledApp
+    ) -> LeftoverConfidence? {
+        let normalizedName = normalizeName(name)
+        let appNames = heuristicNames(for: app)
+        return appNames.contains { candidate in
+            normalizedName == candidate || normalizedName.hasPrefix(candidate)
+        } ? .nameHeuristic : nil
     }
 
     private func crashReporterMatchConfidence(
@@ -255,19 +292,29 @@ public struct LeftoverScanner: Sendable {
     }
 
     private func crashReporterProcessNames(for app: InstalledApp) -> Set<String> {
+        var names = heuristicNames(for: app)
+        if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher" {
+            names.formUnion([
+                normalizeName("UnrealEditor"),
+                normalizeName("UnrealEditorServices")
+            ])
+        }
+        return names
+    }
+
+    private func heuristicNames(for app: InstalledApp) -> Set<String> {
         var names = [app.name]
         if let executableName = app.executableName {
             names.append(executableName)
         }
-
-        if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher" {
-            names += [
-                "UnrealEditor",
-                "UnrealEditorServices"
-            ]
-        }
-
         return Set(names.map(normalizeName))
+    }
+
+    private func isLaunchServiceRoot(_ root: URL) -> Bool {
+        let name = root.lastPathComponent
+        return name == "LaunchAgents"
+            || name == "LaunchDaemons"
+            || name == "PrivilegedHelperTools"
     }
 
     private func normalizeName(_ name: String) -> String {
