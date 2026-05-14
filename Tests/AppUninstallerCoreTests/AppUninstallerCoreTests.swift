@@ -239,7 +239,7 @@ final class AppUninstallerCoreTests: XCTestCase {
         ])
     }
 
-    func testDockerAliasesMatchDesktopSupportAndElectronPreference() throws {
+    func testAppSpecificAliasesDoNotMatch() throws {
         let appURL = try makeApp(
             in: rootURL,
             name: "Docker",
@@ -270,28 +270,24 @@ final class AppUninstallerCoreTests: XCTestCase {
 
         let result = try scanner.scan(app: app, settings: .defaultValue)
 
-        XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), [
-            "Docker Desktop",
-            "com.electron.dockerdesktop.plist"
-        ])
-        XCTAssertTrue(result.leftovers.allSatisfy { $0.confidence == .bundleIDPrefix })
+        XCTAssertTrue(result.leftovers.isEmpty)
     }
 
     func testUserHomeLeftoversAreOptInAndNotSelectedByDefault() throws {
         let appURL = try makeApp(
             in: rootURL,
-            name: "LM Studio",
-            bundleIdentifier: "ai.elementlabs.lmstudio"
+            name: "Sample Tool",
+            bundleIdentifier: "com.example.sample-tool"
         )
         try FileManager.default.createDirectory(
-            at: rootURL.appendingPathComponent(".lmstudio", isDirectory: true),
+            at: rootURL.appendingPathComponent(".sampletool", isDirectory: true),
             withIntermediateDirectories: true
         )
-        try writeFile(rootURL.appendingPathComponent(".lmstudio-home-pointer"))
+        try writeFile(rootURL.appendingPathComponent(".sampletool-home-pointer"))
 
         let app = InstalledApp(
-            bundleIdentifier: "ai.elementlabs.lmstudio",
-            name: "LM Studio",
+            bundleIdentifier: "com.example.sample-tool",
+            name: "Sample Tool",
             bundleURL: appURL,
             sourceLocation: rootURL.path,
             isSystem: false
@@ -312,8 +308,7 @@ final class AppUninstallerCoreTests: XCTestCase {
         )
 
         XCTAssertEqual(optInResult.leftovers.map(\.url.lastPathComponent), [
-            ".lmstudio",
-            ".lmstudio-home-pointer"
+            ".sampletool"
         ])
         XCTAssertTrue(optInResult.leftovers.allSatisfy { $0.confidence == .userHome })
         XCTAssertTrue(optInResult.leftovers.allSatisfy { !$0.isSelectedByDefault })
@@ -362,11 +357,8 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertTrue(optInResult.leftovers.allSatisfy { !$0.isSelectedByDefault })
     }
 
-    func testKnownUserHomeAliasesMatchGivenApps() throws {
+    func testFormerKnownUserHomeAliasesDoNotMatch() throws {
         let apps: [(name: String, bundleIdentifier: String, leftoverName: String)] = [
-            ("Docker", "com.docker.docker", ".docker"),
-            ("Claude", "com.anthropic.claudefordesktop", ".claude.json"),
-            ("Claude", "com.anthropic.claudefordesktop", ".claude"),
             ("Epic Games Launcher", "com.epicgames.EpicGamesLauncher", "UnrealEngine"),
             ("Parallels Desktop", "com.parallels.desktop.console", "Parallels")
         ]
@@ -399,8 +391,8 @@ final class AppUninstallerCoreTests: XCTestCase {
                 )
             )
 
-            XCTAssertTrue(result.leftovers.contains {
-                $0.url.lastPathComponent == appData.leftoverName && $0.confidence == .userHome
+            XCTAssertFalse(result.leftovers.contains {
+                $0.url.lastPathComponent == appData.leftoverName
             })
             try FileManager.default.removeItem(at: rootURL.appendingPathComponent(appData.leftoverName))
         }
@@ -507,7 +499,7 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertEqual(heuristic.leftovers.first?.confidence, .nameHeuristic)
     }
 
-    func testCrashReporterMatchesEpicUnrealProcessNamesAsPossibleLeftovers() throws {
+    func testCrashReporterDoesNotMatchAppSpecificProcessAliases() throws {
         let appURL = try makeApp(
             in: rootURL,
             name: "Epic Games Launcher",
@@ -546,10 +538,7 @@ final class AppUninstallerCoreTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), [
-            "UnrealEditorServices_4FB707EB-00B3-5077-A850-C63680C3F280.plist"
-        ])
-        XCTAssertEqual(result.leftovers.first?.confidence, .nameHeuristic)
+        XCTAssertTrue(result.leftovers.isEmpty)
     }
 
     func testPathSafetyRejectsRootsAndEscapedPaths() {
@@ -632,15 +621,15 @@ final class AppUninstallerCoreTests: XCTestCase {
 
         let appURL = try makeApp(
             in: appsURL,
-            name: "Docker",
-            bundleIdentifier: "com.docker.docker"
+            name: "Demo",
+            bundleIdentifier: "com.example.Demo"
         )
-        let leftoverURL = rootURL.appendingPathComponent(".docker")
+        let leftoverURL = rootURL.appendingPathComponent(".demo")
         try writeFile(leftoverURL)
 
         let app = InstalledApp(
-            bundleIdentifier: "com.docker.docker",
-            name: "Docker",
+            bundleIdentifier: "com.example.Demo",
+            name: "Demo",
             bundleURL: appURL,
             sourceLocation: appsURL.path,
             isSystem: false
@@ -668,7 +657,7 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: leftoverURL.path))
         XCTAssertTrue(
             FileManager.default.fileExists(
-                atPath: trashURL.appendingPathComponent(".docker").path
+                atPath: trashURL.appendingPathComponent(".demo").path
             )
         )
     }

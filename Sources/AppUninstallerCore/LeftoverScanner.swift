@@ -257,15 +257,6 @@ public struct LeftoverScanner: Sendable {
             return confidence
         }
 
-        if let confidence = appAliasMatchConfidence(
-            for: name,
-            plistTrimmed: plistTrimmed,
-            root: root,
-            app: app
-        ) {
-            return confidence
-        }
-
         if name == app.bundleIdentifier || plistTrimmed == app.bundleIdentifier {
             return .exactBundleID
         }
@@ -297,65 +288,16 @@ public struct LeftoverScanner: Sendable {
         return nil
     }
 
-    private func appAliasMatchConfidence(
-        for name: String,
-        plistTrimmed: String,
-        root: URL,
-        app: InstalledApp
-    ) -> LeftoverConfidence? {
-        let aliases = appLeftoverAliases(for: app)
-        for bundleIdentifier in aliases.bundleIdentifiers {
-            if name == bundleIdentifier || plistTrimmed == bundleIdentifier {
-                return .bundleIDPrefix
-            }
-            if name.hasPrefix("\(bundleIdentifier).")
-                || plistTrimmed.hasPrefix("\(bundleIdentifier).") {
-                return .bundleIDPrefix
-            }
-        }
-
-        guard root.lastPathComponent == "Application Support" else {
-            return nil
-        }
-        return aliases.applicationSupportNames.contains(name) ? .bundleIDPrefix : nil
-    }
-
-    private func appLeftoverAliases(for app: InstalledApp) -> AppLeftoverAliases {
-        var aliases = AppLeftoverAliases()
+    private func userHomeLeftoverNames(for app: InstalledApp) -> [String] {
         let normalizedAppName = normalizeName(app.name)
-        if !normalizedAppName.isEmpty {
-            aliases.userHomeNames += [
-                ".\(normalizedAppName)",
-                ".\(normalizedAppName).json"
-            ]
+        guard !normalizedAppName.isEmpty else {
+            return []
         }
 
-        switch app.bundleIdentifier {
-        case "com.docker.docker":
-            aliases.bundleIdentifiers.append("com.electron.dockerdesktop")
-            aliases.applicationSupportNames.append("Docker Desktop")
-        default:
-            break
-        }
-
-        if app.matchesAppAlias("docker") {
-            aliases.userHomeNames.append(".docker")
-        }
-        if app.matchesAppAlias("lmstudio") {
-            aliases.userHomeNames += [".lmstudio-home-pointer"]
-        }
-        if app.bundleIdentifier == "com.parallels.desktop.console" {
-            aliases.userHomeNames.append("Parallels")
-        }
-        if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher"
-            || app.matchesAppAlias("unrealengine") {
-            aliases.userHomeNames.append("UnrealEngine")
-        }
-
-        aliases.bundleIdentifiers = uniqueStrings(aliases.bundleIdentifiers)
-        aliases.applicationSupportNames = uniqueStrings(aliases.applicationSupportNames)
-        aliases.userHomeNames = uniqueStrings(aliases.userHomeNames)
-        return aliases
+        return [
+            ".\(normalizedAppName)",
+            ".\(normalizedAppName).json"
+        ]
     }
 
     private func applicationScriptsMatchConfidence(
@@ -424,20 +366,9 @@ public struct LeftoverScanner: Sendable {
             ?? plistTrimmed
         let normalizedProcessName = normalizeName(processName)
 
-        return crashReporterProcessNames(for: app).contains(normalizedProcessName)
+        return heuristicNames(for: app).contains(normalizedProcessName)
             ? .nameHeuristic
             : nil
-    }
-
-    private func crashReporterProcessNames(for app: InstalledApp) -> Set<String> {
-        var names = heuristicNames(for: app)
-        if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher" {
-            names.formUnion([
-                normalizeName("UnrealEditor"),
-                normalizeName("UnrealEditorServices")
-            ])
-        }
-        return names
     }
 
     private func heuristicNames(for app: InstalledApp) -> Set<String> {
@@ -477,14 +408,8 @@ public struct LeftoverScanner: Sendable {
         }
     }
 
-    private struct AppLeftoverAliases {
-        var bundleIdentifiers: [String] = []
-        var applicationSupportNames: [String] = []
-        var userHomeNames: [String] = []
-    }
-
     private func userHomeLeftoverURLs(for app: InstalledApp) -> [URL] {
-        appLeftoverAliases(for: app).userHomeNames.map {
+        userHomeLeftoverNames(for: app).map {
             homeDirectory.appendingPathComponent($0)
         }
     }
@@ -538,18 +463,5 @@ public struct LeftoverScanner: Sendable {
             seen.insert(value)
             return true
         }
-    }
-}
-
-private extension InstalledApp {
-    func matchesAppAlias(_ alias: String) -> Bool {
-        let normalizedAlias = alias
-            .replacingOccurrences(of: " ", with: "")
-            .lowercased()
-        let normalizedName = name
-            .replacingOccurrences(of: " ", with: "")
-            .lowercased()
-        return normalizedName == normalizedAlias
-            || bundleIdentifier.localizedCaseInsensitiveContains(alias)
     }
 }
