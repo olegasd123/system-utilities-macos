@@ -230,6 +230,20 @@ public struct LeftoverScanner: Sendable {
 
         let plistTrimmed = name.hasSuffix(".plist") ? String(name.dropLast(6)) : name
 
+        if root.lastPathComponent == "Application Scripts",
+           let confidence = applicationScriptsMatchConfidence(for: name, app: app) {
+            return confidence
+        }
+
+        if let confidence = appAliasMatchConfidence(
+            for: name,
+            plistTrimmed: plistTrimmed,
+            root: root,
+            app: app
+        ) {
+            return confidence
+        }
+
         if name == app.bundleIdentifier || plistTrimmed == app.bundleIdentifier {
             return .exactBundleID
         }
@@ -259,6 +273,82 @@ public struct LeftoverScanner: Sendable {
             return .nameHeuristic
         }
         return nil
+    }
+
+    private func appAliasMatchConfidence(
+        for name: String,
+        plistTrimmed: String,
+        root: URL,
+        app: InstalledApp
+    ) -> LeftoverConfidence? {
+        let aliases = appLeftoverAliases(for: app)
+        for bundleIdentifier in aliases.bundleIdentifiers {
+            if name == bundleIdentifier || plistTrimmed == bundleIdentifier {
+                return .bundleIDPrefix
+            }
+            if name.hasPrefix("\(bundleIdentifier).")
+                || plistTrimmed.hasPrefix("\(bundleIdentifier).") {
+                return .bundleIDPrefix
+            }
+        }
+
+        guard root.lastPathComponent == "Application Support" else {
+            return nil
+        }
+        return aliases.applicationSupportNames.contains(name) ? .bundleIDPrefix : nil
+    }
+
+    private func appLeftoverAliases(for app: InstalledApp) -> AppLeftoverAliases {
+        switch app.bundleIdentifier {
+        case "com.docker.docker":
+            AppLeftoverAliases(
+                bundleIdentifiers: ["com.electron.dockerdesktop"],
+                applicationSupportNames: ["Docker Desktop"]
+            )
+        default:
+            AppLeftoverAliases()
+        }
+    }
+
+    private func applicationScriptsMatchConfidence(
+        for name: String,
+        app: InstalledApp
+    ) -> LeftoverConfidence? {
+        if name == app.bundleIdentifier {
+            return .exactBundleID
+        }
+        if name.hasPrefix("\(app.bundleIdentifier).") {
+            return .bundleIDPrefix
+        }
+        guard
+            let bundleSuffix = bundleIdentifierSuffixAfterTeamID(in: name)
+        else {
+            return nil
+        }
+        if bundleSuffix == app.bundleIdentifier {
+            return .exactBundleID
+        }
+        if bundleSuffix.hasPrefix("\(app.bundleIdentifier).") {
+            return .bundleIDPrefix
+        }
+        return nil
+    }
+
+    private func bundleIdentifierSuffixAfterTeamID(in name: String) -> String? {
+        let parts = name.split(separator: ".", maxSplits: 1).map(String.init)
+        guard
+            parts.count == 2,
+            isAppleTeamIdentifier(parts[0])
+        else {
+            return nil
+        }
+        return parts[1]
+    }
+
+    private func isAppleTeamIdentifier(_ value: String) -> Bool {
+        value.count == 10 && value.allSatisfy {
+            $0.isASCII && ($0.isNumber || $0.isUppercase)
+        }
     }
 
     private func temporaryMatchConfidence(
@@ -335,6 +425,11 @@ public struct LeftoverScanner: Sendable {
         case .nameHeuristic:
             3
         }
+    }
+
+    private struct AppLeftoverAliases {
+        var bundleIdentifiers: [String] = []
+        var applicationSupportNames: [String] = []
     }
 
     private func entitlementAppGroups(at bundleURL: URL) -> [String] {

@@ -186,6 +186,97 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertEqual(result.leftovers.first?.confidence, .bundleIDPrefix)
     }
 
+    func testApplicationScriptsMatchTeamPrefixedBundleIdentifiers() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Telegram",
+            bundleIdentifier: "ru.keepcoder.Telegram"
+        )
+        let scriptsURL = rootURL.appendingPathComponent(
+            "Application Scripts",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: scriptsURL.appendingPathComponent(
+                "6N38VWS5BX.ru.keepcoder.Telegram",
+                isDirectory: true
+            ),
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: scriptsURL.appendingPathComponent(
+                "6N38VWS5BX.ru.keepcoder.Telegram.FocusIntents",
+                isDirectory: true
+            ),
+            withIntermediateDirectories: true
+        )
+        try FileManager.default.createDirectory(
+            at: scriptsURL.appendingPathComponent(
+                "6N38VWS5BX.ru.keepcoder.Other",
+                isDirectory: true
+            ),
+            withIntermediateDirectories: true
+        )
+
+        let app = InstalledApp(
+            bundleIdentifier: "ru.keepcoder.Telegram",
+            name: "Telegram",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(homeDirectory: rootURL, userScanRoots: [scriptsURL])
+
+        let result = try scanner.scan(app: app, settings: .defaultValue)
+
+        XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), [
+            "6N38VWS5BX.ru.keepcoder.Telegram",
+            "6N38VWS5BX.ru.keepcoder.Telegram.FocusIntents"
+        ])
+        XCTAssertEqual(result.leftovers.map(\.confidence), [
+            .exactBundleID,
+            .bundleIDPrefix
+        ])
+    }
+
+    func testDockerAliasesMatchDesktopSupportAndElectronPreference() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "Docker",
+            bundleIdentifier: "com.docker.docker"
+        )
+        let supportURL = rootURL.appendingPathComponent(
+            "Application Support",
+            isDirectory: true
+        )
+        let preferencesURL = rootURL.appendingPathComponent("Preferences", isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: supportURL.appendingPathComponent("Docker Desktop", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        try writeFile(preferencesURL.appendingPathComponent("com.electron.dockerdesktop.plist"))
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.docker.docker",
+            name: "Docker",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(
+            homeDirectory: rootURL,
+            userScanRoots: [supportURL, preferencesURL]
+        )
+
+        let result = try scanner.scan(app: app, settings: .defaultValue)
+
+        XCTAssertEqual(result.leftovers.map(\.url.lastPathComponent), [
+            "Docker Desktop",
+            "com.electron.dockerdesktop.plist"
+        ])
+        XCTAssertTrue(result.leftovers.allSatisfy { $0.confidence == .bundleIDPrefix })
+    }
+
     func testTemporaryDirectoryMatchesAppNamePrefixesAsPossibleLeftovers() throws {
         let appURL = try makeApp(
             in: rootURL,
