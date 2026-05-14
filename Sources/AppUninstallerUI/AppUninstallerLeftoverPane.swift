@@ -98,6 +98,7 @@ struct AppUninstallerLeftoverPane: View {
                 candidateGroup("Exact match", candidates: group(.exactBundleID, in: result))
                 candidateGroup("Related", candidates: group(.bundleIDPrefix, in: result))
                 candidateGroup("Possible", candidates: group(.nameHeuristic, in: result))
+                candidateGroup("User folder", candidates: group(.userHome, in: result))
 
                 ForEach(result.notes, id: \.self) { note in
                     Text(note)

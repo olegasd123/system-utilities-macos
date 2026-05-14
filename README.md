@@ -54,6 +54,7 @@ and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
 - Leftover scan for related files in `~/Library` and best-effort `/Library`
   paths.
 - Conservative matching by bundle ID by default, with optional name matches.
+- Optional user-folder scan for known app-owned dotfiles and folders.
 - Uninstall by moving the app and selected leftovers to Trash by default.
 - Optional permanent delete mode with confirmation.
 - Running apps are asked to quit before removal.

@@ -24,6 +24,9 @@ public struct AppUninstaller: Sendable {
         let safety = AppUninstallerPathSafety(
             appBundleURL: app.bundleURL,
             scanRoots: scanRoots,
+            directAllowedPaths: leftovers
+                .filter { $0.confidence == .userHome }
+                .map(\.url),
             homeDirectory: homeDirectory
         )
         let bundleSize = (try? FileSizeReader.recursiveLogicalSize(of: app.bundleURL)) ?? 0

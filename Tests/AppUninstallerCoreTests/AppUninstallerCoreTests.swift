@@ -277,6 +277,93 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertTrue(result.leftovers.allSatisfy { $0.confidence == .bundleIDPrefix })
     }
 
+    func testUserHomeLeftoversAreOptInAndNotSelectedByDefault() throws {
+        let appURL = try makeApp(
+            in: rootURL,
+            name: "LM Studio",
+            bundleIdentifier: "ai.elementlabs.lmstudio"
+        )
+        try FileManager.default.createDirectory(
+            at: rootURL.appendingPathComponent(".lmstudio", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        try writeFile(rootURL.appendingPathComponent(".lmstudio-home-pointer"))
+
+        let app = InstalledApp(
+            bundleIdentifier: "ai.elementlabs.lmstudio",
+            name: "LM Studio",
+            bundleURL: appURL,
+            sourceLocation: rootURL.path,
+            isSystem: false
+        )
+        let scanner = LeftoverScanner(homeDirectory: rootURL)
+
+        let defaultResult = try scanner.scan(app: app, settings: .defaultValue)
+        XCTAssertTrue(defaultResult.leftovers.isEmpty)
+
+        let optInResult = try scanner.scan(
+            app: app,
+            settings: AppUninstallerSettings(
+                includeNameHeuristicMatches: false,
+                includeSystemLibraryPaths: false,
+                includeUserHomePaths: true,
+                defaultReclaimMode: .moveToTrash
+            )
+        )
+
+        XCTAssertEqual(optInResult.leftovers.map(\.url.lastPathComponent), [
+            ".lmstudio",
+            ".lmstudio-home-pointer"
+        ])
+        XCTAssertTrue(optInResult.leftovers.allSatisfy { $0.confidence == .userHome })
+        XCTAssertTrue(optInResult.leftovers.allSatisfy { !$0.isSelectedByDefault })
+    }
+
+    func testKnownUserHomeAliasesMatchGivenApps() throws {
+        let apps: [(name: String, bundleIdentifier: String, leftoverName: String)] = [
+            ("Docker", "com.docker.docker", ".docker"),
+            ("Claude", "com.anthropic.claudefordesktop", ".claude.json"),
+            ("Claude", "com.anthropic.claudefordesktop", ".claude"),
+            ("Apache JMeter", "org.apache.jmeter", "jMeter"),
+            ("Epic Games Launcher", "com.epicgames.EpicGamesLauncher", "UnrealEngine"),
+            ("Parallels Desktop", "com.parallels.desktop.console", "Parallels")
+        ]
+
+        for appData in apps {
+            let appRoot = rootURL.appendingPathComponent(appData.name, isDirectory: true)
+            let appURL = try makeApp(
+                in: appRoot,
+                name: appData.name,
+                bundleIdentifier: appData.bundleIdentifier
+            )
+            try writeFile(rootURL.appendingPathComponent(appData.leftoverName))
+
+            let app = InstalledApp(
+                bundleIdentifier: appData.bundleIdentifier,
+                name: appData.name,
+                bundleURL: appURL,
+                sourceLocation: appRoot.path,
+                isSystem: false
+            )
+            let scanner = LeftoverScanner(homeDirectory: rootURL)
+
+            let result = try scanner.scan(
+                app: app,
+                settings: AppUninstallerSettings(
+                    includeNameHeuristicMatches: false,
+                    includeSystemLibraryPaths: false,
+                    includeUserHomePaths: true,
+                    defaultReclaimMode: .moveToTrash
+                )
+            )
+
+            XCTAssertTrue(result.leftovers.contains {
+                $0.url.lastPathComponent == appData.leftoverName && $0.confidence == .userHome
+            })
+            try FileManager.default.removeItem(at: rootURL.appendingPathComponent(appData.leftoverName))
+        }
+    }
+
     func testTemporaryDirectoryMatchesAppNamePrefixesAsPossibleLeftovers() throws {
         let appURL = try makeApp(
             in: rootURL,
@@ -491,6 +578,55 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertTrue(
             FileManager.default.fileExists(
                 atPath: trashURL.appendingPathComponent("com.example.Demo").path
+            )
+        )
+    }
+
+    func testAppUninstallerMovesSelectedUserHomeLeftoversToTrash() async throws {
+        let appsURL = rootURL.appendingPathComponent("Applications", isDirectory: true)
+        let libraryURL = rootURL.appendingPathComponent("Library", isDirectory: true)
+        try FileManager.default.createDirectory(at: appsURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: libraryURL, withIntermediateDirectories: true)
+
+        let appURL = try makeApp(
+            in: appsURL,
+            name: "Docker",
+            bundleIdentifier: "com.docker.docker"
+        )
+        let leftoverURL = rootURL.appendingPathComponent(".docker")
+        try writeFile(leftoverURL)
+
+        let app = InstalledApp(
+            bundleIdentifier: "com.docker.docker",
+            name: "Docker",
+            bundleURL: appURL,
+            sourceLocation: appsURL.path,
+            isSystem: false
+        )
+        let leftover = LeftoverCandidate(
+            url: leftoverURL,
+            size: 1_024,
+            kind: .file,
+            confidence: .userHome
+        )
+        let uninstaller = AppUninstaller(
+            trasher: DirectoryTrash(trashDirectory: trashURL),
+            homeDirectory: rootURL,
+            scanRoots: [libraryURL]
+        )
+
+        let report = try await uninstaller.uninstall(
+            app,
+            leftovers: [leftover],
+            mode: .moveToTrash
+        )
+
+        XCTAssertEqual(report.reclaimedItemCount, 2)
+        XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: leftoverURL.path))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: trashURL.appendingPathComponent(".docker").path
             )
         )
     }

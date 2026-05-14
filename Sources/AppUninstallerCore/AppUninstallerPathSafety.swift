@@ -3,15 +3,18 @@ import Foundation
 public struct AppUninstallerPathSafety: Sendable {
     private let appBundleURL: URL
     private let scanRoots: [URL]
+    private let directAllowedPaths: Set<String>
     private let deniedPaths: Set<String>
 
     public init(
         appBundleURL: URL,
         scanRoots: [URL],
+        directAllowedPaths: [URL] = [],
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
     ) {
         self.appBundleURL = appBundleURL.standardizedFileURL
         self.scanRoots = scanRoots.map(\.standardizedFileURL)
+        self.directAllowedPaths = Set(directAllowedPaths.map { $0.standardizedFileURL.path })
         self.deniedPaths = Set([
             URL(fileURLWithPath: "/").standardizedFileURL.path,
             URL(fileURLWithPath: "/System").standardizedFileURL.path,
@@ -34,6 +37,9 @@ public struct AppUninstallerPathSafety: Sendable {
         }
 
         if path == appBundleURL.path {
+            return true
+        }
+        if directAllowedPaths.contains(path) {
             return true
         }
 

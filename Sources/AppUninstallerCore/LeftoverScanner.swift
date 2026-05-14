@@ -24,9 +24,13 @@ public struct LeftoverScanner: Sendable {
         settings: AppUninstallerSettings = .defaultValue
     ) throws -> LeftoverScanResult {
         let roots = scanRoots(includeSystem: settings.includeSystemLibraryPaths)
+        let userHomeCandidateURLs = settings.includeUserHomePaths
+            ? userHomeLeftoverURLs(for: app)
+            : []
         let safety = AppUninstallerPathSafety(
             appBundleURL: app.bundleURL,
             scanRoots: roots,
+            directAllowedPaths: userHomeCandidateURLs,
             homeDirectory: homeDirectory
         )
         var notes: [String] = []
@@ -78,6 +82,24 @@ public struct LeftoverScanner: Sendable {
                 } catch {
                     notes.append("Skipped \(child.path): \(error.localizedDescription)")
                 }
+            }
+        }
+
+        for url in userHomeCandidateURLs {
+            try Task.checkCancellation()
+            guard
+                FileManager.default.fileExists(atPath: url.path),
+                safety.canShowCandidate(url)
+            else {
+                continue
+            }
+
+            do {
+                leftovers.append(
+                    try candidate(for: url, confidence: .userHome)
+                )
+            } catch {
+                notes.append("Skipped \(url.path): \(error.localizedDescription)")
             }
         }
 
@@ -299,15 +321,40 @@ public struct LeftoverScanner: Sendable {
     }
 
     private func appLeftoverAliases(for app: InstalledApp) -> AppLeftoverAliases {
+        var aliases = AppLeftoverAliases()
         switch app.bundleIdentifier {
         case "com.docker.docker":
-            AppLeftoverAliases(
-                bundleIdentifiers: ["com.electron.dockerdesktop"],
-                applicationSupportNames: ["Docker Desktop"]
-            )
+            aliases.bundleIdentifiers.append("com.electron.dockerdesktop")
+            aliases.applicationSupportNames.append("Docker Desktop")
         default:
-            AppLeftoverAliases()
+            break
         }
+
+        if app.matchesAppAlias("docker") {
+            aliases.userHomeNames.append(".docker")
+        }
+        if app.matchesAppAlias("lmstudio") {
+            aliases.userHomeNames += [".lmstudio", ".lmstudio-home-pointer"]
+        }
+        if app.matchesAppAlias("claude")
+            || app.bundleIdentifier.localizedCaseInsensitiveContains("anthropic") {
+            aliases.userHomeNames += [".claude", ".claude.json"]
+        }
+        if app.matchesAppAlias("jmeter") || app.matchesAppAlias("apachejmeter") {
+            aliases.userHomeNames.append("jMeter")
+        }
+        if app.matchesAppAlias("parallels") || app.matchesAppAlias("parallelsdesktop") {
+            aliases.userHomeNames.append("Parallels")
+        }
+        if app.bundleIdentifier == "com.epicgames.EpicGamesLauncher"
+            || app.matchesAppAlias("unrealengine") {
+            aliases.userHomeNames.append("UnrealEngine")
+        }
+
+        aliases.bundleIdentifiers = uniqueStrings(aliases.bundleIdentifiers)
+        aliases.applicationSupportNames = uniqueStrings(aliases.applicationSupportNames)
+        aliases.userHomeNames = uniqueStrings(aliases.userHomeNames)
+        return aliases
     }
 
     private func applicationScriptsMatchConfidence(
@@ -424,12 +471,21 @@ public struct LeftoverScanner: Sendable {
             2
         case .nameHeuristic:
             3
+        case .userHome:
+            4
         }
     }
 
     private struct AppLeftoverAliases {
         var bundleIdentifiers: [String] = []
         var applicationSupportNames: [String] = []
+        var userHomeNames: [String] = []
+    }
+
+    private func userHomeLeftoverURLs(for app: InstalledApp) -> [URL] {
+        appLeftoverAliases(for: app).userHomeNames.map {
+            homeDirectory.appendingPathComponent($0)
+        }
     }
 
     private func entitlementAppGroups(at bundleURL: URL) -> [String] {
@@ -481,5 +537,18 @@ public struct LeftoverScanner: Sendable {
             seen.insert(value)
             return true
         }
+    }
+}
+
+private extension InstalledApp {
+    func matchesAppAlias(_ alias: String) -> Bool {
+        let normalizedAlias = alias
+            .replacingOccurrences(of: " ", with: "")
+            .lowercased()
+        let normalizedName = name
+            .replacingOccurrences(of: " ", with: "")
+            .lowercased()
+        return normalizedName == normalizedAlias
+            || bundleIdentifier.localizedCaseInsensitiveContains(alias)
     }
 }

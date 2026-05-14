@@ -6,6 +6,7 @@ public enum LeftoverConfidence: String, Codable, Sendable {
     case exactBundleID
     case bundleIDPrefix
     case nameHeuristic
+    case userHome
 }
 
 public enum LeftoverKind: String, Codable, Sendable {
@@ -37,7 +38,7 @@ public struct LeftoverCandidate: Identifiable, Equatable, Sendable, FileReclaimI
         switch confidence {
         case .appBundle, .exactBundleID, .bundleIDPrefix:
             true
-        case .nameHeuristic:
+        case .nameHeuristic, .userHome:
             false
         }
     }

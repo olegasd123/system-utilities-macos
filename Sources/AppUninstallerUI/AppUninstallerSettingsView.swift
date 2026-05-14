@@ -18,6 +18,11 @@ struct AppUninstallerSettingsView: View {
                 isOn: $settings.settings.includeSystemLibraryPaths
             )
 
+            Toggle(
+                "Scan user folder leftovers",
+                isOn: $settings.settings.includeUserHomePaths
+            )
+
             Picker("Default uninstall mode", selection: $settings.settings.defaultReclaimMode) {
                 Text("Move to Trash").tag(ReclaimMode.moveToTrash)
                 Text("Permanently delete").tag(ReclaimMode.hardDelete)
