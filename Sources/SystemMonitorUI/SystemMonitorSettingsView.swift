@@ -95,21 +95,21 @@ public struct SystemMonitorSettingsView: View {
             if settingsModel.settings.warningsEnabled {
                 VStack(alignment: .leading, spacing: 10) {
                     ThresholdRowView(
-                        label: "CPU",
+                        label: "CPU load",
                         enabled: $settingsModel.settings.warningThresholds.cpuEnabled,
                         value: $settingsModel.settings.warningThresholds.cpuPercent,
                         unit: "%",
                         range: 1...100
                     )
                     ThresholdRowView(
-                        label: "Temperature",
+                        label: "CPU temperature",
                         enabled: $settingsModel.settings.warningThresholds.temperatureEnabled,
                         value: temperatureThresholdBinding,
                         unit: temperatureThresholdUnit,
                         range: temperatureThresholdRange
                     )
                     ThresholdRowView(
-                        label: "Memory",
+                        label: "Memory usage",
                         enabled: $settingsModel.settings.warningThresholds.memoryEnabled,
                         value: $settingsModel.settings.warningThresholds.memoryPercent,
                         unit: "%",

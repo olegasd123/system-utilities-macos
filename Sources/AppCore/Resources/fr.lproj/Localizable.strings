@@ -25,7 +25,7 @@
 "App Uninstaller" = "Désinstalleur";
 "Automatic (OS)" = "Automatique (OS)";
 "Back" = "Retour";
-"Battery below" = "Charge sous";
+"Battery below" = "Charge batterie sous";
 "Battery charge is %d%%. Limit is %d%%." = "Charge de la batterie : %d %%. Limite : %d %%.";
 "Battery status" = "État de la batterie";
 "Battery warning" = "Alerte batterie";
@@ -122,7 +122,7 @@
 "Possible" = "Possible";
 "Preferences" = "Préférences";
 "Preferences..." = "Préférences...";
-"Quit System Monitor" = "Quitter System Monitor";
+"Quit System Monitor" = "Quitter Moniteur système";
 "Ready for cleanup" = "Prêt pour le nettoyage";
 "Reclaim safety" = "Sécurité du nettoyage";
 "Reclaimed %@." = "%@ récupérés.";
@@ -151,7 +151,7 @@
 "Showing largest %d files." = "Affichage des %d plus grands fichiers.";
 "Single line" = "Une ligne";
 "Startup" = "Démarrage";
-"System Monitor" = "System Monitor";
+"System Monitor" = "Moniteur système";
 "Tell me when cleanup is ready" = "Me prévenir quand un nettoyage est prêt";
 "Temp %@" = "Temp %@";
 "Temperature" = "Température";

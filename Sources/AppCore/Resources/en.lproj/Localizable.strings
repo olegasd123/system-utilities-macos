@@ -25,7 +25,7 @@
 "App Uninstaller" = "App Uninstaller";
 "Automatic (OS)" = "Automatic (OS)";
 "Back" = "Back";
-"Battery below" = "Battery below";
+"Battery below" = "Battery charge below";
 "Battery charge is %d%%. Limit is %d%%." = "Battery charge is %d%%. Limit is %d%%.";
 "Battery status" = "Battery status";
 "Battery warning" = "Battery warning";
@@ -58,7 +58,7 @@
 "Delete Permanently" = "Delete Permanently";
 "deleted right away" = "deleted right away";
 "DISK" = "DISK";
-"Disk free below" = "Disk free below";
+"Disk free below" = "Free space below";
 "Disk warning" = "Disk warning";
 "Discharging" = "Discharging";
 "Downloads (older than %d days)" = "Downloads (older than %d days)";

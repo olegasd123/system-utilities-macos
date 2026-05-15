@@ -1,6 +1,6 @@
 "%@ Settings" = "Настройки %@";
 "%@ of %@" = "%@ из %@";
-"%@ remaining" = "осталось %@";
+"%@ remaining" = "Осталось %@";
 "%@ until full" = "%@ до полной зарядки";
 "%d active" = "%d активны";
 "%d cores" = "%d ядер";
@@ -25,7 +25,7 @@
 "App Uninstaller" = "Удаление приложений";
 "Automatic (OS)" = "Авто (ОС)";
 "Back" = "Назад";
-"Battery below" = "Заряд ниже";
+"Battery below" = "Заряд батареи ниже";
 "Battery charge is %d%%. Limit is %d%%." = "Заряд батареи: %d %%. Лимит: %d %%.";
 "Battery status" = "Статус батареи";
 "Battery warning" = "Предупреждение о батарее";
@@ -122,7 +122,7 @@
 "Possible" = "Возможно";
 "Preferences" = "Настройки";
 "Preferences..." = "Настройки...";
-"Quit System Monitor" = "Выйти из System Monitor";
+"Quit System Monitor" = "Выйти из Монитора системы";
 "Ready for cleanup" = "Готово к очистке";
 "Reclaim safety" = "Безопасность очистки";
 "Reclaimed %@." = "Освобождено %@.";
@@ -151,7 +151,7 @@
 "Showing largest %d files." = "Показаны самые большие файлы: %d.";
 "Single line" = "Одна строка";
 "Startup" = "Запуск";
-"System Monitor" = "System Monitor";
+"System Monitor" = "Монитор системы";
 "Tell me when cleanup is ready" = "Сообщать, когда очистка готова";
 "Temp %@" = "Темп. %@";
 "Temperature" = "Температура";
