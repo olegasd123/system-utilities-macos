@@ -20,7 +20,12 @@ enum SensorCardFormatter {
 
         return visibleTemperatures
             .map {
-                "\(localization($0.label)) \(SystemFormatters.temperature($0.temperatureC, unit: temperatureUnit))"
+                let temperature = SystemFormatters.temperature(
+                    $0.temperatureC,
+                    unit: temperatureUnit,
+                    localization: localization
+                )
+                return "\(localization($0.label)) \(temperature)"
             }
             .joined(separator: "\n")
     }

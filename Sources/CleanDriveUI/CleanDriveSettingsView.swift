@@ -122,15 +122,23 @@ struct CleanDriveSettingsView: View {
                     HStack {
                         Text(localization("Threshold"))
                         Slider(value: thresholdGBBinding, in: 1...20, step: 1)
-                        Text("\(Int(thresholdGBBinding.wrappedValue)) GB")
+                        Text(
+                            AppFormatters.compactBytes(
+                                settingsModel.settings.reminders.thresholdBytes,
+                                localization: localization
+                            )
+                        )
                             .monospacedDigit()
                             .frame(width: 44, alignment: .trailing)
                     }
 
                     Stepper(
                         localization(
-                            "Minimum gap: %d h",
-                            settingsModel.settings.reminders.minHoursBetweenReminders
+                            "Minimum gap: %@",
+                            AppFormatters.duration(
+                                UInt64(settingsModel.settings.reminders.minHoursBetweenReminders * 60 * 60),
+                                localization: localization
+                            )
                         ),
                         value: $settingsModel.settings.reminders.minHoursBetweenReminders,
                         in: 1...168

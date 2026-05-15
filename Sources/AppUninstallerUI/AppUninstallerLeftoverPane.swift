@@ -47,7 +47,7 @@ struct AppUninstallerLeftoverPane: View {
                 Spacer(minLength: 8)
 
                 if let result {
-                    Text(AppUninstallerFormatter.bytes(leftoverBytes(result)))
+                    Text(AppUninstallerFormatter.bytes(leftoverBytes(result), localization: localization))
                         .font(.system(size: 10, weight: .medium))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
@@ -166,7 +166,7 @@ struct AppUninstallerLeftoverPane: View {
 
             Spacer(minLength: 6)
 
-            Text(AppUninstallerFormatter.bytes(candidate.size))
+            Text(AppUninstallerFormatter.bytes(candidate.size, localization: localization))
                 .font(.system(size: 10, weight: .medium))
                 .monospacedDigit()
                 .frame(width: 58, alignment: .trailing)

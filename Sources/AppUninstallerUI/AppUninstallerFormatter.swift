@@ -1,10 +1,13 @@
-import Foundation
+import AppCore
 
 enum AppUninstallerFormatter {
-    static func bytes(_ bytes: UInt64) -> String {
+    static func bytes(
+        _ bytes: UInt64,
+        localization: AppLocalization = AppLocalization(selection: .english)
+    ) -> String {
         if bytes == 0 {
-            return "0 KB"
+            return AppFormatters.bytes(0, localization: localization)
         }
-        return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+        return AppFormatters.bytes(bytes, localization: localization)
     }
 }

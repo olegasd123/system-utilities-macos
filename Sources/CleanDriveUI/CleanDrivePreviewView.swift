@@ -51,7 +51,7 @@ struct CleanDrivePreviewView: View {
     private func previewSummary(for category: CleanDriveCategorySnapshot) -> some View {
         HStack(spacing: 8) {
             Label(
-                CleanDriveFormatter.bytes(category.totalBytes),
+                CleanDriveFormatter.bytes(category.totalBytes, localization: localization),
                 systemImage: category.symbolName
             )
 
@@ -144,7 +144,7 @@ struct CleanDrivePreviewView: View {
 
             Spacer(minLength: 8)
 
-            Text(CleanDriveFormatter.bytes(item.size))
+            Text(CleanDriveFormatter.bytes(item.size, localization: localization))
                 .font(.system(size: 11, weight: .medium))
                 .monospacedDigit()
                 .frame(minWidth: 58, alignment: .trailing)

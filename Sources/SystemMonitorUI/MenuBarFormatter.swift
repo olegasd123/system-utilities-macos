@@ -57,7 +57,13 @@ public enum MenuBarFormatter {
                     MenuBarStatusLine(
                         segments: [
                             MenuBarStatusSegment(text: "--", reservedText: "100%"),
-                            MenuBarStatusSegment(text: "--", reservedText: "999.9MB")
+                            MenuBarStatusSegment(
+                                text: "--",
+                                reservedText: reservedNetworkRate(
+                                    units: settings.networkUnits,
+                                    localization: localization
+                                )
+                            )
                         ]
                     )
                 ]
@@ -115,10 +121,18 @@ public enum MenuBarFormatter {
         }
 
         if menuBar.showTemperature, let temperature = snapshot.cpu.temperatureC {
-            let value = compactTemperature(temperature, unit: temperatureUnit)
+            let value = compactTemperature(
+                temperature,
+                unit: temperatureUnit,
+                localization: localization
+            )
             parts.append(
                 MenuBarPart(
-                    singleLineText: SystemFormatters.temperature(temperature, unit: temperatureUnit),
+                    singleLineText: SystemFormatters.temperature(
+                        temperature,
+                        unit: temperatureUnit,
+                        localization: localization
+                    ),
                     singleLineReservedText: reservedTemperature(unit: temperatureUnit),
                     symbolName: "thermometer.medium",
                     fallbackPrefix: "TEMP",
@@ -147,17 +161,20 @@ public enum MenuBarFormatter {
         }
 
         if menuBar.showDiskFree, let disk = primaryDisk(from: snapshot.disks) {
-            let value = SystemFormatters.compactBytes(disk.availableBytes)
+            let value = SystemFormatters.compactBytes(
+                disk.availableBytes,
+                localization: localization
+            )
             parts.append(
                 MenuBarPart(
                     singleLineText: value,
-                    singleLineReservedText: "9999.9GB",
+                    singleLineReservedText: reservedDiskSpace(localization: localization),
                     symbolName: "internaldrive",
                     fallbackPrefix: "DISK",
                     twoLineTopText: diskLabel,
                     twoLineTopReservedText: diskLabel,
                     twoLineBottomText: value,
-                    twoLineBottomReservedText: "9999.9GB"
+                    twoLineBottomReservedText: reservedDiskSpace(localization: localization)
                 )
             )
         }
@@ -182,17 +199,26 @@ public enum MenuBarFormatter {
         if menuBar.showNetworkSpeed {
             let down = SystemFormatters.compactRate(
                 snapshot.network.rxBytesPerSec,
-                units: settings.networkUnits
+                units: settings.networkUnits,
+                localization: localization
             )
             let up = SystemFormatters.compactRate(
                 snapshot.network.txBytesPerSec,
-                units: settings.networkUnits
+                units: settings.networkUnits,
+                localization: localization
             )
-            let reservedRate = reservedNetworkRate(units: settings.networkUnits)
+            let reservedRate = reservedNetworkRate(
+                units: settings.networkUnits,
+                localization: localization
+            )
             switch settings.networkDisplay {
             case .greater:
                 let (symbol, rate) = greaterNetworkRate(snapshot.network)
-                let value = SystemFormatters.compactRate(rate, units: settings.networkUnits)
+                let value = SystemFormatters.compactRate(
+                    rate,
+                    units: settings.networkUnits,
+                    localization: localization
+                )
                 parts.append(
                     MenuBarPart(
                         singleLineText: "\(symbol) \(value)",
@@ -274,7 +300,8 @@ public enum MenuBarFormatter {
             case .combined:
                 let combined = SystemFormatters.compactRate(
                     combinedNetworkBytesPerSecond(snapshot.network),
-                    units: settings.networkUnits
+                    units: settings.networkUnits,
+                    localization: localization
                 )
                 parts.append(
                     MenuBarPart(
@@ -363,12 +390,16 @@ public enum MenuBarFormatter {
         }
     }
 
-    private static func compactTemperature(_ celsius: Double, unit: TemperatureUnit) -> String {
+    private static func compactTemperature(
+        _ celsius: Double,
+        unit: TemperatureUnit,
+        localization: AppLocalization
+    ) -> String {
         switch unit {
         case .celsius:
-            return "\(Int(celsius.rounded()))C"
+            return "\(Int(celsius.rounded()))\(localization("Unit celsius short"))"
         case .fahrenheit:
-            return "\(Int((celsius * 9 / 5 + 32).rounded()))F"
+            return "\(Int((celsius * 9 / 5 + 32).rounded()))\(localization("Unit fahrenheit short"))"
         }
     }
 
@@ -381,12 +412,19 @@ public enum MenuBarFormatter {
         }
     }
 
-    private static func reservedNetworkRate(units: NetworkUnits) -> String {
+    private static func reservedDiskSpace(localization: AppLocalization) -> String {
+        "9999.9\(localization("Unit gigabyte compact"))"
+    }
+
+    private static func reservedNetworkRate(
+        units: NetworkUnits,
+        localization: AppLocalization
+    ) -> String {
         switch units {
         case .bytesPerSecond:
-            return "999.9MB"
+            return "999.9\(localization("Unit megabyte compact"))"
         case .bitsPerSecond:
-            return "999.9Mb"
+            return "999.9\(localization("Unit megabit compact"))"
         }
     }
 

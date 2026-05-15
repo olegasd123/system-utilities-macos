@@ -139,7 +139,14 @@ public struct DashboardView: View {
             return localization("Waiting for samples")
         }
         if let temperature = snapshot.cpu.temperatureC {
-            return localization("Temp %@", SystemFormatters.temperature(temperature, unit: temperatureUnit))
+            return localization(
+                "Temp %@",
+                SystemFormatters.temperature(
+                    temperature,
+                    unit: temperatureUnit,
+                    localization: localization
+                )
+            )
         }
         return localization("%d cores", snapshot.cpu.coreCount)
     }
@@ -157,8 +164,8 @@ public struct DashboardView: View {
         }
         return localization(
             "%@ of %@",
-            SystemFormatters.bytes(snapshot.memory.usedBytes),
-            SystemFormatters.bytes(snapshot.memory.totalBytes, decimals: 0)
+            SystemFormatters.bytes(snapshot.memory.usedBytes, localization: localization),
+            SystemFormatters.bytes(snapshot.memory.totalBytes, decimals: 0, localization: localization)
         )
     }
 
@@ -173,11 +180,21 @@ public struct DashboardView: View {
         guard let primaryDisk else {
             return localization("Waiting for samples")
         }
-        let freeSpace = "\(primaryDisk.name) · \(SystemFormatters.bytes(primaryDisk.availableBytes, decimals: 0))"
+        let availableBytes = SystemFormatters.bytes(
+            primaryDisk.availableBytes,
+            decimals: 0,
+            localization: localization
+        )
+        let freeSpace = "\(primaryDisk.name) · \(availableBytes)"
         guard let storageTemperature else {
             return freeSpace
         }
-        return "\(freeSpace)\n\(localization("Temp %@", SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit)))"
+        let temperature = SystemFormatters.temperature(
+            storageTemperature.temperatureC,
+            unit: temperatureUnit,
+            localization: localization
+        )
+        return "\(freeSpace)\n\(localization("Temp %@", temperature))"
     }
 
     private var storageTemperature: TemperatureSample? {
@@ -193,9 +210,9 @@ public struct DashboardView: View {
 
     private var networkValue: String {
         guard let snapshot else {
-            return "↓ -- B/s"
+            return "↓ -- \(localization("Unit byte per second"))"
         }
-        return "↓ \(SystemFormatters.rate(snapshot.network.rxBytesPerSec))"
+        return "↓ \(SystemFormatters.rate(snapshot.network.rxBytesPerSec, localization: localization))"
     }
 
     private var networkLabel: String {
@@ -204,10 +221,10 @@ public struct DashboardView: View {
 
     private var networkSubtitle: String {
         guard let network = snapshot?.network else {
-            return "↑ -- B/s"
+            return "↑ -- \(localization("Unit byte per second"))"
         }
 
-        return "↑ \(SystemFormatters.rate(network.txBytesPerSec))"
+        return "↑ \(SystemFormatters.rate(network.txBytesPerSec, localization: localization))"
     }
 
     private var networkTotalsFooter: AnyView? {
@@ -217,8 +234,14 @@ public struct DashboardView: View {
 
         return AnyView(
             HStack(spacing: 8) {
-                Label(SystemFormatters.bytes(networkTotals.rxBytes), systemImage: "arrow.down")
-                Label(SystemFormatters.bytes(networkTotals.txBytes), systemImage: "arrow.up")
+                Label(
+                    SystemFormatters.bytes(networkTotals.rxBytes, localization: localization),
+                    systemImage: "arrow.down"
+                )
+                Label(
+                    SystemFormatters.bytes(networkTotals.txBytes, localization: localization),
+                    systemImage: "arrow.up"
+                )
 
                 Spacer(minLength: 0)
 
@@ -316,14 +339,33 @@ public struct DashboardView: View {
     private func batterySubtitle(_ battery: BatterySample) -> String {
         var lines: [String] = []
         if battery.state == .charging, let seconds = battery.timeToFullSecs {
-            lines.append(localization("%@ until full", SystemFormatters.duration(seconds)))
+            lines.append(
+                localization(
+                    "%@ until full",
+                    SystemFormatters.duration(seconds, localization: localization)
+                )
+            )
         } else if let seconds = battery.timeToEmptySecs {
-            lines.append(localization("%@ remaining", SystemFormatters.duration(seconds)))
+            lines.append(
+                localization(
+                    "%@ remaining",
+                    SystemFormatters.duration(seconds, localization: localization)
+                )
+            )
         } else {
             lines.append(batteryStateLabel(battery.state))
         }
         if let temperature = battery.temperatureC {
-            lines.append(localization("Temp %@", SystemFormatters.temperature(temperature, unit: temperatureUnit)))
+            lines.append(
+                localization(
+                    "Temp %@",
+                    SystemFormatters.temperature(
+                        temperature,
+                        unit: temperatureUnit,
+                        localization: localization
+                    )
+                )
+            )
         }
         return lines.joined(separator: "\n")
     }

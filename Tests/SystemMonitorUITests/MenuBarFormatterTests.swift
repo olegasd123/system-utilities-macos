@@ -96,7 +96,7 @@ final class MenuBarFormatterTests: XCTestCase {
 
         XCTAssertEqual(lines, [
             "ЦПУ  ТЕМП  ОЗУ  ДИСК  АКБ  СЕТЬ↓",
-            "42%  55C  60%  512.0GB  78%  2.0KB"
+            "42%  55C  60%  512,0ГБ  78%  2,0КБ"
         ])
     }
 

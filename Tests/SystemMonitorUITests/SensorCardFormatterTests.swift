@@ -60,9 +60,9 @@ final class SensorCardFormatterTests: XCTestCase {
         )
 
         XCTAssertEqual(subtitle, [
-            "Главный чип 70.0 C",
-            "Питание 50.0 C",
-            "Накопитель 42.0 C"
+            "Главный чип 70,0 C",
+            "Питание 50,0 C",
+            "Накопитель 42,0 C"
         ].joined(separator: "\n"))
     }
 

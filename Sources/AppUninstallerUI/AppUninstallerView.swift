@@ -99,7 +99,7 @@ struct AppUninstallerView: View {
 
                 Spacer(minLength: 8)
 
-                Text(AppUninstallerFormatter.bytes(app.bundleSize))
+                Text(AppUninstallerFormatter.bytes(app.bundleSize, localization: localization))
                     .font(.system(size: 10, weight: .medium))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
@@ -169,7 +169,7 @@ struct AppUninstallerView: View {
 
             Spacer()
 
-            Text(AppUninstallerFormatter.bytes(model.selectedBytes))
+            Text(AppUninstallerFormatter.bytes(model.selectedBytes, localization: localization))
                 .font(.system(size: 11, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
@@ -192,11 +192,14 @@ struct AppUninstallerView: View {
 
     private func reportSummary(_ report: ReclaimReport) -> String {
         if report.failures.isEmpty {
-            return localization("Reclaimed %@.", AppUninstallerFormatter.bytes(report.bytesReclaimed))
+            return localization(
+                "Reclaimed %@.",
+                AppUninstallerFormatter.bytes(report.bytesReclaimed, localization: localization)
+            )
         }
         return localization(
             "Reclaimed %@. %d failed.",
-            AppUninstallerFormatter.bytes(report.bytesReclaimed),
+            AppUninstallerFormatter.bytes(report.bytesReclaimed, localization: localization),
             report.failures.count
         )
     }

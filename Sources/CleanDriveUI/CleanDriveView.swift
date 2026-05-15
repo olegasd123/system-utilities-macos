@@ -100,7 +100,7 @@ struct CleanDriveView: View {
 
     private var summary: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(CleanDriveFormatter.bytes(model.totalBytes))
+            Text(CleanDriveFormatter.bytes(model.totalBytes, localization: localization))
                 .font(.system(size: 34, weight: .semibold))
                 .monospacedDigit()
                 .lineLimit(1)
@@ -193,7 +193,7 @@ struct CleanDriveView: View {
                     showFilesButton(for: category)
                 }
 
-                Text(CleanDriveFormatter.bytes(category.totalBytes))
+                Text(CleanDriveFormatter.bytes(category.totalBytes, localization: localization))
                     .font(.system(size: 12, weight: .medium))
                     .monospacedDigit()
                     .foregroundStyle(category.totalBytes == 0 ? .secondary : .primary)
@@ -331,11 +331,14 @@ struct CleanDriveView: View {
 
     private func cleanupSummary(_ report: ReclaimReport) -> String {
         if report.failures.isEmpty {
-            return localization("Reclaimed %@.", CleanDriveFormatter.bytes(report.bytesReclaimed))
+            return localization(
+                "Reclaimed %@.",
+                CleanDriveFormatter.bytes(report.bytesReclaimed, localization: localization)
+            )
         }
         return localization(
             "Reclaimed %@. %d failed.",
-            CleanDriveFormatter.bytes(report.bytesReclaimed),
+            CleanDriveFormatter.bytes(report.bytesReclaimed, localization: localization),
             report.failures.count
         )
     }
