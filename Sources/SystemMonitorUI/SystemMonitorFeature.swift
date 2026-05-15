@@ -35,17 +35,23 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
         self.general = general
         self.model = model
 
-        let unitStream = general.publisher
-            .map(\.temperatureUnit)
+        let generalStream: AnyPublisher<MenuBarGeneralContext, Never> = general.publisher
+            .map { settings in
+                MenuBarGeneralContext(
+                    temperatureUnit: settings.temperatureUnit,
+                    language: settings.language
+                )
+            }
             .removeDuplicates()
             .eraseToAnyPublisher()
 
-        Publishers.CombineLatest3(model.$snapshot, settings.publisher, unitStream)
-            .map { snapshot, settings, unit in
+        Publishers.CombineLatest3(model.$snapshot, settings.publisher, generalStream)
+            .map { snapshot, settings, general in
                 MenuBarFormatter.statusLines(
                     snapshot: snapshot,
                     settings: settings,
-                    temperatureUnit: unit
+                    temperatureUnit: general.temperatureUnit,
+                    localization: AppLocalization(selection: general.language)
                 )
             }
             .removeDuplicates()
@@ -147,4 +153,9 @@ public final class SystemMonitorFeature: ObservableObject, PopoverFeature, MenuB
             )
         )
     }
+}
+
+private struct MenuBarGeneralContext: Equatable {
+    var temperatureUnit: TemperatureUnit
+    var language: AppLanguage
 }

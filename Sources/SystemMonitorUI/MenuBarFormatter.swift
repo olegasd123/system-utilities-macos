@@ -7,36 +7,50 @@ public enum MenuBarFormatter {
     public static func title(
         snapshot: Snapshot?,
         settings: SystemMonitorSettings,
-        temperatureUnit: TemperatureUnit
+        temperatureUnit: TemperatureUnit,
+        localization: AppLocalization = AppLocalization(selection: .english)
     ) -> String {
-        lines(snapshot: snapshot, settings: settings, temperatureUnit: temperatureUnit)
+        lines(
+            snapshot: snapshot,
+            settings: settings,
+            temperatureUnit: temperatureUnit,
+            localization: localization
+        )
             .joined(separator: "  ")
     }
 
     public static func lines(
         snapshot: Snapshot?,
         settings: SystemMonitorSettings,
-        temperatureUnit: TemperatureUnit
+        temperatureUnit: TemperatureUnit,
+        localization: AppLocalization = AppLocalization(selection: .english)
     ) -> [String] {
-        statusLines(snapshot: snapshot, settings: settings, temperatureUnit: temperatureUnit)
+        statusLines(
+            snapshot: snapshot,
+            settings: settings,
+            temperatureUnit: temperatureUnit,
+            localization: localization
+        )
             .map(\.text)
     }
 
     public static func statusLines(
         snapshot: Snapshot?,
         settings: SystemMonitorSettings,
-        temperatureUnit: TemperatureUnit
+        temperatureUnit: TemperatureUnit,
+        localization: AppLocalization = AppLocalization(selection: .english)
     ) -> [MenuBarStatusLine] {
         guard hasSelectedMenuBarMetric(settings.menuBar) else {
             return []
         }
 
         guard let snapshot else {
+            let cpuLabel = shortTrayLabel("Tray CPU", localization: localization)
             return settings.menuBar.displayMode == .twoLine
                 ? [
                     MenuBarStatusLine(
                         segments: [
-                            MenuBarStatusSegment(text: "CPU", reservedText: "CPU"),
+                            MenuBarStatusSegment(text: cpuLabel, reservedText: cpuLabel),
                             MenuBarStatusSegment(text: "↕", reservedText: "↕")
                         ]
                     ),
@@ -53,7 +67,8 @@ public enum MenuBarFormatter {
         let parts = makeParts(
             snapshot: snapshot,
             settings: settings,
-            temperatureUnit: temperatureUnit
+            temperatureUnit: temperatureUnit,
+            localization: localization
         )
 
         guard !parts.isEmpty else {
@@ -71,10 +86,17 @@ public enum MenuBarFormatter {
     private static func makeParts(
         snapshot: Snapshot,
         settings: SystemMonitorSettings,
-        temperatureUnit: TemperatureUnit
+        temperatureUnit: TemperatureUnit,
+        localization: AppLocalization
     ) -> [MenuBarPart] {
         var parts: [MenuBarPart] = []
         let menuBar = settings.menuBar
+        let cpuLabel = shortTrayLabel("Tray CPU", localization: localization)
+        let temperatureLabel = shortTrayLabel("Tray temperature", localization: localization)
+        let memoryLabel = shortTrayLabel("Tray memory", localization: localization)
+        let diskLabel = shortTrayLabel("Tray disk", localization: localization)
+        let batteryLabel = shortTrayLabel("Tray battery", localization: localization)
+        let networkLabel = shortTrayLabel("Tray network", localization: localization)
 
         if menuBar.showCpuLoad {
             let value = "\(Int(snapshot.cpu.usagePercent.rounded()))%"
@@ -84,8 +106,8 @@ public enum MenuBarFormatter {
                     singleLineReservedText: "100%",
                     symbolName: "cpu",
                     fallbackPrefix: "CPU",
-                    twoLineTopText: "CPU",
-                    twoLineTopReservedText: "CPU",
+                    twoLineTopText: cpuLabel,
+                    twoLineTopReservedText: cpuLabel,
                     twoLineBottomText: value,
                     twoLineBottomReservedText: "100%"
                 )
@@ -100,8 +122,8 @@ public enum MenuBarFormatter {
                     singleLineReservedText: reservedTemperature(unit: temperatureUnit),
                     symbolName: "thermometer.medium",
                     fallbackPrefix: "TEMP",
-                    twoLineTopText: "TEMP",
-                    twoLineTopReservedText: "TEMP",
+                    twoLineTopText: temperatureLabel,
+                    twoLineTopReservedText: temperatureLabel,
                     twoLineBottomText: value,
                     twoLineBottomReservedText: compactReservedTemperature(unit: temperatureUnit)
                 )
@@ -116,8 +138,8 @@ public enum MenuBarFormatter {
                     singleLineReservedText: "100%",
                     symbolName: "memorychip",
                     fallbackPrefix: "RAM",
-                    twoLineTopText: "RAM",
-                    twoLineTopReservedText: "RAM",
+                    twoLineTopText: memoryLabel,
+                    twoLineTopReservedText: memoryLabel,
                     twoLineBottomText: value,
                     twoLineBottomReservedText: "100%"
                 )
@@ -132,8 +154,8 @@ public enum MenuBarFormatter {
                     singleLineReservedText: "9999.9GB",
                     symbolName: "internaldrive",
                     fallbackPrefix: "DISK",
-                    twoLineTopText: "DISK",
-                    twoLineTopReservedText: "DISK",
+                    twoLineTopText: diskLabel,
+                    twoLineTopReservedText: diskLabel,
                     twoLineBottomText: value,
                     twoLineBottomReservedText: "9999.9GB"
                 )
@@ -142,7 +164,7 @@ public enum MenuBarFormatter {
 
         if menuBar.showBattery, let battery = snapshot.battery {
             let percent = "\(Int(battery.chargePercent.rounded()))%"
-            let label = battery.state == .charging ? "BAT ⚡" : "BAT"
+            let label = battery.state == .charging ? "\(batteryLabel)⚡" : batteryLabel
             parts.append(
                 MenuBarPart(
                     singleLineText: percent,
@@ -150,7 +172,7 @@ public enum MenuBarFormatter {
                     symbolName: BatterySymbol.name(for: battery),
                     fallbackPrefix: "BAT",
                     twoLineTopText: label,
-                    twoLineTopReservedText: "BAT ⚡",
+                    twoLineTopReservedText: "\(batteryLabel)⚡",
                     twoLineBottomText: percent,
                     twoLineBottomReservedText: "100%"
                 )
@@ -177,8 +199,8 @@ public enum MenuBarFormatter {
                         singleLineReservedText: "↓ \(reservedRate)",
                         symbolName: nil,
                         fallbackPrefix: nil,
-                        twoLineTopText: "NET \(symbol)",
-                        twoLineTopReservedText: "NET ↓",
+                        twoLineTopText: "\(networkLabel)\(symbol)",
+                        twoLineTopReservedText: "\(networkLabel)↓",
                         twoLineBottomText: value,
                         twoLineBottomReservedText: reservedRate
                     )
@@ -230,8 +252,8 @@ public enum MenuBarFormatter {
                         singleLineReservedText: "↑ \(reservedRate)",
                         symbolName: nil,
                         fallbackPrefix: nil,
-                        twoLineTopText: "NET ↑",
-                        twoLineTopReservedText: "NET ↑",
+                        twoLineTopText: "\(networkLabel)↑",
+                        twoLineTopReservedText: "\(networkLabel)↑",
                         twoLineBottomText: up,
                         twoLineBottomReservedText: reservedRate
                     )
@@ -243,8 +265,8 @@ public enum MenuBarFormatter {
                         singleLineReservedText: "↓ \(reservedRate)",
                         symbolName: nil,
                         fallbackPrefix: nil,
-                        twoLineTopText: "NET ↓",
-                        twoLineTopReservedText: "NET ↓",
+                        twoLineTopText: "\(networkLabel)↓",
+                        twoLineTopReservedText: "\(networkLabel)↓",
                         twoLineBottomText: down,
                         twoLineBottomReservedText: reservedRate
                     )
@@ -260,8 +282,8 @@ public enum MenuBarFormatter {
                         singleLineReservedText: "↕ \(reservedRate)",
                         symbolName: nil,
                         fallbackPrefix: nil,
-                        twoLineTopText: "NET ↕",
-                        twoLineTopReservedText: "NET ↕",
+                        twoLineTopText: "\(networkLabel)↕",
+                        twoLineTopReservedText: "\(networkLabel)↕",
                         twoLineBottomText: combined,
                         twoLineBottomReservedText: reservedRate
                     )
@@ -379,6 +401,10 @@ public enum MenuBarFormatter {
         }
 
         return ("↓", network.rxBytesPerSec)
+    }
+
+    private static func shortTrayLabel(_ key: String, localization: AppLocalization) -> String {
+        String(localization(key).prefix(4))
     }
 }
 

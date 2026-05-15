@@ -82,6 +82,24 @@ final class MenuBarFormatterTests: XCTestCase {
         ])
     }
 
+    func testTwoLineLabelsUseShortLocalization() {
+        var settings = allMetricsSettings
+        settings.menuBar.displayMode = .twoLine
+        settings.networkDisplay = .greater
+
+        let lines = MenuBarFormatter.lines(
+            snapshot: sampleSnapshot,
+            settings: settings,
+            temperatureUnit: .celsius,
+            localization: AppLocalization(selection: .russian)
+        )
+
+        XCTAssertEqual(lines, [
+            "ЦПУ  ТЕМП  ОЗУ  ДИСК  АКБ  СЕТЬ↓",
+            "42%  55C  60%  512.0GB  78%  2.0KB"
+        ])
+    }
+
     func testStatusLineSegmentsIncludeSymbolsAndReservedText() {
         var settings = SystemMonitorSettings.defaultValue
         settings.menuBar.showTemperature = false

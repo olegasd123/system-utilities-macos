@@ -106,6 +106,12 @@
 "Network display" = "Показ сети";
 "Network speed" = "Скорость сети";
 "Network unit" = "Единица скорости сети";
+"Tray battery" = "АКБ";
+"Tray CPU" = "ЦПУ";
+"Tray disk" = "ДИСК";
+"Tray memory" = "ОЗУ";
+"Tray network" = "СЕТЬ";
+"Tray temperature" = "ТЕМП";
 "No apps found." = "Приложения не найдены.";
 "No custom folders." = "Своих папок нет.";
 "No fan data" = "Нет данных вентилятора";

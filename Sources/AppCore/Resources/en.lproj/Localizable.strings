@@ -106,6 +106,12 @@
 "Network display" = "Network display";
 "Network speed" = "Network speed";
 "Network unit" = "Network unit";
+"Tray battery" = "BAT";
+"Tray CPU" = "CPU";
+"Tray disk" = "DISK";
+"Tray memory" = "RAM";
+"Tray network" = "NET";
+"Tray temperature" = "TEMP";
 "No apps found." = "No apps found.";
 "No custom folders." = "No custom folders.";
 "No fan data" = "No fan data";

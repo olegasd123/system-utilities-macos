@@ -106,6 +106,12 @@
 "Network display" = "Affichage réseau";
 "Network speed" = "Vitesse réseau";
 "Network unit" = "Unité de débit réseau";
+"Tray battery" = "BAT";
+"Tray CPU" = "CPU";
+"Tray disk" = "DISQ";
+"Tray memory" = "MEM";
+"Tray network" = "RÉS";
+"Tray temperature" = "TEMP";
 "No apps found." = "Aucune app trouvée.";
 "No custom folders." = "Aucun dossier personnalisé.";
 "No fan data" = "Aucune donnée ventilateur";
