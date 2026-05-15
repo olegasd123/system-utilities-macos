@@ -6,6 +6,7 @@
 "%d cores" = "%d cores";
 "%d fan" = "%d fan";
 "%d fans" = "%d fans";
+"%d fans few" = "%d fans";
 "%d found" = "%d found";
 "%d item" = "%d item";
 "%d item found" = "%d item found";
@@ -69,6 +70,7 @@
 "English" = "English";
 "Exact match" = "Exact match";
 "Fahrenheit" = "Fahrenheit";
+"Fan %d" = "Fan %d";
 "FANS" = "FANS";
 "Files" = "Files";
 "Files are removed right away. This cannot be undone." = "Files are removed right away. This cannot be undone.";
@@ -88,6 +90,7 @@
 "Language" = "Language";
 "Leftovers" = "Leftovers";
 "Log files" = "Log files";
+"Main Chip" = "Main Chip";
 "Lots of modules enabled. The menu bar may run out of room." = "Lots of modules enabled. The menu bar may run out of room.";
 "Mail cache" = "Mail cache";
 "MEMORY" = "MEMORY";
@@ -116,6 +119,7 @@
 "Open Login Items" = "Open Login Items";
 "Open when Mac starts" = "Open when Mac starts";
 "Performance Cores" = "Performance Cores";
+"Power System" = "Power System";
 "Permanently delete" = "Permanently delete";
 "Permanently delete app?" = "Permanently delete app?";
 "Permanently delete selected items?" = "Permanently delete selected items?";
@@ -130,6 +134,7 @@
 "Related" = "Related";
 "Remove folder" = "Remove folder";
 "Reset network totals" = "Reset network totals";
+"RPM" = "RPM";
 "Russian" = "Russian";
 "Scan /Library paths" = "Scan /Library paths";
 "Scan again" = "Scan again";
@@ -148,6 +153,7 @@
 "Show in the menu bar" = "Show in the menu bar";
 "Show leftovers" = "Show leftovers";
 "Show possible name matches" = "Show possible name matches";
+"Storage" = "Storage";
 "Showing largest %d files." = "Showing largest %d files.";
 "Single line" = "Single line";
 "Startup" = "Startup";

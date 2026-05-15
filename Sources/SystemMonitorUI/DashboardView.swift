@@ -250,21 +250,17 @@ public struct DashboardView: View {
     }
 
     private var fanValue: String {
-        guard let snapshot, !snapshot.fans.isEmpty else {
-            return localization("No fan data")
-        }
-        return snapshot.fans.count == 1
-            ? localization("%d fan", snapshot.fans.count)
-            : localization("%d fans", snapshot.fans.count)
+        FanCardFormatter.value(
+            fans: snapshot?.fans ?? [],
+            localization: localization
+        )
     }
 
     private var fanSubtitle: String {
-        guard let snapshot, !snapshot.fans.isEmpty else {
-            return localization("Unavailable")
-        }
-        return snapshot.fans.prefix(2)
-            .map { "\($0.label):  \($0.rpm) RPM" }
-            .joined(separator: "\n")
+        FanCardFormatter.subtitle(
+            fans: snapshot?.fans ?? [],
+            localization: localization
+        )
     }
 
     private var cpuWarning: Bool {

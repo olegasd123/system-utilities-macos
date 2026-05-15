@@ -6,6 +6,7 @@
 "%d cores" = "%d cœurs";
 "%d fan" = "%d ventilateur";
 "%d fans" = "%d ventilateurs";
+"%d fans few" = "%d ventilateurs";
 "%d found" = "%d trouvés";
 "%d item" = "%d élément";
 "%d item found" = "%d élément trouvé";
@@ -69,6 +70,7 @@
 "English" = "Anglais";
 "Exact match" = "Correspondance exacte";
 "Fahrenheit" = "Fahrenheit";
+"Fan %d" = "Ventilateur %d";
 "FANS" = "VENTILATEURS";
 "Files" = "Fichiers";
 "Files are removed right away. This cannot be undone." = "Les fichiers sont supprimés tout de suite. Action irréversible.";
@@ -88,6 +90,7 @@
 "Language" = "Langue";
 "Leftovers" = "Restes";
 "Log files" = "Fichiers journaux";
+"Main Chip" = "Puce principale";
 "Lots of modules enabled. The menu bar may run out of room." = "Beaucoup de modules sont actifs. La barre de menus peut manquer de place.";
 "Mail cache" = "Cache Mail";
 "MEMORY" = "MÉMOIRE";
@@ -116,6 +119,7 @@
 "Open Login Items" = "Ouvrir les éléments de connexion";
 "Open when Mac starts" = "Ouvrir au démarrage du Mac";
 "Performance Cores" = "Cœurs haute performance";
+"Power System" = "Alimentation";
 "Permanently delete" = "Supprimer définitivement";
 "Permanently delete app?" = "Supprimer l’app définitivement ?";
 "Permanently delete selected items?" = "Supprimer les éléments sélectionnés ?";
@@ -130,6 +134,7 @@
 "Related" = "Lié";
 "Remove folder" = "Retirer le dossier";
 "Reset network totals" = "Réinitialiser les totaux réseau";
+"RPM" = "tr/min";
 "Russian" = "Russe";
 "Scan /Library paths" = "Analyser les chemins /Library";
 "Scan again" = "Analyser encore";
@@ -148,6 +153,7 @@
 "Show in the menu bar" = "Afficher dans la barre de menus";
 "Show leftovers" = "Afficher les restes";
 "Show possible name matches" = "Afficher les noms proches";
+"Storage" = "Stockage";
 "Showing largest %d files." = "Affichage des %d plus grands fichiers.";
 "Single line" = "Une ligne";
 "Startup" = "Démarrage";

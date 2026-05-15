@@ -6,6 +6,7 @@
 "%d cores" = "%d ядер";
 "%d fan" = "%d вентилятор";
 "%d fans" = "%d вентиляторов";
+"%d fans few" = "%d вентилятора";
 "%d found" = "найдено %d";
 "%d item" = "%d элемент";
 "%d item found" = "найден %d элемент";
@@ -69,6 +70,7 @@
 "English" = "Английский";
 "Exact match" = "Точное совпадение";
 "Fahrenheit" = "Фаренгейт";
+"Fan %d" = "Вентилятор %d";
 "FANS" = "ВЕНТИЛЯТОРЫ";
 "Files" = "Файлы";
 "Files are removed right away. This cannot be undone." = "Файлы удаляются сразу. Это нельзя отменить.";
@@ -88,6 +90,7 @@
 "Language" = "Язык";
 "Leftovers" = "Остатки";
 "Log files" = "Файлы журналов";
+"Main Chip" = "Главный чип";
 "Lots of modules enabled. The menu bar may run out of room." = "Включено много модулей. В строке меню может не хватить места.";
 "Mail cache" = "Кэш Mail";
 "MEMORY" = "ПАМЯТЬ";
@@ -116,6 +119,7 @@
 "Open Login Items" = "Открыть объекты входа";
 "Open when Mac starts" = "Открывать при запуске Mac";
 "Performance Cores" = "Производительные ядра";
+"Power System" = "Питание";
 "Permanently delete" = "Удалять навсегда";
 "Permanently delete app?" = "Удалить приложение навсегда?";
 "Permanently delete selected items?" = "Удалить выбранные элементы навсегда?";
@@ -130,6 +134,7 @@
 "Related" = "Связано";
 "Remove folder" = "Удалить папку";
 "Reset network totals" = "Сбросить итоги сети";
+"RPM" = "об/мин";
 "Russian" = "Русский";
 "Scan /Library paths" = "Проверять пути /Library";
 "Scan again" = "Проверить снова";
@@ -148,6 +153,7 @@
 "Show in the menu bar" = "Показывать в строке меню";
 "Show leftovers" = "Показать остатки";
 "Show possible name matches" = "Показывать похожие имена";
+"Storage" = "Накопитель";
 "Showing largest %d files." = "Показаны самые большие файлы: %d.";
 "Single line" = "Одна строка";
 "Startup" = "Запуск";
