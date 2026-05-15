@@ -22,6 +22,19 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    public var nativeDisplayName: String {
+        switch self {
+        case .system:
+            return displayNameKey
+        case .english:
+            return "English"
+        case .french:
+            return "Français"
+        case .russian:
+            return "Русский"
+        }
+    }
+
     public var localeIdentifier: String {
         switch self {
         case .system:

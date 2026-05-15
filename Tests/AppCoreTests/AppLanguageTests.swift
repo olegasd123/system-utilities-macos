@@ -38,4 +38,10 @@ final class AppLanguageTests: XCTestCase {
 
         XCTAssertEqual(localization("Language"), "Language")
     }
+
+    func testLanguageNamesUseNativeLabels() {
+        XCTAssertEqual(AppLanguage.english.nativeDisplayName, "English")
+        XCTAssertEqual(AppLanguage.french.nativeDisplayName, "Français")
+        XCTAssertEqual(AppLanguage.russian.nativeDisplayName, "Русский")
+    }
 }

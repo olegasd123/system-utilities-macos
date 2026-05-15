@@ -61,7 +61,7 @@ struct SettingsView: View {
                 selection: $generalSettings.settings.language
             ) {
                 ForEach(AppLanguage.allCases) { language in
-                    Text(localization(language.displayNameKey)).tag(language)
+                    Text(language.nativeDisplayName).tag(language)
                 }
             }
             .pickerStyle(.radioGroup)
