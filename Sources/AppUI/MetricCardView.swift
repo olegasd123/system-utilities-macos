@@ -71,9 +71,7 @@ public struct MetricCardView: View {
             Spacer(minLength: 0)
 
             if let progress {
-                ProgressView(value: max(0, min(progress, 100)), total: 100)
-                    .tint(accent)
-                    .controlSize(.small)
+                MetricProgressBar(value: progress, accent: accent)
             }
 
             footer
@@ -90,5 +88,32 @@ public struct MetricCardView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(warning ? .orange : .secondary.opacity(0.22), lineWidth: 1)
         }
+    }
+}
+
+private struct MetricProgressBar: View {
+    let value: Double
+    let accent: Color
+
+    private let height: CGFloat = 6
+
+    var body: some View {
+        GeometryReader { proxy in
+            let fraction = max(0, min(value, 100)) / 100
+            let fillWidth = proxy.size.width * fraction
+
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(.secondary.opacity(0.22))
+
+                if fillWidth > 0 {
+                    Capsule()
+                        .fill(accent)
+                        .frame(width: fillWidth)
+                }
+            }
+        }
+        .frame(height: height)
+        .accessibilityHidden(true)
     }
 }
