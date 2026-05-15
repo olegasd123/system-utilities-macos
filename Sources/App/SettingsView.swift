@@ -12,10 +12,8 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if focusedFeatureId == nil {
-                    languageSection
-                    startupSection
-                }
+                languageSection
+                startupSection
 
                 ForEach(visibleFeatures, id: \.id) { feature in
                     if let section = feature.makeSettingsSection() {
