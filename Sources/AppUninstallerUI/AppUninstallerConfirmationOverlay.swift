@@ -7,6 +7,7 @@ struct AppUninstallerConfirmationOverlay: View {
     @ObservedObject var model: AppUninstallerModel
     @ObservedObject var settingsModel: SettingsModel<AppUninstallerSettings>
     @Binding var isPresented: Bool
+    let onConfirm: () -> Void
 
     var body: some View {
         ZStack {
@@ -88,6 +89,7 @@ struct AppUninstallerConfirmationOverlay: View {
     }
 
     private func confirmUninstall() {
+        onConfirm()
         isPresented = false
         Task {
             await model.uninstallSelected()

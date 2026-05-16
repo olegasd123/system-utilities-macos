@@ -31,7 +31,8 @@ struct AppUninstallerView: View {
                 AppUninstallerConfirmationOverlay(
                     model: model,
                     settingsModel: settingsModel,
-                    isPresented: $showsConfirmation
+                    isPresented: $showsConfirmation,
+                    onConfirm: collapseLeftovers
                 )
                 .zIndex(1)
             }
@@ -146,9 +147,7 @@ struct AppUninstallerView: View {
     private var footer: some View {
         HStack(spacing: 10) {
             Button {
-                Task {
-                    await model.loadApps()
-                }
+                refreshApps()
             } label: {
                 Image(systemName: "arrow.clockwise")
                     .frame(width: 24, height: 24)
@@ -186,6 +185,19 @@ struct AppUninstallerView: View {
             }
             .keyboardShortcut(.defaultAction)
             .disabled(!model.canUninstall)
+        }
+    }
+
+    private func refreshApps() {
+        collapseLeftovers()
+        Task {
+            await model.loadApps()
+        }
+    }
+
+    private func collapseLeftovers() {
+        withAnimation(.easeInOut(duration: 0.16)) {
+            isLeftoverListExpanded = false
         }
     }
 
