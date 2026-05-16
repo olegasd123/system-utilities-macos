@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "SystemUtilitiesMacOS",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v14)
     ],
@@ -13,13 +14,23 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "App",
-            dependencies: ["AppCore", "AppUI", "CleanDriveUI", "SystemMonitorUI"]
+            dependencies: [
+                "AppCore",
+                "AppUI",
+                "AppUninstallerUI",
+                "CleanDriveUI",
+                "SystemMonitorUI"
+            ]
         ),
         .target(
-            name: "AppCore"
+            name: "AppCore",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .target(
-            name: "AppUI"
+            name: "AppUI",
+            dependencies: ["AppCore"]
         ),
         .target(
             name: "SystemMonitorCore",
@@ -41,6 +52,14 @@ let package = Package(
             dependencies: ["AppCore", "AppUI", "CleanDriveCore"]
         ),
         .target(
+            name: "AppUninstallerCore",
+            dependencies: ["AppCore"]
+        ),
+        .target(
+            name: "AppUninstallerUI",
+            dependencies: ["AppCore", "AppUI", "AppUninstallerCore"]
+        ),
+        .target(
             name: "MacSensorBridge",
             linkerSettings: [
                 .linkedFramework("CoreFoundation"),
@@ -58,6 +77,10 @@ let package = Package(
         .testTarget(
             name: "CleanDriveCoreTests",
             dependencies: ["AppCore", "CleanDriveCore"]
+        ),
+        .testTarget(
+            name: "AppUninstallerCoreTests",
+            dependencies: ["AppCore", "AppUninstallerCore"]
         ),
         .testTarget(
             name: "SystemMonitorUITests",

@@ -7,6 +7,7 @@ public final class SystemMonitorModel: ObservableObject {
     @Published public private(set) var networkTotals: NetworkTotals?
 
     private let settings: SettingsModel<SystemMonitorSettings>
+    private let generalSettings: SettingsModel<GeneralSettings>?
     private let networkTotalsStore: NetworkTotalsStore
     private let metricsSampler = MetricsSampler()
     private let warningService = WarningService()
@@ -16,10 +17,12 @@ public final class SystemMonitorModel: ObservableObject {
 
     public convenience init(
         settings: SettingsModel<SystemMonitorSettings>,
+        generalSettings: SettingsModel<GeneralSettings>? = nil,
         networkTotalsStore: NetworkTotalsStore = .standard
     ) {
         self.init(
             settings: settings,
+            generalSettings: generalSettings,
             networkTotalsStore: networkTotalsStore,
             dateProvider: Date.init
         )
@@ -27,10 +30,12 @@ public final class SystemMonitorModel: ObservableObject {
 
     init(
         settings: SettingsModel<SystemMonitorSettings>,
+        generalSettings: SettingsModel<GeneralSettings>? = nil,
         networkTotalsStore: NetworkTotalsStore,
         dateProvider: @escaping () -> Date = Date.init
     ) {
         self.settings = settings
+        self.generalSettings = generalSettings
         self.networkTotalsStore = networkTotalsStore
         self.dateProvider = dateProvider
         self.networkBaseline = networkTotalsStore.load()
@@ -75,7 +80,15 @@ public final class SystemMonitorModel: ObservableObject {
         if sampledMetrics.contains(.network) {
             updateNetworkTotals(snapshot: snapshot)
         }
-        warningService.evaluate(snapshot: snapshot, settings: settings.settings)
+        warningService.evaluate(
+            snapshot: snapshot,
+            settings: settings.settings,
+            localization: warningLocalization
+        )
+    }
+
+    private var warningLocalization: AppLocalization {
+        AppLocalization(selection: generalSettings?.settings.language ?? .english)
     }
 
     private func updateNetworkTotals(snapshot: Snapshot) {

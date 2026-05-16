@@ -88,17 +88,6 @@ public final class CleanDriveModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    public var userCaches: CleanDriveCategorySnapshot {
-        categories.first { $0.id == .userCaches }
-            ?? CleanDriveCategorySnapshot(
-                id: .userCaches,
-                displayName: "User caches",
-                symbolName: "folder",
-                requiresFullDiskAccess: false,
-                isIncluded: true
-            )
-    }
-
     public var totalBytes: UInt64 {
         categories.reduce(0) { $0 + $1.totalBytes }
     }
@@ -125,10 +114,6 @@ public final class CleanDriveModel: ObservableObject {
         categories
             .filter { $0.isIncluded && !$0.items.isEmpty }
             .map(\.displayName)
-    }
-
-    public func setUserCachesIncluded(_ isIncluded: Bool) {
-        setIncluded(isIncluded, for: .userCaches)
     }
 
     public func setIncluded(_ isIncluded: Bool, for id: CleanDriveCategoryID) {

@@ -1,4 +1,5 @@
 @testable import SystemMonitorUI
+import AppCore
 import SystemMonitorCore
 import XCTest
 
@@ -45,6 +46,24 @@ final class SensorCardFormatterTests: XCTestCase {
             SensorCardFormatter.subtitle(temperatures: [], temperatureUnit: .celsius),
             "Waiting for detailed sensors"
         )
+    }
+
+    func testSubtitleLocalizesFallbackSensorLabels() {
+        let subtitle = SensorCardFormatter.subtitle(
+            temperatures: [
+                sample("Main Chip", 70),
+                sample("Power System", 50),
+                sample("Storage", 42)
+            ],
+            temperatureUnit: .celsius,
+            localization: AppLocalization(selection: .russian)
+        )
+
+        XCTAssertEqual(subtitle, [
+            "Главный чип 70,0 C",
+            "Питание 50,0 C",
+            "Накопитель 42,0 C"
+        ].joined(separator: "\n"))
     }
 
     private func sample(_ label: String, _ temperatureC: Double) -> TemperatureSample {

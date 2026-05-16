@@ -43,6 +43,57 @@ final class MetricsCollectorTests: XCTestCase {
         XCTAssertEqual(snapshot.battery?.temperatureC, 31)
         XCTAssertEqual(snapshot.fans, [FanSample(label: "Fan 1", rpm: 1_200)])
     }
+
+    func testCachesSlowSourcesBetweenRefreshIntervals() {
+        var currentDate = Date(timeIntervalSince1970: 0)
+        let sources = CountingSources()
+        let collector = sources.makeCollector(
+            dateProvider: { currentDate },
+            sampleIntervals: MetricSampleIntervals(disk: 10, battery: 10, sensors: 5)
+        )
+
+        _ = collector.sample(request: .all)
+        currentDate = Date(timeIntervalSince1970: 1)
+        _ = collector.sample(request: .all)
+
+        XCTAssertEqual(sources.cpu.sampleCount, 2)
+        XCTAssertEqual(sources.memory.sampleCount, 2)
+        XCTAssertEqual(sources.network.sampleCount, 2)
+        XCTAssertEqual(sources.disk.sampleCount, 1)
+        XCTAssertEqual(sources.battery.sampleCount, 1)
+        XCTAssertEqual(sources.sensors.sampleCount, 1)
+
+        currentDate = Date(timeIntervalSince1970: 6)
+        _ = collector.sample(request: .all)
+
+        XCTAssertEqual(sources.disk.sampleCount, 1)
+        XCTAssertEqual(sources.battery.sampleCount, 1)
+        XCTAssertEqual(sources.sensors.sampleCount, 2)
+
+        currentDate = Date(timeIntervalSince1970: 11)
+        _ = collector.sample(request: .all)
+
+        XCTAssertEqual(sources.disk.sampleCount, 2)
+        XCTAssertEqual(sources.battery.sampleCount, 2)
+        XCTAssertEqual(sources.sensors.sampleCount, 3)
+    }
+
+    func testSensorCacheRefreshesWhenRequestNeedsMoreDetails() {
+        var currentDate = Date(timeIntervalSince1970: 0)
+        let sources = CountingSources()
+        let collector = sources.makeCollector(
+            dateProvider: { currentDate },
+            sampleIntervals: MetricSampleIntervals(disk: 10, battery: 10, sensors: 5)
+        )
+
+        _ = collector.sample(request: [.temperatures])
+        currentDate = Date(timeIntervalSince1970: 1)
+        let snapshot = collector.sample(request: [.temperatures, .fans])
+
+        XCTAssertEqual(sources.sensors.sampleCount, 2)
+        XCTAssertEqual(sources.sensors.includeFansRequests, [false, true])
+        XCTAssertEqual(snapshot.fans, [FanSample(label: "Fan 1", rpm: 1_200)])
+    }
 }
 
 private final class CountingSources {
@@ -53,14 +104,19 @@ private final class CountingSources {
     let battery = CountingBatterySource()
     let sensors = CountingSensorSource()
 
-    func makeCollector() -> MetricsCollector {
+    func makeCollector(
+        dateProvider: @escaping () -> Date = Date.init,
+        sampleIntervals: MetricSampleIntervals = .defaultValue
+    ) -> MetricsCollector {
         MetricsCollector(
             cpu: cpu,
             memory: memory,
             disk: disk,
             network: network,
             battery: battery,
-            sensors: sensors
+            sensors: sensors,
+            dateProvider: dateProvider,
+            sampleIntervals: sampleIntervals
         )
     }
 }

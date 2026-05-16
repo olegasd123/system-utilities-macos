@@ -35,4 +35,20 @@ final class SystemFormattersTests: XCTestCase {
         XCTAssertEqual(SystemFormatters.compactRate(2048, units: .bytesPerSecond), "2.0KB")
         XCTAssertEqual(SystemFormatters.compactRate(125_000, units: .bitsPerSecond), "1.0Mb")
     }
+
+    func testRussianLocalizationFormatsUnits() {
+        let localization = AppLocalization(selection: .russian)
+
+        XCTAssertEqual(SystemFormatters.bytes(1536, localization: localization), "1,5 КБ")
+        XCTAssertEqual(SystemFormatters.rate(2 * 1024 * 1024, localization: localization), "2,0 МБ/с")
+        XCTAssertEqual(SystemFormatters.duration(3_900, localization: localization), "1 ч 5 мин")
+        XCTAssertEqual(
+            SystemFormatters.compactRate(
+                2048,
+                units: .bytesPerSecond,
+                localization: localization
+            ),
+            "2,0КБ"
+        )
+    }
 }

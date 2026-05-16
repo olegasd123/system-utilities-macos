@@ -1,6 +1,8 @@
+import AppCore
 import SwiftUI
 
 public struct ThresholdRowView: View {
+    @Environment(\.appLocalization) private var localization
     public let label: String
     @Binding public var enabled: Bool
     @Binding public var value: Double
@@ -23,7 +25,7 @@ public struct ThresholdRowView: View {
 
     public var body: some View {
         HStack {
-            Toggle(label, isOn: $enabled)
+            Toggle(localization(label), isOn: $enabled)
 
             Spacer()
 

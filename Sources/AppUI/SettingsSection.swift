@@ -1,6 +1,8 @@
+import AppCore
 import SwiftUI
 
 public struct SettingsSection<Content: View>: View {
+    @Environment(\.appLocalization) private var localization
     private let title: String
     @ViewBuilder private let content: () -> Content
 
@@ -11,7 +13,7 @@ public struct SettingsSection<Content: View>: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(title.uppercased())
+            Text(localization(title).uppercased())
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
 

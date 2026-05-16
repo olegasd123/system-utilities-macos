@@ -15,6 +15,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var statusMenu = makeStatusMenu()
     private var cancellables = Set<AnyCancellable>()
 
+    private var localization: AppLocalization {
+        AppLocalization(selection: composer.generalSettings.settings.language)
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         configureStatusItem()
@@ -28,8 +32,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = item.button {
             button.title = ""
             button.imagePosition = .imageOnly
-            button.toolTip = "System Monitor"
-            button.setAccessibilityLabel("System Monitor")
+            button.toolTip = localization("System Monitor")
+            button.setAccessibilityLabel(localization("System Monitor"))
             button.target = self
             button.action = #selector(statusItemClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -113,11 +117,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.menu = nil
     }
 
-    private func makeStatusMenu() -> NSMenu {
+    private func makeStatusMenu(localization: AppLocalization? = nil) -> NSMenu {
+        let localization = localization ?? self.localization
         let menu = NSMenu()
         menu.addItem(
             NSMenuItem(
-                title: "Preferences...",
+                title: localization("Preferences..."),
                 action: #selector(openPreferences),
                 keyEquivalent: ","
             )
@@ -125,7 +130,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(
             NSMenuItem(
-                title: "Quit System Monitor",
+                title: localization("Quit System Monitor"),
                 action: #selector(quit),
                 keyEquivalent: "q"
             )
@@ -137,7 +142,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func makeFallbackStatusImage() -> NSImage {
         let image = Bundle.main.image(forResource: "AppIcon")
             ?? NSApp.applicationIconImage
-            ?? NSImage(systemSymbolName: "gauge.with.dots.needle.67percent", accessibilityDescription: "System Monitor")
+            ?? NSImage(
+                systemSymbolName: "gauge.with.dots.needle.67percent",
+                accessibilityDescription: localization("System Monitor")
+            )
             ?? NSImage(size: NSSize(width: 18, height: 18))
         let copy = image.copy() as? NSImage ?? image
         copy.size = NSSize(width: 18, height: 18)
@@ -229,6 +237,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.updateFeatureVisibility()
             }
             .store(in: &cancellables)
+
+        composer.generalSettings.publisher
+            .map(\.language)
+            .removeDuplicates()
+            .sink { [weak self] language in
+                self?.updateAppLanguage(selection: language)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateAppLanguage(selection: AppLanguage? = nil) {
+        let localization = AppLocalization(
+            selection: selection ?? composer.generalSettings.settings.language
+        )
+        if let button = statusItem?.button {
+            button.toolTip = localization("System Monitor")
+            button.setAccessibilityLabel(localization("System Monitor"))
+        }
+        statusMenu = makeStatusMenu(localization: localization)
     }
 
     private func updateFeatureVisibility() {

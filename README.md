@@ -3,7 +3,8 @@
 Native macOS menu bar app for system metrics and safe disk cleanup.
 
 The app runs without a Dock icon. It shows compact live metrics in the menu bar
-and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
+and opens a SwiftUI popover for the dashboard, Clean Drive, App Uninstaller,
+and preferences.
 
 ## Requirements
 
@@ -34,7 +35,7 @@ and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
 
 ### Clean Drive
 
-- Reclaimable-space scan in a second popover tab.
+- Reclaimable-space scan in a popover tab.
 - Safe cleanup by default: files move to Trash.
 - Optional permanent delete mode with confirmation.
 - Preview sheet for files found in each category.
@@ -47,6 +48,18 @@ and opens a SwiftUI popover for the dashboard, Clean Drive, and preferences.
 - Per-category settings, reminder settings, and age thresholds for downloads
   and Xcode archives.
 
+### App Uninstaller
+
+- Installed-app list from `/Applications`, `/Applications/Utilities`, and
+  `~/Applications`.
+- Leftover scan for related files in `~/Library` and best-effort `/Library`
+  paths.
+- Conservative matching by bundle ID by default, with optional name matches.
+- Optional user-folder scan for known app-owned dotfiles and folders.
+- Uninstall by moving the app and selected leftovers to Trash by default.
+- Optional permanent delete mode with confirmation.
+- Running apps are asked to quit before removal.
+
 ## Run
 
 ```bash
@@ -54,8 +67,8 @@ swift run SystemMonitor
 ```
 
 Click the menu bar item to open the popover. Use the tab icons to switch
-between System Monitor and Clean Drive. Right-click the menu bar item to open
-the app menu.
+between System Monitor, Clean Drive, and App Uninstaller. Right-click the menu
+bar item to open the app menu.
 
 Notification delivery and launch at login need a packaged `.app` bundle. They
 are disabled when the app runs as a raw SwiftPM executable.
@@ -136,13 +149,14 @@ The app can still read older flat settings files.
 - Install the app on a clean Mac.
 - Check that the app starts without a Dock icon.
 - Check status item left-click and right-click behavior.
-- Check the two-tab popover with System Monitor and Clean Drive.
+- Check the popover tabs for System Monitor, Clean Drive, and App Uninstaller.
 - Run a Clean Drive scan and compare key category sizes with `du -sh`.
 - Check Clean Drive preview sheets for non-empty categories.
 - Check move-to-Trash cleanup with a safe test file or fixture.
 - Check permanent delete confirmation, but do not use it on real data.
 - Check the Full Disk Access callout for protected categories.
 - Check Clean Drive reminder delivery from a packaged app.
+- Check App Uninstaller with a throwaway `.app` bundle and test leftovers.
 - Check preferences persistence after restart.
 - Check warning notifications from a packaged app.
 - Check launch at login from a signed app.
@@ -154,8 +168,11 @@ The app can still read older flat settings files.
 - `Package.swift`: SwiftPM package definition.
 - `Sources/App`: App entry point, status item, popover, and app composition.
 - `Sources/AppCore`: Shared settings, launch at login, and notification
-  runtime helpers.
+  runtime helpers, file sizing, and reclaim helpers.
 - `Sources/AppUI`: Shared SwiftUI and AppKit UI components.
+- `Sources/AppUninstallerCore`: Installed-app discovery, leftover scanning,
+  path safety, settings, and uninstall logic.
+- `Sources/AppUninstallerUI`: App Uninstaller popover and settings UI.
 - `Sources/CleanDriveCore`: Cleanup categories, scanning, reclaim, settings,
   and reminders.
 - `Sources/CleanDriveUI`: Clean Drive popover and settings UI.

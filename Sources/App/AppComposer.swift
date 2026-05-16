@@ -1,5 +1,7 @@
 import AppCore
 import AppUI
+import AppUninstallerCore
+import AppUninstallerUI
 import CleanDriveCore
 import CleanDriveUI
 import Foundation
@@ -46,6 +48,18 @@ final class AppComposer {
                 persist()
             }
         )
+        let appUninstallerSettingsValue = raw.value(for: AppUninstallerSettings.self)
+        if raw.features[AppUninstallerSettings.featureId] == nil {
+            raw.setValue(appUninstallerSettingsValue)
+            persist()
+        }
+        let appUninstallerSettings = SettingsModel<AppUninstallerSettings>(
+            initial: appUninstallerSettingsValue,
+            onChange: { value in
+                raw.setValue(value)
+                persist()
+            }
+        )
 
         let launchAtLogin = LaunchAtLoginModel(
             initiallyLoadedFromDisk: result.loadedFromDisk,
@@ -55,7 +69,10 @@ final class AppComposer {
             }
         )
 
-        let monitorModel = SystemMonitorModel(settings: monitorSettings)
+        let monitorModel = SystemMonitorModel(
+            settings: monitorSettings,
+            generalSettings: general
+        )
         let monitorFeature = SystemMonitorFeature(
             settings: monitorSettings,
             general: general,
@@ -66,11 +83,16 @@ final class AppComposer {
             settings: cleanDriveSettings,
             model: cleanDriveModel
         )
+        let appUninstallerModel = AppUninstallerModel(settings: appUninstallerSettings)
+        let appUninstallerFeature = AppUninstallerFeature(
+            settings: appUninstallerSettings,
+            model: appUninstallerModel
+        )
         let cleanDriveReminderService = CleanDriveReminderService(settings: cleanDriveSettings)
 
         self.generalSettings = general
         self.launchAtLoginModel = launchAtLogin
         self.cleanDriveReminderService = cleanDriveReminderService
-        self.features = [monitorFeature, cleanDriveFeature]
+        self.features = [monitorFeature, cleanDriveFeature, appUninstallerFeature]
     }
 }

@@ -4,6 +4,7 @@ import SwiftUI
 import SystemMonitorCore
 
 public struct SystemMonitorSettingsView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject private var settingsModel: SettingsModel<SystemMonitorSettings>
     @ObservedObject private var generalSettings: SettingsModel<GeneralSettings>
 
@@ -25,24 +26,24 @@ public struct SystemMonitorSettingsView: View {
 
     private var menuBarSection: some View {
         SettingsSection("Show in the menu bar") {
-            Picker("Menu bar layout", selection: $settingsModel.settings.menuBar.displayMode) {
-                Text("Single line").tag(MenuBarDisplayMode.singleLine)
-                Text("Two lines").tag(MenuBarDisplayMode.twoLine)
+            Picker(localization("Menu bar layout"), selection: $settingsModel.settings.menuBar.displayMode) {
+                Text(localization("Single line")).tag(MenuBarDisplayMode.singleLine)
+                Text(localization("Two lines")).tag(MenuBarDisplayMode.twoLine)
             }
             .pickerStyle(.segmented)
 
-            Toggle("CPU load", isOn: $settingsModel.settings.menuBar.showCpuLoad)
-            Toggle("CPU temperature", isOn: $settingsModel.settings.menuBar.showTemperature)
-            Toggle("Memory usage", isOn: $settingsModel.settings.menuBar.showMemoryUsage)
-            Toggle("Free disk space", isOn: $settingsModel.settings.menuBar.showDiskFree)
-            Toggle("Battery status", isOn: $settingsModel.settings.menuBar.showBattery)
-            Toggle("Network speed", isOn: $settingsModel.settings.menuBar.showNetworkSpeed)
+            Toggle(localization("CPU load"), isOn: $settingsModel.settings.menuBar.showCpuLoad)
+            Toggle(localization("CPU temperature"), isOn: $settingsModel.settings.menuBar.showTemperature)
+            Toggle(localization("Memory usage"), isOn: $settingsModel.settings.menuBar.showMemoryUsage)
+            Toggle(localization("Free disk space"), isOn: $settingsModel.settings.menuBar.showDiskFree)
+            Toggle(localization("Battery status"), isOn: $settingsModel.settings.menuBar.showBattery)
+            Toggle(localization("Network speed"), isOn: $settingsModel.settings.menuBar.showNetworkSpeed)
             if settingsModel.settings.menuBar.showNetworkSpeed {
                 networkSpeedOptions
                     .padding(.leading, 16)
             }
             if enabledMenuBarItemCount > 5 {
-                Text("Lots of modules enabled. The menu bar may run out of room.")
+                Text(localization("Lots of modules enabled. The menu bar may run out of room."))
                     .font(.system(size: 12))
                     .foregroundStyle(.orange)
             }
@@ -51,18 +52,18 @@ public struct SystemMonitorSettingsView: View {
 
     private var networkSpeedOptions: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Picker("Network unit", selection: $settingsModel.settings.networkUnits) {
-                Text("Bytes/s").tag(NetworkUnits.bytesPerSecond)
-                Text("Bits/s").tag(NetworkUnits.bitsPerSecond)
+            Picker(localization("Network unit"), selection: $settingsModel.settings.networkUnits) {
+                Text(localization("Bytes/s")).tag(NetworkUnits.bytesPerSecond)
+                Text(localization("Bits/s")).tag(NetworkUnits.bitsPerSecond)
             }
             .pickerStyle(.radioGroup)
 
-            Picker("Network display", selection: $settingsModel.settings.networkDisplay) {
-                Text("Greater ↑ or ↓").tag(NetworkDisplay.greater)
-                Text("↑ and ↓").tag(NetworkDisplay.uploadAndDownload)
-                Text("↑ only").tag(NetworkDisplay.uploadOnly)
-                Text("↓ only").tag(NetworkDisplay.downloadOnly)
-                Text("↕ combined").tag(NetworkDisplay.combined)
+            Picker(localization("Network display"), selection: $settingsModel.settings.networkDisplay) {
+                Text(localization("Greater ↑ or ↓")).tag(NetworkDisplay.greater)
+                Text(localization("↑ and ↓")).tag(NetworkDisplay.uploadAndDownload)
+                Text(localization("↑ only")).tag(NetworkDisplay.uploadOnly)
+                Text(localization("↓ only")).tag(NetworkDisplay.downloadOnly)
+                Text(localization("↕ combined")).tag(NetworkDisplay.combined)
             }
             .pickerStyle(.radioGroup)
         }
@@ -71,11 +72,11 @@ public struct SystemMonitorSettingsView: View {
     private var temperatureSection: some View {
         SettingsSection("Temperature unit") {
             Picker(
-                "Temperature unit",
+                localization("Temperature unit"),
                 selection: $generalSettings.settings.temperatureUnit
             ) {
-                Text("Celsius").tag(TemperatureUnit.celsius)
-                Text("Fahrenheit").tag(TemperatureUnit.fahrenheit)
+                Text(localization("Celsius")).tag(TemperatureUnit.celsius)
+                Text(localization("Fahrenheit")).tag(TemperatureUnit.fahrenheit)
             }
             .pickerStyle(.radioGroup)
             .labelsHidden()
@@ -84,7 +85,7 @@ public struct SystemMonitorSettingsView: View {
 
     private var notificationsSection: some View {
         SettingsSection("Notifications") {
-            Toggle("Enable warning notifications", isOn: $settingsModel.settings.warningsEnabled)
+            Toggle(localization("Enable warning notifications"), isOn: $settingsModel.settings.warningsEnabled)
                 .onChange(of: settingsModel.settings.warningsEnabled) { _, enabled in
                     if enabled {
                         NotificationPermissionService.requestPermission()
@@ -94,21 +95,21 @@ public struct SystemMonitorSettingsView: View {
             if settingsModel.settings.warningsEnabled {
                 VStack(alignment: .leading, spacing: 10) {
                     ThresholdRowView(
-                        label: "CPU",
+                        label: "CPU load",
                         enabled: $settingsModel.settings.warningThresholds.cpuEnabled,
                         value: $settingsModel.settings.warningThresholds.cpuPercent,
                         unit: "%",
                         range: 1...100
                     )
                     ThresholdRowView(
-                        label: "Temperature",
+                        label: "CPU temperature",
                         enabled: $settingsModel.settings.warningThresholds.temperatureEnabled,
                         value: temperatureThresholdBinding,
                         unit: temperatureThresholdUnit,
                         range: temperatureThresholdRange
                     )
                     ThresholdRowView(
-                        label: "Memory",
+                        label: "Memory usage",
                         enabled: $settingsModel.settings.warningThresholds.memoryEnabled,
                         value: $settingsModel.settings.warningThresholds.memoryPercent,
                         unit: "%",

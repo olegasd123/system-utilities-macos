@@ -4,6 +4,7 @@ import SwiftUI
 import SystemMonitorCore
 
 public struct DashboardView: View {
+    @Environment(\.appLocalization) private var localization
     @ObservedObject private var model: SystemMonitorModel
     private let settings: SystemMonitorSettings
     private let temperatureUnit: TemperatureUnit
@@ -135,12 +136,19 @@ public struct DashboardView: View {
 
     private var cpuSubtitle: String {
         guard let snapshot else {
-            return "Waiting for samples"
+            return localization("Waiting for samples")
         }
         if let temperature = snapshot.cpu.temperatureC {
-            return "Temp \(SystemFormatters.temperature(temperature, unit: temperatureUnit))"
+            return localization(
+                "Temp %@",
+                SystemFormatters.temperature(
+                    temperature,
+                    unit: temperatureUnit,
+                    localization: localization
+                )
+            )
         }
-        return "\(snapshot.cpu.coreCount) cores"
+        return localization("%d cores", snapshot.cpu.coreCount)
     }
 
     private var memoryValue: String {
@@ -152,27 +160,41 @@ public struct DashboardView: View {
 
     private var memorySubtitle: String {
         guard let snapshot else {
-            return "Waiting for samples"
+            return localization("Waiting for samples")
         }
-        return "\(SystemFormatters.bytes(snapshot.memory.usedBytes)) of \(SystemFormatters.bytes(snapshot.memory.totalBytes, decimals: 0))"
+        return localization(
+            "%@ of %@",
+            SystemFormatters.bytes(snapshot.memory.usedBytes, localization: localization),
+            SystemFormatters.bytes(snapshot.memory.totalBytes, decimals: 0, localization: localization)
+        )
     }
 
     private var diskValue: String {
         guard let primaryDisk else {
-            return "--% free"
+            return localization("--% free")
         }
-        return "\(Int((100 - primaryDisk.usedPercent).rounded()))% free"
+        return localization("%d%% free", Int((100 - primaryDisk.usedPercent).rounded()))
     }
 
     private var diskSubtitle: String {
         guard let primaryDisk else {
-            return "Waiting for samples"
+            return localization("Waiting for samples")
         }
-        let freeSpace = "\(primaryDisk.name) · \(SystemFormatters.bytes(primaryDisk.availableBytes, decimals: 0))"
+        let availableBytes = SystemFormatters.bytes(
+            primaryDisk.availableBytes,
+            decimals: 0,
+            localization: localization
+        )
+        let freeSpace = "\(primaryDisk.name) · \(availableBytes)"
         guard let storageTemperature else {
             return freeSpace
         }
-        return "\(freeSpace)\nTemp \(SystemFormatters.temperature(storageTemperature.temperatureC, unit: temperatureUnit))"
+        let temperature = SystemFormatters.temperature(
+            storageTemperature.temperatureC,
+            unit: temperatureUnit,
+            localization: localization
+        )
+        return "\(freeSpace)\n\(localization("Temp %@", temperature))"
     }
 
     private var storageTemperature: TemperatureSample? {
@@ -188,9 +210,9 @@ public struct DashboardView: View {
 
     private var networkValue: String {
         guard let snapshot else {
-            return "↓ -- B/s"
+            return "↓ -- \(localization("Unit byte per second"))"
         }
-        return "↓ \(SystemFormatters.rate(snapshot.network.rxBytesPerSec))"
+        return "↓ \(SystemFormatters.rate(snapshot.network.rxBytesPerSec, localization: localization))"
     }
 
     private var networkLabel: String {
@@ -199,10 +221,10 @@ public struct DashboardView: View {
 
     private var networkSubtitle: String {
         guard let network = snapshot?.network else {
-            return "↑ -- B/s"
+            return "↑ -- \(localization("Unit byte per second"))"
         }
 
-        return "↑ \(SystemFormatters.rate(network.txBytesPerSec))"
+        return "↑ \(SystemFormatters.rate(network.txBytesPerSec, localization: localization))"
     }
 
     private var networkTotalsFooter: AnyView? {
@@ -212,8 +234,14 @@ public struct DashboardView: View {
 
         return AnyView(
             HStack(spacing: 8) {
-                Label(SystemFormatters.bytes(networkTotals.rxBytes), systemImage: "arrow.down")
-                Label(SystemFormatters.bytes(networkTotals.txBytes), systemImage: "arrow.up")
+                Label(
+                    SystemFormatters.bytes(networkTotals.rxBytes, localization: localization),
+                    systemImage: "arrow.down"
+                )
+                Label(
+                    SystemFormatters.bytes(networkTotals.txBytes, localization: localization),
+                    systemImage: "arrow.up"
+                )
 
                 Spacer(minLength: 0)
 
@@ -221,7 +249,7 @@ public struct DashboardView: View {
                     Image(systemName: "arrow.counterclockwise")
                 }
                 .buttonStyle(.plain)
-                .help("Reset network totals")
+                .help(localization("Reset network totals"))
             }
             .font(.system(size: 11, weight: .medium))
             .foregroundStyle(.secondary)
@@ -231,32 +259,31 @@ public struct DashboardView: View {
 
     private var sensorValue: String {
         guard let snapshot else {
-            return "-- active"
+            return localization("-- active")
         }
-        return "\(snapshot.temperatures.count) active"
+        return localization("%d active", snapshot.temperatures.count)
     }
 
     private var sensorSubtitle: String {
         SensorCardFormatter.subtitle(
             temperatures: snapshot?.temperatures ?? [],
-            temperatureUnit: temperatureUnit
+            temperatureUnit: temperatureUnit,
+            localization: localization
         )
     }
 
     private var fanValue: String {
-        guard let snapshot, !snapshot.fans.isEmpty else {
-            return "No fan data"
-        }
-        return "\(snapshot.fans.count) \(snapshot.fans.count == 1 ? "fan" : "fans")"
+        FanCardFormatter.value(
+            fans: snapshot?.fans ?? [],
+            localization: localization
+        )
     }
 
     private var fanSubtitle: String {
-        guard let snapshot, !snapshot.fans.isEmpty else {
-            return "Unavailable"
-        }
-        return snapshot.fans.prefix(2)
-            .map { "\($0.label):  \($0.rpm) RPM" }
-            .joined(separator: "\n")
+        FanCardFormatter.subtitle(
+            fans: snapshot?.fans ?? [],
+            localization: localization
+        )
     }
 
     private var cpuWarning: Bool {
@@ -312,14 +339,33 @@ public struct DashboardView: View {
     private func batterySubtitle(_ battery: BatterySample) -> String {
         var lines: [String] = []
         if battery.state == .charging, let seconds = battery.timeToFullSecs {
-            lines.append("\(SystemFormatters.duration(seconds)) until full")
+            lines.append(
+                localization(
+                    "%@ until full",
+                    SystemFormatters.duration(seconds, localization: localization)
+                )
+            )
         } else if let seconds = battery.timeToEmptySecs {
-            lines.append("\(SystemFormatters.duration(seconds)) remaining")
+            lines.append(
+                localization(
+                    "%@ remaining",
+                    SystemFormatters.duration(seconds, localization: localization)
+                )
+            )
         } else {
             lines.append(batteryStateLabel(battery.state))
         }
         if let temperature = battery.temperatureC {
-            lines.append("Temp \(SystemFormatters.temperature(temperature, unit: temperatureUnit))")
+            lines.append(
+                localization(
+                    "Temp %@",
+                    SystemFormatters.temperature(
+                        temperature,
+                        unit: temperatureUnit,
+                        localization: localization
+                    )
+                )
+            )
         }
         return lines.joined(separator: "\n")
     }
@@ -327,15 +373,15 @@ public struct DashboardView: View {
     private func batteryStateLabel(_ state: BatteryState) -> String {
         switch state {
         case .charging:
-            return "Charging"
+            return localization("Charging")
         case .discharging:
-            return "Discharging"
+            return localization("Discharging")
         case .empty:
-            return "Empty"
+            return localization("Empty")
         case .full:
-            return "Fully charged"
+            return localization("Fully charged")
         case .unknown:
-            return "Unknown"
+            return localization("Unknown")
         }
     }
 }
