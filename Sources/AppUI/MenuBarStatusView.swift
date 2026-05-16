@@ -7,6 +7,7 @@ public final class MenuBarStatusView: NSView {
     private let compactSegmentSpacing: CGFloat = 6
     private let iconTextSpacing: CGFloat = 3
     private let minimumWidth: CGFloat = 48
+    private var symbolImageCache: [SymbolImageKey: NSImage] = [:]
 
     public override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -222,7 +223,21 @@ public final class MenuBarStatusView: NSView {
 
     private func symbolImage(for segment: MenuBarStatusSegment, font: NSFont) -> NSImage? {
         guard
-            let symbolName = segment.symbolName,
+            let symbolName = segment.symbolName
+        else {
+            return nil
+        }
+
+        let key = SymbolImageKey(
+            name: symbolName,
+            pointSize: font.pointSize,
+            fallbackPrefix: segment.fallbackPrefix
+        )
+        if let image = symbolImageCache[key] {
+            return image
+        }
+
+        guard
             let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: segment.fallbackPrefix)
         else {
             return nil
@@ -230,6 +245,14 @@ public final class MenuBarStatusView: NSView {
 
         let configuration = NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .medium)
             .applying(NSImage.SymbolConfiguration(hierarchicalColor: .labelColor))
-        return image.withSymbolConfiguration(configuration) ?? image
+        let configuredImage = image.withSymbolConfiguration(configuration) ?? image
+        symbolImageCache[key] = configuredImage
+        return configuredImage
     }
+}
+
+private struct SymbolImageKey: Hashable {
+    var name: String
+    var pointSize: CGFloat
+    var fallbackPrefix: String?
 }
