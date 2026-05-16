@@ -112,9 +112,9 @@
 "Network unit" = "ネットワーク単位";
 "Tray battery" = "電池";
 "Tray CPU" = "CPU";
-"Tray disk" = "DISK";
+"Tray disk" = "空き";
 "Tray memory" = "RAM";
-"Tray network" = "NET";
+"Tray network" = "通信";
 "Tray temperature" = "温度";
 "No apps found." = "アプリが見つかりません。";
 "No custom folders." = "カスタムフォルダはありません。";
