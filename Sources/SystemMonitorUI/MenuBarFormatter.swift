@@ -78,7 +78,7 @@ public enum MenuBarFormatter {
         )
 
         guard !parts.isEmpty else {
-            return [MenuBarStatusLine(text: "System Monitor")]
+            return [MenuBarStatusLine(text: localization("System Monitor"))]
         }
 
         switch settings.menuBar.displayMode {

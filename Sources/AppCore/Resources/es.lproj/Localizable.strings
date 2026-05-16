@@ -83,6 +83,7 @@
 "Full Disk Access may be needed" = "Puede ser necesario el acceso total al disco";
 "Full Disk Access needed" = "Acceso total al disco necesario";
 "Fully charged" = "Carga completa";
+"German" = "Alemán";
 "Graphics" = "Gráficos";
 "Grant Access" = "Dar acceso";
 "Greater ↑ or ↓" = "Mayor ↑ o ↓";
@@ -101,7 +102,7 @@
 "Memory warning" = "Alerta de memoria";
 "Menu bar layout" = "Diseño de la barra de menús";
 "Minimum gap: %@" = "Intervalo mínimo: %@";
-"Move to Trash" = "Mover a la Papelera";
+"Move to Trash" = "A la Papelera";
 "moved to Trash" = "movidos a la Papelera";
 "NETWORK" = "RED";
 "Network display" = "Vista de red";
@@ -133,7 +134,7 @@
 "Possible" = "Posible";
 "Preferences" = "Preferencias";
 "Preferences..." = "Preferencias...";
-"Quit System Monitor" = "Salir de System Monitor";
+"Quit System Monitor" = "Salir del Monitor del sistema";
 "Ready for cleanup" = "Listo para limpiar";
 "Reclaim safety" = "Seguridad de limpieza";
 "Reclaimed %@." = "%@ recuperado.";
@@ -165,7 +166,7 @@
 "Single line" = "Una línea";
 "Spanish" = "Español";
 "Startup" = "Inicio";
-"System Monitor" = "System Monitor";
+"System Monitor" = "Monitor del sistema";
 "Tell me when cleanup is ready" = "Avisarme cuando la limpieza esté lista";
 "Temp %@" = "Temp %@";
 "Temperature" = "Temperatura";
