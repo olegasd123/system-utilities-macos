@@ -12,7 +12,7 @@
 "%d item found" = "%d elemento encontrado";
 "%d items" = "%d elementos";
 "%d items found" = "%d elementos encontrados";
-"%d items will be %@. Running app will be asked to quit." = "%d elementos serán %@. Se pedirá cerrar la app en ejecución.";
+"%d items will be %@. Running app will be asked to quit." = "%d elementos serán %@. Se pedirá a la app en ejecución que se cierre.";
 "%d%% free" = "%d %% libres";
 "-- active" = "-- activos";
 "--% free" = "-- %% libres";
@@ -26,7 +26,7 @@
 "App Uninstaller" = "Desinstalador";
 "Automatic (OS)" = "Automático (SO)";
 "Back" = "Atrás";
-"Battery below" = "Carga de batería bajo";
+"Battery below" = "Carga de batería por debajo de";
 "Battery charge is %d%%. Limit is %d%%." = "Carga de batería: %d %%. Límite: %d %%.";
 "Battery status" = "Estado de batería";
 "Battery warning" = "Alerta de batería";
@@ -42,7 +42,7 @@
 "Clean Drive" = "Limpiar disco";
 "Clean Drive categories" = "Categorías de limpieza";
 "Clean Drive reminders" = "Recordatorios de limpieza";
-"Clean folder contents. The folders stay." = "Limpia el contenido. Las carpetas se quedan.";
+"Clean folder contents. The folders stay." = "Limpia el contenido. Las carpetas se conservan.";
 "Clean up mode" = "Modo de limpieza";
 "Clean Up" = "Limpiar";
 "Cleaning" = "Limpiando";
@@ -201,11 +201,11 @@
 "Unavailable" = "No disponible";
 "Unavailable simulators" = "Simuladores no disponibles";
 "Uninstall" = "Desinstalar";
-"Uninstall app?" = "¿Desinstalar app?";
+"Uninstall app?" = "¿Desinstalar la app?";
 "Unknown" = "Desconocido";
 "User caches" = "Cachés de usuario";
 "User folder" = "Carpeta de usuario";
-"Waiting for detailed sensors" = "Esperando sensores detallados";
+"Waiting for detailed sensors" = "Esperando datos detallados de sensores";
 "Waiting for samples" = "Esperando muestras";
 "Xcode archives (older than %d days)" = "Archivos de Xcode (más de %d días)";
 "Xcode archives older than %d days" = "Archivos de Xcode de más de %d días";
