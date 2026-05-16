@@ -14,7 +14,7 @@ enum FanCardFormatter {
             return localization("%d fan", fans.count)
         }
 
-        if localization.language == .russian, usesRussianFewForm(fans.count) {
+        if localization.language.usesFewFanForm, usesFewForm(fans.count) {
             return localization("%d fans few", fans.count)
         }
 
@@ -50,12 +50,18 @@ enum FanCardFormatter {
         return localization(label)
     }
 
-    private static func usesRussianFewForm(_ count: Int) -> Bool {
+    private static func usesFewForm(_ count: Int) -> Bool {
         let lastTwoDigits = count % 100
         if (12...14).contains(lastTwoDigits) {
             return false
         }
 
         return (2...4).contains(count % 10)
+    }
+}
+
+private extension AppLanguage {
+    var usesFewFanForm: Bool {
+        self == .russian || self == .ukrainian
     }
 }

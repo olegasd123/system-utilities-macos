@@ -17,6 +17,19 @@ final class FanCardFormatterTests: XCTestCase {
         )
     }
 
+    func testValueLocalizesUkrainianFanCount() {
+        XCTAssertEqual(
+            FanCardFormatter.value(
+                fans: [
+                    FanSample(label: "Fan 1", rpm: 1_200),
+                    FanSample(label: "Fan 2", rpm: 900)
+                ],
+                localization: AppLocalization(selection: .ukrainian)
+            ),
+            "2 вентилятори"
+        )
+    }
+
     func testValueUsesNoFanDataWhenFansAreEmpty() {
         XCTAssertEqual(
             FanCardFormatter.value(fans: []),

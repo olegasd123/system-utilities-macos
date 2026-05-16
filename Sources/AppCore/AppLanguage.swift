@@ -6,6 +6,7 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     case english = "en"
     case french = "fr"
     case russian = "ru"
+    case ukrainian = "uk"
 
     public var id: String { rawValue }
 
@@ -19,6 +20,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "French"
         case .russian:
             return "Russian"
+        case .ukrainian:
+            return "Ukrainian"
         }
     }
 
@@ -32,6 +35,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Français"
         case .russian:
             return "Русский"
+        case .ukrainian:
+            return "Українська"
         }
     }
 
@@ -45,6 +50,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "fr"
         case .russian:
             return "ru"
+        case .ukrainian:
+            return "uk"
         }
     }
 
@@ -60,6 +67,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
                 return .french
             case "ru":
                 return .russian
+            case "uk":
+                return .ukrainian
             case "en":
                 return .english
             default:
