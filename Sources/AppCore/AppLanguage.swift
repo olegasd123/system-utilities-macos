@@ -10,6 +10,7 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     case japanese = "ja"
     case portugueseBrazil = "pt-BR"
     case russian = "ru"
+    case simplifiedChinese = "zh-Hans"
     case ukrainian = "uk"
 
     public var id: String { rawValue }
@@ -32,6 +33,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Portuguese (Brazil)"
         case .russian:
             return "Russian"
+        case .simplifiedChinese:
+            return "Simplified Chinese"
         case .ukrainian:
             return "Ukrainian"
         }
@@ -55,6 +58,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Português (Brasil)"
         case .russian:
             return "Русский"
+        case .simplifiedChinese:
+            return "简体中文"
         case .ukrainian:
             return "Українська"
         }
@@ -78,6 +83,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "pt-BR"
         case .russian:
             return "ru"
+        case .simplifiedChinese:
+            return "zh-Hans"
         case .ukrainian:
             return "uk"
         }
@@ -89,6 +96,16 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
         }
 
         for identifier in Locale.preferredLanguages {
+            let normalizedIdentifier = identifier
+                .replacingOccurrences(of: "_", with: "-")
+                .lowercased()
+            if normalizedIdentifier == "zh"
+                || normalizedIdentifier.hasPrefix("zh-hans")
+                || normalizedIdentifier.hasPrefix("zh-cn")
+                || normalizedIdentifier.hasPrefix("zh-sg") {
+                return .simplifiedChinese
+            }
+
             let languageCode = Locale(identifier: identifier).language.languageCode?.identifier
             switch languageCode {
             case "de":
@@ -103,6 +120,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
                 return .portugueseBrazil
             case "ru":
                 return .russian
+            case "zh":
+                continue
             case "uk":
                 return .ukrainian
             case "en":
