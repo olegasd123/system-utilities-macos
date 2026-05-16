@@ -7,6 +7,7 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     case german = "de"
     case spanish = "es"
     case french = "fr"
+    case japanese = "ja"
     case portugueseBrazil = "pt-BR"
     case russian = "ru"
     case ukrainian = "uk"
@@ -25,6 +26,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Spanish"
         case .french:
             return "French"
+        case .japanese:
+            return "Japanese"
         case .portugueseBrazil:
             return "Portuguese (Brazil)"
         case .russian:
@@ -46,6 +49,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Español"
         case .french:
             return "Français"
+        case .japanese:
+            return "日本語"
         case .portugueseBrazil:
             return "Português (Brasil)"
         case .russian:
@@ -67,6 +72,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "es"
         case .french:
             return "fr"
+        case .japanese:
+            return "ja"
         case .portugueseBrazil:
             return "pt-BR"
         case .russian:
@@ -90,6 +97,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
                 return .spanish
             case "fr":
                 return .french
+            case "ja":
+                return .japanese
             case "pt":
                 return .portugueseBrazil
             case "ru":

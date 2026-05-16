@@ -79,11 +79,19 @@ final class AppLanguageTests: XCTestCase {
         XCTAssertEqual(localization("Language"), "Idioma")
     }
 
+    func testJapaneseLocalizationLoadsKnownKey() {
+        let localization = AppLocalization(selection: .japanese)
+
+        XCTAssertEqual(localization("Language"), "言語")
+        XCTAssertEqual(localization("System Monitor"), "システムモニター")
+    }
+
     func testLanguageNamesUseNativeLabels() {
         XCTAssertEqual(AppLanguage.english.nativeDisplayName, "English")
         XCTAssertEqual(AppLanguage.german.nativeDisplayName, "Deutsch")
         XCTAssertEqual(AppLanguage.spanish.nativeDisplayName, "Español")
         XCTAssertEqual(AppLanguage.french.nativeDisplayName, "Français")
+        XCTAssertEqual(AppLanguage.japanese.nativeDisplayName, "日本語")
         XCTAssertEqual(AppLanguage.portugueseBrazil.nativeDisplayName, "Português (Brasil)")
         XCTAssertEqual(AppLanguage.russian.nativeDisplayName, "Русский")
         XCTAssertEqual(AppLanguage.ukrainian.nativeDisplayName, "Українська")
