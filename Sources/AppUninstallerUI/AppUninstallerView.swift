@@ -53,9 +53,8 @@ struct AppUninstallerView: View {
         model.selectedApp != nil || model.scanResult != nil || model.isScanningLeftovers
     }
 
-    @ViewBuilder
     private var appList: some View {
-        let list = ScrollView {
+        ScrollView {
             LazyVStack(spacing: 6) {
                 if model.isLoadingApps {
                     AppUninstallerLoadingRow(text: localization("Scanning installed apps..."))
@@ -69,12 +68,12 @@ struct AppUninstallerView: View {
             }
             .padding(.vertical, 1)
         }
+        .frame(height: usesCompactAppList ? appListHeight : nil)
+        .frame(maxHeight: usesCompactAppList ? nil : .infinity)
+    }
 
-        if showsLeftoverPane && isLeftoverListExpanded {
-            list.frame(height: appListHeight)
-        } else {
-            list.frame(maxHeight: .infinity)
-        }
+    private var usesCompactAppList: Bool {
+        showsLeftoverPane && isLeftoverListExpanded
     }
 
     private func appRow(_ app: InstalledApp) -> some View {
