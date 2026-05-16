@@ -4,6 +4,7 @@ import SwiftUI
 public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     case system
     case english = "en"
+    case spanish = "es"
     case french = "fr"
     case russian = "ru"
     case ukrainian = "uk"
@@ -16,6 +17,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Automatic (OS)"
         case .english:
             return "English"
+        case .spanish:
+            return "Spanish"
         case .french:
             return "French"
         case .russian:
@@ -31,6 +34,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return displayNameKey
         case .english:
             return "English"
+        case .spanish:
+            return "Español"
         case .french:
             return "Français"
         case .russian:
@@ -46,6 +51,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return resolved.localeIdentifier
         case .english:
             return "en"
+        case .spanish:
+            return "es"
         case .french:
             return "fr"
         case .russian:
@@ -63,6 +70,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
         for identifier in Locale.preferredLanguages {
             let languageCode = Locale(identifier: identifier).language.languageCode?.identifier
             switch languageCode {
+            case "es":
+                return .spanish
             case "fr":
                 return .french
             case "ru":

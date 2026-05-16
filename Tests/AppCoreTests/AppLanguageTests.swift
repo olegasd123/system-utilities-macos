@@ -23,14 +23,14 @@ final class AppLanguageTests: XCTestCase {
             {
               "temperature_unit": "celsius",
               "launch_at_login": false,
-              "language": "fr"
+              "language": "es"
             }
             """.utf8
         )
 
         let settings = try JSONDecoder().decode(GeneralSettings.self, from: data)
 
-        XCTAssertEqual(settings.language, .french)
+        XCTAssertEqual(settings.language, .spanish)
     }
 
     func testLocalizationFallsBackToEnglishForKnownKey() {
@@ -45,8 +45,15 @@ final class AppLanguageTests: XCTestCase {
         XCTAssertEqual(localization("Language"), "Мова")
     }
 
+    func testSpanishLocalizationLoadsKnownKey() {
+        let localization = AppLocalization(selection: .spanish)
+
+        XCTAssertEqual(localization("Language"), "Idioma")
+    }
+
     func testLanguageNamesUseNativeLabels() {
         XCTAssertEqual(AppLanguage.english.nativeDisplayName, "English")
+        XCTAssertEqual(AppLanguage.spanish.nativeDisplayName, "Español")
         XCTAssertEqual(AppLanguage.french.nativeDisplayName, "Français")
         XCTAssertEqual(AppLanguage.russian.nativeDisplayName, "Русский")
         XCTAssertEqual(AppLanguage.ukrainian.nativeDisplayName, "Українська")
