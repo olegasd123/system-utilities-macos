@@ -12,7 +12,7 @@
 "%d item found" = "%d項目見つかりました";
 "%d items" = "%d項目";
 "%d items found" = "%d項目見つかりました";
-"%d items will be %@. Running app will be asked to quit." = "%d項目は%@。実行中のアプリには終了を求めます。";
+"%d items will be %@. Running app will be asked to quit." = "%d項目は%@。実行中のアプリには終了を依頼します。";
 "%d%% free" = "%d%%空き";
 "-- active" = "-- 有効";
 "--% free" = "--%空き";
@@ -86,11 +86,13 @@
 "German" = "ドイツ語";
 "Graphics" = "グラフィック";
 "Grant Access" = "アクセスを許可";
-"Greater ↑ or ↓" = "大きい方 ↑ または ↓";
+"Greater ↑ or ↓" = "↑/↓ の大きい方";
 "Hide leftovers" = "残りファイルを隠す";
 "Homebrew cache" = "Homebrewキャッシュ";
+"Items are removed right away. This cannot be undone." = "項目はすぐに削除されます。元に戻せません。";
 "Language" = "言語";
 "Leftovers" = "残りファイル";
+"Loading files..." = "ファイルを読み込み中...";
 "Log files" = "ログファイル";
 "Main Chip" = "メインチップ";
 "Lots of modules enabled. The menu bar may run out of room." = "多くのモジュールが有効です。メニューバーの空きが足りない場合があります。";
@@ -137,9 +139,9 @@
 "Preferences..." = "環境設定...";
 "Quit System Monitor" = "System Monitorを終了";
 "Ready for cleanup" = "クリーンアップ準備完了";
-"Reclaim safety" = "回収の安全性";
-"Reclaimed %@." = "%@を回収しました。";
-"Reclaimed %@. %d failed." = "%@を回収しました。%d件失敗しました。";
+"Reclaim safety" = "解放の安全性";
+"Reclaimed %@." = "%@を解放しました。";
+"Reclaimed %@. %d failed." = "%@を解放しました。%d件失敗しました。";
 "Related" = "関連";
 "Remove folder" = "フォルダを削除";
 "Reset network totals" = "ネットワーク合計をリセット";
@@ -161,9 +163,9 @@
 "Show in Finder" = "Finderで表示";
 "Show in the menu bar" = "メニューバーに表示";
 "Show leftovers" = "残りファイルを表示";
-"Show possible name matches" = "名前の候補一致を表示";
+"Show possible name matches" = "名前が一致する可能性がある項目を表示";
 "Storage" = "ストレージ";
-"Showing largest %d files." = "最大%d個のファイルを表示しています。";
+"Showing largest %d files." = "サイズが大きい順に%d個のファイルを表示しています。";
 "Single line" = "1行";
 "Spanish" = "スペイン語";
 "Startup" = "起動";
@@ -207,7 +209,7 @@
 "Unknown" = "不明";
 "User caches" = "ユーザーキャッシュ";
 "User folder" = "ユーザーフォルダ";
-"Waiting for detailed sensors" = "詳細センサーを待機中";
+"Waiting for detailed sensors" = "詳細センサーの情報を待機中";
 "Waiting for samples" = "サンプルを待機中";
 "Xcode archives (older than %d days)" = "Xcodeアーカイブ (%d日より古い)";
 "Xcode archives older than %d days" = "%d日より古いXcodeアーカイブ";

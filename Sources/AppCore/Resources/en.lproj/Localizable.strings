@@ -89,8 +89,10 @@
 "Greater ↑ or ↓" = "Greater ↑ or ↓";
 "Hide leftovers" = "Hide leftovers";
 "Homebrew cache" = "Homebrew cache";
+"Items are removed right away. This cannot be undone." = "Items are removed right away. This cannot be undone.";
 "Language" = "Language";
 "Leftovers" = "Leftovers";
+"Loading files..." = "Loading files...";
 "Log files" = "Log files";
 "Main Chip" = "Main Chip";
 "Lots of modules enabled. The menu bar may run out of room." = "Lots of modules enabled. The menu bar may run out of room.";
