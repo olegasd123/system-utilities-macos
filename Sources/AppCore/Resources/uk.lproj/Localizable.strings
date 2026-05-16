@@ -89,8 +89,10 @@
 "Greater ↑ or ↓" = "Більше ↑ або ↓";
 "Hide leftovers" = "Сховати залишки";
 "Homebrew cache" = "Кеш Homebrew";
+"Items are removed right away. This cannot be undone." = "Елементи буде видалено одразу. Цю дію не можна скасувати.";
 "Language" = "Мова";
 "Leftovers" = "Залишки";
+"Loading files..." = "Завантаження файлів...";
 "Log files" = "Файли журналів";
 "Main Chip" = "Головний чип";
 "Lots of modules enabled. The menu bar may run out of room." = "Увімкнено багато модулів. У рядку меню може не вистачити місця.";

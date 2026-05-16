@@ -89,8 +89,10 @@
 "Greater ↑ or ↓" = "Mayor ↑ o ↓";
 "Hide leftovers" = "Ocultar restos";
 "Homebrew cache" = "Caché de Homebrew";
+"Items are removed right away. This cannot be undone." = "Los elementos se eliminan de inmediato. Esto no se puede deshacer.";
 "Language" = "Idioma";
 "Leftovers" = "Restos";
+"Loading files..." = "Cargando archivos...";
 "Log files" = "Archivos de registro";
 "Main Chip" = "Chip principal";
 "Lots of modules enabled. The menu bar may run out of room." = "Hay muchos módulos activos. La barra de menús puede quedarse sin espacio.";

@@ -89,8 +89,10 @@
 "Greater ↑ or ↓" = "Большее ↑ или ↓";
 "Hide leftovers" = "Скрыть остатки";
 "Homebrew cache" = "Кэш Homebrew";
+"Items are removed right away. This cannot be undone." = "Элементы удаляются сразу. Это действие нельзя отменить.";
 "Language" = "Язык";
 "Leftovers" = "Остатки";
+"Loading files..." = "Загрузка файлов...";
 "Log files" = "Файлы журналов";
 "Main Chip" = "Главный чип";
 "Lots of modules enabled. The menu bar may run out of room." = "Включено много модулей. В строке меню может не хватить места.";
