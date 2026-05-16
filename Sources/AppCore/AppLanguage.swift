@@ -7,6 +7,7 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     case german = "de"
     case spanish = "es"
     case french = "fr"
+    case portugueseBrazil = "pt-BR"
     case russian = "ru"
     case ukrainian = "uk"
 
@@ -24,6 +25,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Spanish"
         case .french:
             return "French"
+        case .portugueseBrazil:
+            return "Portuguese (Brazil)"
         case .russian:
             return "Russian"
         case .ukrainian:
@@ -43,6 +46,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "Español"
         case .french:
             return "Français"
+        case .portugueseBrazil:
+            return "Português (Brasil)"
         case .russian:
             return "Русский"
         case .ukrainian:
@@ -62,6 +67,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
             return "es"
         case .french:
             return "fr"
+        case .portugueseBrazil:
+            return "pt-BR"
         case .russian:
             return "ru"
         case .ukrainian:
@@ -83,6 +90,8 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
                 return .spanish
             case "fr":
                 return .french
+            case "pt":
+                return .portugueseBrazil
             case "ru":
                 return .russian
             case "uk":
@@ -98,7 +107,7 @@ public enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 
     var resourceCode: String {
-        resolved.rawValue
+        resolved.rawValue.lowercased()
     }
 }
 
