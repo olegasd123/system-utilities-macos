@@ -44,17 +44,42 @@ public struct LeftoverCandidate: Identifiable, Equatable, Sendable, FileReclaimI
     }
 }
 
+public struct LeftoverScanNote: Hashable, Sendable {
+    public var key: String
+    public var arguments: [String]
+
+    public init(_ key: String, _ arguments: String...) {
+        self.key = key
+        self.arguments = arguments
+    }
+
+    public init(key: String, arguments: [String] = []) {
+        self.key = key
+        self.arguments = arguments
+    }
+
+    public func localized(using localization: AppLocalization) -> String {
+        guard !arguments.isEmpty else {
+            return localization(key)
+        }
+        return localization.format(
+            key,
+            arguments: arguments.map { $0 as CVarArg }
+        )
+    }
+}
+
 public struct LeftoverScanResult: Equatable, Sendable {
     public var app: InstalledApp
     public var bundle: LeftoverCandidate
     public var leftovers: [LeftoverCandidate]
-    public var notes: [String]
+    public var notes: [LeftoverScanNote]
 
     public init(
         app: InstalledApp,
         bundle: LeftoverCandidate,
         leftovers: [LeftoverCandidate],
-        notes: [String] = []
+        notes: [LeftoverScanNote] = []
     ) {
         self.app = app
         self.bundle = bundle

@@ -21,6 +21,16 @@ final class AppUninstallerCoreTests: XCTestCase {
         trashURL = nil
     }
 
+    func testLeftoverScanNoteLocalizesSkippedMessage() {
+        let note = LeftoverScanNote("Skipped %@: %@", "/tmp/Demo", "No access")
+        let localization = AppLocalization(selection: .ukrainian)
+
+        XCTAssertEqual(
+            note.localized(using: localization),
+            "Пропущено /tmp/Demo: No access"
+        )
+    }
+
     func testInstalledAppsScannerFindsValidAppsAndSkipsOwnBundle() throws {
         let applicationsURL = rootURL.appendingPathComponent("Applications", isDirectory: true)
         try FileManager.default.createDirectory(

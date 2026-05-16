@@ -33,7 +33,7 @@ public struct LeftoverScanner: Sendable {
             directAllowedPaths: userHomeCandidateURLs,
             homeDirectory: homeDirectory
         )
-        var notes: [String] = []
+        var notes: [LeftoverScanNote] = []
         var leftovers: [LeftoverCandidate] = []
         let appGroupIdentifiers = uniqueStrings(
             app.appGroupIdentifiers + entitlementAppGroups(at: app.bundleURL)
@@ -55,7 +55,7 @@ public struct LeftoverScanner: Sendable {
                     options: []
                 )
             } catch {
-                notes.append("Skipped \(root.path): \(error.localizedDescription)")
+                notes.append(skippedNote(path: root.path, error: error))
                 continue
             }
 
@@ -80,7 +80,7 @@ public struct LeftoverScanner: Sendable {
                         try candidate(for: child, confidence: confidence)
                     )
                 } catch {
-                    notes.append("Skipped \(child.path): \(error.localizedDescription)")
+                    notes.append(skippedNote(path: child.path, error: error))
                 }
             }
         }
@@ -99,7 +99,7 @@ public struct LeftoverScanner: Sendable {
                     try candidate(for: url, confidence: .userHome)
                 )
             } catch {
-                notes.append("Skipped \(url.path): \(error.localizedDescription)")
+                notes.append(skippedNote(path: url.path, error: error))
             }
         }
 
@@ -113,9 +113,9 @@ public struct LeftoverScanner: Sendable {
             }
 
         if !appGroupIdentifiers.isEmpty {
-            notes.append("App group containers were matched from app metadata.")
+            notes.append(LeftoverScanNote("App group containers were matched from app metadata."))
         } else if roots.contains(where: { $0.lastPathComponent == "Group Containers" }) {
-            notes.append("Group containers skipped because app group data was unavailable.")
+            notes.append(LeftoverScanNote("Group containers skipped because app group data was unavailable."))
         }
 
         return LeftoverScanResult(
@@ -124,6 +124,10 @@ public struct LeftoverScanner: Sendable {
             leftovers: unique,
             notes: notes
         )
+    }
+
+    private func skippedNote(path: String, error: any Error) -> LeftoverScanNote {
+        LeftoverScanNote("Skipped %@: %@", path, error.localizedDescription)
     }
 
     public func scanRoots(includeSystem: Bool) -> [URL] {

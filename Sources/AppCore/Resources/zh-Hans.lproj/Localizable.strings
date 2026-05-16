@@ -170,6 +170,7 @@
 "Showing largest %d files." = "正在显示最大的 %d 个文件。";
 "Single line" = "单行";
 "Simplified Chinese" = "简体中文";
+"Skipped %@: %@" = "已跳过 %@：%@";
 "Spanish" = "西班牙语";
 "Startup" = "启动";
 "System Monitor" = "系统监控";

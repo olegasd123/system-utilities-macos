@@ -170,6 +170,7 @@
 "Showing largest %d files." = "Показаны самые большие файлы: %d.";
 "Single line" = "Одна строка";
 "Simplified Chinese" = "Упрощенный китайский";
+"Skipped %@: %@" = "Пропущено %@: %@";
 "Spanish" = "Испанский";
 "Startup" = "Запуск";
 "System Monitor" = "Монитор системы";
