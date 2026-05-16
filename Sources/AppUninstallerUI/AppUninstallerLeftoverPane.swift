@@ -103,7 +103,7 @@ struct AppUninstallerLeftoverPane: View {
                 candidateGroup(localization("User folder"), candidates: group(.userHome, in: result))
 
                 ForEach(result.notes, id: \.self) { note in
-                    Text(note)
+                    Text(localization(note))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

@@ -109,6 +109,15 @@ final class AppLanguageTests: XCTestCase {
         XCTAssertEqual(localization("System Monitor"), "系统监控")
     }
 
+    func testLeftoverNoteLocalizationLoadsKnownKey() {
+        let localization = AppLocalization(selection: .ukrainian)
+
+        XCTAssertEqual(
+            localization("Group containers skipped because app group data was unavailable."),
+            "Контейнери груп пропущено, бо дані груп застосунку недоступні."
+        )
+    }
+
     func testLanguageNamesUseNativeLabels() {
         XCTAssertEqual(AppLanguage.english.nativeDisplayName, "English")
         XCTAssertEqual(AppLanguage.german.nativeDisplayName, "Deutsch")

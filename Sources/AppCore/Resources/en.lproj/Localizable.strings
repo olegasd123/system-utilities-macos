@@ -23,6 +23,7 @@
 "Add" = "Add";
 "Add Folder..." = "Add Folder...";
 "Advanced" = "Advanced";
+"App group containers were matched from app metadata." = "App group containers were matched from app metadata.";
 "App Uninstaller" = "App Uninstaller";
 "Automatic (OS)" = "Automatic (OS)";
 "Back" = "Back";
@@ -87,6 +88,7 @@
 "Graphics" = "Graphics";
 "Grant Access" = "Grant Access";
 "Greater ↑ or ↓" = "Greater ↑ or ↓";
+"Group containers skipped because app group data was unavailable." = "Group containers skipped because app group data was unavailable.";
 "Hide leftovers" = "Hide leftovers";
 "Homebrew cache" = "Homebrew cache";
 "Items are removed right away. This cannot be undone." = "Items are removed right away. This cannot be undone.";

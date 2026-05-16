@@ -23,6 +23,7 @@
 "Add" = "添加";
 "Add Folder..." = "添加文件夹...";
 "Advanced" = "高级";
+"App group containers were matched from app metadata." = "已从应用元数据匹配应用组容器。";
 "App Uninstaller" = "应用卸载器";
 "Automatic (OS)" = "自动 (OS)";
 "Back" = "返回";
@@ -87,6 +88,7 @@
 "Graphics" = "图形";
 "Grant Access" = "授予权限";
 "Greater ↑ or ↓" = "↑ 或 ↓ 中较大值";
+"Group containers skipped because app group data was unavailable." = "已跳过组容器，因为应用组数据不可用。";
 "Hide leftovers" = "隐藏残留项";
 "Homebrew cache" = "Homebrew 缓存";
 "Items are removed right away. This cannot be undone." = "项目会立即删除。此操作无法撤销。";

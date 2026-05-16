@@ -23,6 +23,7 @@
 "Add" = "Hinzufügen";
 "Add Folder..." = "Ordner hinzufügen...";
 "Advanced" = "Erweitert";
+"App group containers were matched from app metadata." = "App-Gruppencontainer wurden aus App-Metadaten erkannt.";
 "App Uninstaller" = "App-Deinstallierer";
 "Automatic (OS)" = "Automatisch (OS)";
 "Back" = "Zurück";
@@ -87,6 +88,7 @@
 "Graphics" = "Grafik";
 "Grant Access" = "Zugriff gewähren";
 "Greater ↑ or ↓" = "Größerer Wert ↑ oder ↓";
+"Group containers skipped because app group data was unavailable." = "Gruppencontainer übersprungen, weil App-Gruppendaten nicht verfügbar waren.";
 "Hide leftovers" = "Reste ausblenden";
 "Homebrew cache" = "Homebrew-Cache";
 "Items are removed right away. This cannot be undone." = "Elemente werden sofort entfernt. Dies kann nicht rückgängig gemacht werden.";

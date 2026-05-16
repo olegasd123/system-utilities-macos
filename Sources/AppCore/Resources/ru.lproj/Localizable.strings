@@ -23,6 +23,7 @@
 "Add" = "Добавить";
 "Add Folder..." = "Добавить папку...";
 "Advanced" = "Дополнительно";
+"App group containers were matched from app metadata." = "Контейнеры групп приложения найдены по метаданным приложения.";
 "App Uninstaller" = "Удаление приложений";
 "Automatic (OS)" = "Авто (ОС)";
 "Back" = "Назад";
@@ -87,6 +88,7 @@
 "Graphics" = "Графический процессор";
 "Grant Access" = "Дать доступ";
 "Greater ↑ or ↓" = "Большее ↑ или ↓";
+"Group containers skipped because app group data was unavailable." = "Контейнеры групп пропущены, потому что данные групп приложения недоступны.";
 "Hide leftovers" = "Скрыть остатки";
 "Homebrew cache" = "Кэш Homebrew";
 "Items are removed right away. This cannot be undone." = "Элементы удаляются сразу. Это действие нельзя отменить.";

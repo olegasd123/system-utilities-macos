@@ -23,6 +23,7 @@
 "Add" = "Додати";
 "Add Folder..." = "Додати папку...";
 "Advanced" = "Додатково";
+"App group containers were matched from app metadata." = "Контейнери груп застосунку знайдено за метаданими застосунку.";
 "App Uninstaller" = "Видалення застосунків";
 "Automatic (OS)" = "Авто (ОС)";
 "Back" = "Назад";
@@ -87,6 +88,7 @@
 "Graphics" = "Графіка";
 "Grant Access" = "Надати доступ";
 "Greater ↑ or ↓" = "Більше ↑ або ↓";
+"Group containers skipped because app group data was unavailable." = "Контейнери груп пропущено, бо дані груп застосунку недоступні.";
 "Hide leftovers" = "Сховати залишки";
 "Homebrew cache" = "Кеш Homebrew";
 "Items are removed right away. This cannot be undone." = "Елементи буде видалено одразу. Цю дію не можна скасувати.";

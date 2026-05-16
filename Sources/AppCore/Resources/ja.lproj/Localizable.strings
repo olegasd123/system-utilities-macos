@@ -23,6 +23,7 @@
 "Add" = "追加";
 "Add Folder..." = "フォルダを追加...";
 "Advanced" = "詳細";
+"App group containers were matched from app metadata." = "アプリのメタデータからアプリグループコンテナを見つけました。";
 "App Uninstaller" = "アプリ削除";
 "Automatic (OS)" = "自動 (OS)";
 "Back" = "戻る";
@@ -87,6 +88,7 @@
 "Graphics" = "グラフィック";
 "Grant Access" = "アクセスを許可";
 "Greater ↑ or ↓" = "↑/↓ の大きい方";
+"Group containers skipped because app group data was unavailable." = "アプリグループデータがないため、グループコンテナをスキップしました。";
 "Hide leftovers" = "残りファイルを隠す";
 "Homebrew cache" = "Homebrewキャッシュ";
 "Items are removed right away. This cannot be undone." = "項目はすぐに削除されます。元に戻せません。";
