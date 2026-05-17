@@ -250,11 +250,15 @@ If this key is lost, old app builds may not be able to install new updates.
 Run a release in one of these ways:
 
 - Push a tag like `v0.1.0`.
-- Run the `Release` workflow manually. Leave the version empty to use `VERSION`.
-  Use a published release for Sparkle updates, not a draft.
+- Run the `Release` workflow manually from a branch. Leave the version empty to
+  bump the patch value in `VERSION`, for example `0.1.3` to `0.1.4`. Enter a
+  version only when you need a specific value. Use a published release for
+  Sparkle updates, not a draft.
 
-For a normal release, update `VERSION`, commit it, and run the workflow. The app
-bundle, Sparkle appcast, tag name, and GitHub Release use the same version.
+For a normal manual release, run the workflow and leave the version empty. The
+workflow updates `VERSION`, commits it, and then builds the app. The app bundle,
+Sparkle appcast, tag name, and GitHub Release use the same version. A tag push
+uses the tag version and does not edit `VERSION`.
 
 The app checks this feed URL:
 
