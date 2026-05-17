@@ -7,15 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version, for example 0.1.0"
-        required: true
+        description: "Release version, for example 0.1.0. Leave empty to use VERSION."
+        required: false
       build_number:
         description: "Internal build number. Defaults to the workflow run number."
         required: false
       draft:
         description: "Create the GitHub release as a draft"
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: write
@@ -34,10 +34,15 @@ jobs:
 
       - name: Resolve release values
         run: |
+          FILE_VERSION="$(sed -n '1p' VERSION | tr -d '[:space:]')"
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ inputs.version }}"
             BUILD_NUMBER="${{ inputs.build_number }}"
             DRAFT="${{ inputs.draft }}"
+            if [ -z "$VERSION" ]; then
+              VERSION="$FILE_VERSION"
+            fi
             TAG_NAME="v$VERSION"
           else
             TAG_NAME="${GITHUB_REF_NAME}"
@@ -48,6 +53,11 @@ jobs:
 
           if [ -z "$BUILD_NUMBER" ]; then
             BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "Release version is missing. Set VERSION or pass a version input." >&2
+            exit 1
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -116,15 +126,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           RELEASE_FLAGS=""
+          LATEST_FLAGS="--latest"
           if [ "$DRAFT" = "true" ]; then
             RELEASE_FLAGS="--draft"
+            LATEST_FLAGS=""
           fi
 
           if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --notes-file dist/release-notes.md \
+              $LATEST_FLAGS
             gh release upload "$TAG_NAME" "$RELEASE_DMG" dist/appcast.xml --clobber
           else
             gh release create "$TAG_NAME" "$RELEASE_DMG" dist/appcast.xml \
               --title "$TAG_NAME" \
               --notes-file dist/release-notes.md \
+              $LATEST_FLAGS \
               $RELEASE_FLAGS
           fi

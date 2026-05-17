@@ -88,8 +88,8 @@ Build a local `.app` bundle:
 scripts/build_app.sh
 ```
 
-This creates an ad-hoc signed app at `dist/System Monitor.app`. Use this build
-for local checks and direct sharing.
+This creates an ad-hoc signed app at `dist/System Monitor.app`. The version is
+read from `VERSION`. Use this build for local checks and direct sharing.
 
 Build a debug bundle:
 
@@ -118,8 +118,6 @@ scripts/make_dmg.sh
 Build with Sparkle update settings:
 
 ```bash
-VERSION="0.1.0" \
-BUILD_NUMBER="1" \
 SPARKLE_FEED_URL="https://github.com/OWNER/REPO/releases/latest/download/appcast.xml" \
 SPARKLE_PUBLIC_ED_KEY="public-key-from-generate-keys" \
 scripts/build_app.sh
@@ -128,12 +126,13 @@ scripts/build_app.sh
 Create a Sparkle appcast after the DMG is built:
 
 ```bash
-VERSION="0.1.0" \
-BUILD_NUMBER="1" \
 DOWNLOAD_URL="https://github.com/OWNER/REPO/releases/download/v0.1.0/System-Monitor.dmg" \
 SPARKLE_PRIVATE_KEY_FILE="private/sparkle_private_key" \
 scripts/make_appcast.sh
 ```
+
+Set `VERSION` or `BUILD_NUMBER` in the environment only when you need to
+override the values from `VERSION`.
 
 Notarization is optional. It needs a paid Apple Developer account.
 
@@ -251,7 +250,11 @@ If this key is lost, old app builds may not be able to install new updates.
 Run a release in one of these ways:
 
 - Push a tag like `v0.1.0`.
-- Run the `Release` workflow manually and enter the version.
+- Run the `Release` workflow manually. Leave the version empty to use `VERSION`.
+  Use a published release for Sparkle updates, not a draft.
+
+For a normal release, update `VERSION`, commit it, and run the workflow. The app
+bundle, Sparkle appcast, tag name, and GitHub Release use the same version.
 
 The app checks this feed URL:
 

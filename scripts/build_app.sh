@@ -16,8 +16,17 @@ FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
 BUILD_HOME="$ROOT_DIR/.build/package-home"
 MODULE_CACHE_PATH="$ROOT_DIR/.build/module-cache"
 DEFAULT_ICON_PATH="$ROOT_DIR/Packaging/AppIcon.icns"
+VERSION_FILE="$ROOT_DIR/VERSION"
 
 cd "$ROOT_DIR"
+
+if [ -z "${VERSION:-}" ] && [ -f "$VERSION_FILE" ]; then
+    VERSION=$(sed -n '1p' "$VERSION_FILE" | tr -d '[:space:]')
+fi
+
+if [ -z "${BUILD_NUMBER:-}" ] && [ -n "${VERSION:-}" ]; then
+    BUILD_NUMBER="$VERSION"
+fi
 
 mkdir -p "$BUILD_HOME" "$MODULE_CACHE_PATH"
 
