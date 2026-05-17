@@ -63,6 +63,12 @@ if [ -n "$SPARKLE_FRAMEWORK" ]; then
     ditto "$SPARKLE_FRAMEWORK" "$FRAMEWORKS_PATH/Sparkle.framework"
 fi
 
+for RESOURCE_BUNDLE in "$ROOT_DIR/.build/$CONFIGURATION"/*.bundle; do
+    if [ -d "$RESOURCE_BUNDLE" ]; then
+        ditto "$RESOURCE_BUNDLE" "$RESOURCES_PATH/$(basename "$RESOURCE_BUNDLE")"
+    fi
+done
+
 ICON_PATH="${APP_ICON_PATH:-$DEFAULT_ICON_PATH}"
 
 if [ -f "$ICON_PATH" ]; then
