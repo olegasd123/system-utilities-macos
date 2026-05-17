@@ -175,6 +175,14 @@ public struct AppLocalization: Equatable, Sendable {
     }
 
     private static func bundle(for language: AppLanguage) -> Bundle {
+        if let bundle = appBundle(for: language) {
+            return bundle
+        }
+
+        guard !Bundle.main.isPackagedApp else {
+            return Bundle.main
+        }
+
         guard
             let url = Bundle.module.url(
                 forResource: language.resourceCode,
@@ -185,6 +193,25 @@ public struct AppLocalization: Equatable, Sendable {
             return Bundle.module
         }
         return bundle
+    }
+
+    private static func appBundle(for language: AppLanguage) -> Bundle? {
+        guard
+            Bundle.main.isPackagedApp,
+            let url = Bundle.main.url(
+                forResource: language.resourceCode,
+                withExtension: "lproj"
+            )
+        else {
+            return nil
+        }
+        return Bundle(url: url)
+    }
+}
+
+private extension Bundle {
+    var isPackagedApp: Bool {
+        bundleURL.pathExtension == "app"
     }
 }
 

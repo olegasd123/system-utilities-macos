@@ -65,7 +65,7 @@ fi
 
 for RESOURCE_BUNDLE in "$ROOT_DIR/.build/$CONFIGURATION"/*.bundle; do
     if [ -d "$RESOURCE_BUNDLE" ]; then
-        ditto "$RESOURCE_BUNDLE" "$RESOURCES_PATH/$(basename "$RESOURCE_BUNDLE")"
+        ditto "$RESOURCE_BUNDLE/" "$RESOURCES_PATH"
     fi
 done
 

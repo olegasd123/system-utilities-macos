@@ -69,10 +69,7 @@ public struct UserCachesCategory: ReclaimableCategory {
 
     public static var defaultBlockedBundleIDs: Set<String> {
         guard
-            let url = Bundle.module.url(
-                forResource: "dangerous-cache-bundle-ids",
-                withExtension: "json"
-            ),
+            let url = dangerousCacheBundleIDsURL,
             let data = try? Data(contentsOf: url),
             let values = try? JSONDecoder().decode([String].self, from: data)
         else {
@@ -81,9 +78,33 @@ public struct UserCachesCategory: ReclaimableCategory {
         return Set(values)
     }
 
+    private static var dangerousCacheBundleIDsURL: URL? {
+        if let url = Bundle.main.url(
+            forResource: "dangerous-cache-bundle-ids",
+            withExtension: "json"
+        ) {
+            return url
+        }
+
+        guard !Bundle.main.isPackagedApp else {
+            return nil
+        }
+
+        return Bundle.module.url(
+            forResource: "dangerous-cache-bundle-ids",
+            withExtension: "json"
+        )
+    }
+
     private static let fallbackBlockedBundleIDs: Set<String> = [
         "com.apple.AddressBook",
         "com.apple.Photos",
         "com.apple.Safari"
     ]
+}
+
+private extension Bundle {
+    var isPackagedApp: Bool {
+        bundleURL.pathExtension == "app"
+    }
 }
