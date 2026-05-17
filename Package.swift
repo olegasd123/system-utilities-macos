@@ -11,6 +11,9 @@ let package = Package(
     products: [
         .executable(name: "SystemMonitor", targets: ["App"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1")
+    ],
     targets: [
         .executableTarget(
             name: "App",
@@ -19,7 +22,16 @@ let package = Package(
                 "AppUI",
                 "AppUninstallerUI",
                 "CleanDriveUI",
+                .product(name: "Sparkle", package: "Sparkle"),
                 "SystemMonitorUI"
+            ],
+            linkerSettings: [
+                .unsafeFlags([
+                    "-Xlinker",
+                    "-rpath",
+                    "-Xlinker",
+                    "@executable_path/../Frameworks"
+                ])
             ]
         ),
         .target(

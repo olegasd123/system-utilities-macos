@@ -1,0 +1,130 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, for example 0.1.0"
+        required: true
+      build_number:
+        description: "Internal build number. Defaults to the workflow run number."
+        required: false
+      draft:
+        description: "Create the GitHub release as a draft"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+
+    env:
+      APP_NAME: System Monitor
+      RELEASE_DMG: dist/System-Monitor.dmg
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve release values
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+            DRAFT="${{ inputs.draft }}"
+            TAG_NAME="v$VERSION"
+          else
+            TAG_NAME="${GITHUB_REF_NAME}"
+            VERSION="${TAG_NAME#v}"
+            BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+            DRAFT="false"
+          fi
+
+          if [ -z "$BUILD_NUMBER" ]; then
+            BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+          echo "DRAFT=$DRAFT" >> "$GITHUB_ENV"
+          echo "SPARKLE_FEED_URL=https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/appcast.xml" >> "$GITHUB_ENV"
+          echo "DOWNLOAD_URL=https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG_NAME/System-Monitor.dmg" >> "$GITHUB_ENV"
+
+      - name: Check Sparkle secrets
+        run: |
+          if [ -z "${SPARKLE_PUBLIC_ED_KEY}" ]; then
+            echo "Missing SPARKLE_PUBLIC_ED_KEY secret." >&2
+            exit 1
+          fi
+
+          if [ -z "${SPARKLE_PRIVATE_KEY}" ]; then
+            echo "Missing SPARKLE_PRIVATE_KEY secret." >&2
+            exit 1
+          fi
+        env:
+          SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+
+      - name: Run tests
+        run: swift test
+
+      - name: Build app bundle
+        run: scripts/build_app.sh
+        env:
+          VERSION: ${{ env.VERSION }}
+          BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
+          SPARKLE_FEED_URL: ${{ env.SPARKLE_FEED_URL }}
+          SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
+
+      - name: Create DMG
+        run: |
+          scripts/make_dmg.sh
+          mv "dist/${APP_NAME}.dmg" "$RELEASE_DMG"
+
+      - name: Create appcast
+        run: |
+          printf '%s' "$SPARKLE_PRIVATE_KEY" > "$SPARKLE_PRIVATE_KEY_FILE"
+          scripts/make_appcast.sh
+          rm -f "$SPARKLE_PRIVATE_KEY_FILE"
+        env:
+          DMG_PATH: ${{ env.RELEASE_DMG }}
+          VERSION: ${{ env.VERSION }}
+          SHORT_VERSION: ${{ env.VERSION }}
+          BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
+          DOWNLOAD_URL: ${{ env.DOWNLOAD_URL }}
+          APPCAST_LINK: https://github.com/${{ github.repository }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          SPARKLE_PRIVATE_KEY_FILE: ${{ runner.temp }}/sparkle_private_key
+
+      - name: Write release notes
+        run: |
+          {
+            echo "System Monitor $VERSION"
+            echo
+            git log -1 --pretty=%B
+          } > dist/release-notes.md
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASE_FLAGS=""
+          if [ "$DRAFT" = "true" ]; then
+            RELEASE_FLAGS="--draft"
+          fi
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "$RELEASE_DMG" dist/appcast.xml --clobber
+          else
+            gh release create "$TAG_NAME" "$RELEASE_DMG" dist/appcast.xml \
+              --title "$TAG_NAME" \
+              --notes-file dist/release-notes.md \
+              $RELEASE_FLAGS
+          fi

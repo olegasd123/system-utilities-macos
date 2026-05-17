@@ -7,6 +7,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let composer = AppComposer()
+    private let appUpdater = AppUpdater()
     private var statusItem: NSStatusItem?
     private let menuBarStatusView = MenuBarStatusView()
     private let popoverWindow = ArrowlessPopoverPanel()
@@ -120,22 +121,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func makeStatusMenu(localization: AppLocalization? = nil) -> NSMenu {
         let localization = localization ?? self.localization
         let menu = NSMenu()
-        menu.addItem(
-            NSMenuItem(
-                title: localization("Preferences..."),
-                action: #selector(openPreferences),
-                keyEquivalent: ","
-            )
+        let preferencesItem = NSMenuItem(
+            title: localization("Preferences..."),
+            action: #selector(openPreferences),
+            keyEquivalent: ","
         )
+        preferencesItem.target = self
+        menu.addItem(preferencesItem)
+
+        let updateItem = NSMenuItem(
+            title: localization("Check for Updates..."),
+            action: nil,
+            keyEquivalent: ""
+        )
+        appUpdater.configureCheckForUpdatesMenuItem(updateItem)
+        menu.addItem(updateItem)
         menu.addItem(.separator())
-        menu.addItem(
-            NSMenuItem(
-                title: localization("Quit System Monitor"),
-                action: #selector(quit),
-                keyEquivalent: "q"
-            )
+        let quitItem = NSMenuItem(
+            title: localization("Quit System Monitor"),
+            action: #selector(quit),
+            keyEquivalent: "q"
         )
-        menu.items.forEach { $0.target = self }
+        quitItem.target = self
+        menu.addItem(quitItem)
         return menu
     }
 

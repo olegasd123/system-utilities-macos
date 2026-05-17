@@ -11,7 +11,6 @@ and preferences.
 - macOS 14 or newer.
 - Swift 6 toolchain.
 - Xcode command line tools.
-- Apple Developer credentials for signed and notarized releases.
 
 ## Features
 
@@ -90,7 +89,7 @@ scripts/build_app.sh
 ```
 
 This creates an ad-hoc signed app at `dist/System Monitor.app`. Use this build
-for local checks only.
+for local checks and direct sharing.
 
 Build a debug bundle:
 
@@ -116,7 +115,29 @@ Create a DMG after the app is built:
 scripts/make_dmg.sh
 ```
 
-Notarize and staple the DMG:
+Build with Sparkle update settings:
+
+```bash
+VERSION="0.1.0" \
+BUILD_NUMBER="1" \
+SPARKLE_FEED_URL="https://github.com/OWNER/REPO/releases/latest/download/appcast.xml" \
+SPARKLE_PUBLIC_ED_KEY="public-key-from-generate-keys" \
+scripts/build_app.sh
+```
+
+Create a Sparkle appcast after the DMG is built:
+
+```bash
+VERSION="0.1.0" \
+BUILD_NUMBER="1" \
+DOWNLOAD_URL="https://github.com/OWNER/REPO/releases/download/v0.1.0/System-Monitor.dmg" \
+SPARKLE_PRIVATE_KEY_FILE="private/sparkle_private_key" \
+scripts/make_appcast.sh
+```
+
+Notarization is optional. It needs a paid Apple Developer account.
+
+Notarize and staple the DMG when you have Developer ID credentials:
 
 ```bash
 NOTARY_PROFILE="profile-name" scripts/notarize_dmg.sh
@@ -144,9 +165,12 @@ The app can still read older flat settings files.
 
 ## Release Checks
 
-- Build with a real Developer ID certificate.
-- Create and notarize the DMG.
-- Install the app on a clean Mac.
+- Build the release from a clean tag.
+- Create the DMG.
+- Check that the GitHub Release has `System-Monitor.dmg` and `appcast.xml`.
+- Install the app from the DMG.
+- Check the first launch approval flow on a clean Mac.
+- Check the right-click menu item: `Check for Updates...`.
 - Check that the app starts without a Dock icon.
 - Check status item left-click and right-click behavior.
 - Check the popover tabs for System Monitor, Clean Drive, and App Uninstaller.
@@ -185,7 +209,9 @@ The app can still read older flat settings files.
 - `Packaging/AppIcon.icns`: App icon.
 - `scripts/build_app.sh`: Build and sign the `.app`.
 - `scripts/make_dmg.sh`: Create the DMG.
+- `scripts/make_appcast.sh`: Create a Sparkle appcast for a release DMG.
 - `scripts/notarize_dmg.sh`: Submit and staple notarization.
+- `.github/workflows/release.yml`: Build and publish a GitHub Release.
 
 ## Limits
 
@@ -197,4 +223,42 @@ The app can still read older flat settings files.
   warnings.
 - Some Clean Drive categories need Full Disk Access to show complete results.
 - Clean Drive does not scan cloud-sync roots or system-protected paths.
-- Release signing and notarization need Apple Developer credentials.
+- Apple notarization needs Apple Developer credentials.
+
+## GitHub Releases And Updates
+
+The app can be released without the Mac App Store and without Developer ID.
+GitHub Actions builds an ad-hoc signed app, creates a DMG, creates a Sparkle
+appcast, and uploads both files to a GitHub Release.
+
+Create Sparkle keys once:
+
+```bash
+swift build
+.build/artifacts/sparkle/Sparkle/bin/generate_keys
+mkdir -p private
+.build/artifacts/sparkle/Sparkle/bin/generate_keys -x private/sparkle_private_key
+```
+
+Add these GitHub repository secrets:
+
+- `SPARKLE_PUBLIC_ED_KEY`: the public key printed by `generate_keys`.
+- `SPARKLE_PRIVATE_KEY`: the content of `private/sparkle_private_key`.
+
+Keep `private/sparkle_private_key` out of git. It is ignored by `.gitignore`.
+If this key is lost, old app builds may not be able to install new updates.
+
+Run a release in one of these ways:
+
+- Push a tag like `v0.1.0`.
+- Run the `Release` workflow manually and enter the version.
+
+The app checks this feed URL:
+
+```text
+https://github.com/OWNER/REPO/releases/latest/download/appcast.xml
+```
+
+The first install still needs manual approval in macOS Privacy & Security
+because the app is not notarized. Future updates are checked by Sparkle and
+verified with the Sparkle EdDSA key.
