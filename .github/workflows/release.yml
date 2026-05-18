@@ -27,6 +27,7 @@ jobs:
     env:
       APP_NAME: System Monitor
       RELEASE_DMG: dist/System-Monitor.dmg
+      SIGN_IDENTITY: "Developer ID Application: Oleg Verkhohliad (A9N92VGA2M)"
 
     steps:
       - name: Check out repository
@@ -114,12 +115,80 @@ jobs:
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
 
+      - name: Check signing secrets
+        run: |
+          if [ -z "${DEVELOPER_ID_CERTIFICATE_P12}" ]; then
+            echo "Missing DEVELOPER_ID_CERTIFICATE_P12 secret." >&2
+            exit 1
+          fi
+
+          if [ -z "${DEVELOPER_ID_CERTIFICATE_PASSWORD}" ]; then
+            echo "Missing DEVELOPER_ID_CERTIFICATE_PASSWORD secret." >&2
+            exit 1
+          fi
+        env:
+          DEVELOPER_ID_CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+
+      - name: Check notarization secrets
+        run: |
+          if [ -z "${APPLE_ID}" ]; then
+            echo "Missing APPLE_ID secret." >&2
+            exit 1
+          fi
+
+          if [ -z "${TEAM_ID}" ]; then
+            echo "Missing TEAM_ID secret." >&2
+            exit 1
+          fi
+
+          if [ -z "${APP_SPECIFIC_PASSWORD}" ]; then
+            echo "Missing APP_SPECIFIC_PASSWORD secret." >&2
+            exit 1
+          fi
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+
       - name: Run tests
         run: swift test
+
+      - name: Install signing certificate
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+
+          printf '%s' "$DEVELOPER_ID_CERTIFICATE_P12" | base64 -D > "$CERTIFICATE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -P "$DEVELOPER_ID_CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+          rm -f "$CERTIFICATE_PATH"
+        env:
+          DEVELOPER_ID_CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
 
       - name: Build app bundle
         run: scripts/build_app.sh
         env:
+          SIGN_IDENTITY: ${{ env.SIGN_IDENTITY }}
           VERSION: ${{ env.VERSION }}
           BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
           SPARKLE_FEED_URL: ${{ env.SPARKLE_FEED_URL }}
@@ -129,6 +198,14 @@ jobs:
         run: |
           scripts/make_dmg.sh
           mv "dist/${APP_NAME}.dmg" "$RELEASE_DMG"
+
+      - name: Notarize DMG
+        run: scripts/notarize_dmg.sh
+        env:
+          DMG_PATH: ${{ env.RELEASE_DMG }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
 
       - name: Create appcast
         run: |
