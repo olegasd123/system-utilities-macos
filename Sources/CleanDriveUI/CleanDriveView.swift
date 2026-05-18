@@ -10,6 +10,7 @@ struct CleanDriveView: View {
     @ObservedObject var settingsModel: SettingsModel<CleanDriveSettings>
     @State private var previewCategoryID: CleanDriveCategoryID?
     @State private var showsHardDeleteConfirmation = false
+    @State private var shouldRefreshAfterFullDiskAccess = false
 
     var body: some View {
         ZStack {
@@ -23,6 +24,9 @@ struct CleanDriveView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task {
             await model.scanIfNeeded()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            refreshAfterFullDiskAccessIfNeeded()
         }
     }
 
@@ -367,6 +371,17 @@ struct CleanDriveView: View {
         ) else {
             return
         }
+        shouldRefreshAfterFullDiskAccess = true
         NSWorkspace.shared.open(url)
+    }
+
+    private func refreshAfterFullDiskAccessIfNeeded() {
+        guard shouldRefreshAfterFullDiskAccess else {
+            return
+        }
+        shouldRefreshAfterFullDiskAccess = false
+        Task {
+            await model.scan()
+        }
     }
 }
