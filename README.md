@@ -6,6 +6,10 @@ The app runs without a Dock icon. It shows compact live metrics in the menu bar
 and opens a SwiftUI popover for the dashboard, Clean Drive, App Uninstaller,
 and preferences.
 
+![Menu bar single-line layout](assets/single-line-metrics.png)
+
+![Menu bar two-line layout](assets/two-lines-metrics.png)
+
 ## Requirements
 
 - macOS 14 or newer.
@@ -15,6 +19,11 @@ and preferences.
 ## Features
 
 ### System Monitor
+
+<p align="center">
+  <img src="assets/system-monitor.png" alt="System Monitor dashboard" width="320">
+  <img src="assets/system-monitor-settings.png" alt="System Monitor settings" width="320">
+</p>
 
 - Live CPU, memory, disk, network, battery, temperature, and fan metrics.
 - One-second metric refresh.
@@ -34,6 +43,11 @@ and preferences.
 
 ### Clean Drive
 
+<p align="center">
+  <img src="assets/clean-drive.png" alt="Clean Drive scan results" width="320">
+  <img src="assets/clean-drive-settings.png" alt="Clean Drive settings" width="320">
+</p>
+
 - Reclaimable-space scan in a popover tab.
 - Safe cleanup by default: files move to Trash.
 - Optional permanent delete mode with confirmation.
@@ -48,6 +62,11 @@ and preferences.
   and Xcode archives.
 
 ### App Uninstaller
+
+<p align="center">
+  <img src="assets/app-uninstaller.png" alt="App Uninstaller with leftover files" width="320">
+  <img src="assets/app-uninstaller-settings.png" alt="App Uninstaller settings" width="320">
+</p>
 
 - Installed-app list from `/Applications`, `/Applications/Utilities`, and
   `~/Applications`.
