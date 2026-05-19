@@ -12,9 +12,17 @@ and preferences.
 
 ## Requirements
 
-- macOS 14 or newer.
-- Swift 6 toolchain.
-- Xcode command line tools.
+**To run the app:**
+- macOS 14 or newer
+
+**To build from source:**
+- macOS 14 or newer
+- Swift 6 toolchain
+- Xcode command line tools
+
+## Releases
+
+[Download it here](https://github.com/olegasd123/system-utilities-macos/tags)
 
 ## Features
 
