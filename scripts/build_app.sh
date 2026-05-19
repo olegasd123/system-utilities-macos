@@ -16,6 +16,7 @@ FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
 BUILD_HOME="$ROOT_DIR/.build/package-home"
 MODULE_CACHE_PATH="$ROOT_DIR/.build/module-cache"
 DEFAULT_ICON_PATH="$ROOT_DIR/Packaging/AppIcon.icns"
+ENTITLEMENTS_PATH="$ROOT_DIR/Packaging/SystemMonitor.entitlements"
 VERSION_FILE="$ROOT_DIR/VERSION"
 
 cd "$ROOT_DIR"
@@ -90,7 +91,7 @@ if [ "$SIGN_IDENTITY" = "-" ]; then
     if [ -d "$FRAMEWORKS_PATH/Sparkle.framework" ]; then
         codesign --force --deep --sign - "$FRAMEWORKS_PATH/Sparkle.framework"
     fi
-    codesign --force --sign - "$APP_PATH"
+    codesign --force --sign - --entitlements "$ENTITLEMENTS_PATH" "$APP_PATH"
 else
     if [ -d "$FRAMEWORKS_PATH/Sparkle.framework" ]; then
         codesign --force \
@@ -104,6 +105,7 @@ else
         --sign "$SIGN_IDENTITY" \
         --options runtime \
         --timestamp \
+        --entitlements "$ENTITLEMENTS_PATH" \
         "$APP_PATH"
 fi
 
