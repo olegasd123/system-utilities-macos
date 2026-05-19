@@ -6,9 +6,13 @@ The app runs without a Dock icon. It shows compact live metrics in the menu bar
 and opens a SwiftUI popover for the dashboard, Clean Drive, App Uninstaller,
 and preferences.
 
-![Menu bar single-line layout](assets/single-line-metrics.png)
+<p>
+  <img src="assets/single-line-metrics.png" alt="Menu bar single-line layout" height="40">
+</p>
 
-![Menu bar two-line layout](assets/two-lines-metrics.png)
+<p>
+  <img src="assets/two-lines-metrics.png" alt="Menu bar two-line layout" height="40">
+</p>
 
 ## Requirements
 
@@ -30,7 +34,7 @@ and preferences.
 
 <p align="center">
   <img src="assets/system-monitor.png" alt="System Monitor dashboard" width="320">
-  <img src="assets/system-monitor-settings.png" alt="System Monitor settings" width="320">
+  <img src="assets/system-monitor-settings.png" alt="System Monitor settings" width="322">
 </p>
 
 - Live CPU, memory, disk, network, battery, temperature, and fan metrics.
@@ -53,7 +57,7 @@ and preferences.
 
 <p align="center">
   <img src="assets/clean-drive.png" alt="Clean Drive scan results" width="320">
-  <img src="assets/clean-drive-settings.png" alt="Clean Drive settings" width="320">
+  <img src="assets/clean-drive-settings.png" alt="Clean Drive settings" width="322">
 </p>
 
 - Reclaimable-space scan in a popover tab.
