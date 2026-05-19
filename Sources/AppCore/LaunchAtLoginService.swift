@@ -112,9 +112,9 @@ public struct LaunchAtLoginService: Sendable {
             return LaunchAtLoginStatus(
                 isRegistered: false,
                 isEnabled: false,
-                canChange: false,
+                canChange: true,
                 needsApproval: false,
-                message: "Login item was not found in this app."
+                message: nil
             )
         @unknown default:
             return LaunchAtLoginStatus(
