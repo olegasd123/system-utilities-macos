@@ -49,19 +49,7 @@ public struct InstalledAppsScanner: Sendable {
                 continue
             }
 
-            let children: [URL]
-            do {
-                children = try FileManager.default.contentsOfDirectory(
-                    at: root,
-                    includingPropertiesForKeys: [.isDirectoryKey, .isPackageKey],
-                    options: [.skipsHiddenFiles]
-                )
-            } catch {
-                continue
-            }
-
-            for child in children where child.pathExtension == "app" {
-                try Task.checkCancellation()
+            for child in try appBundleURLs(in: root) {
                 let standardizedPath = child.standardizedFileURL.path
                 guard !seenPaths.contains(standardizedPath) else {
                     continue
@@ -76,6 +64,27 @@ public struct InstalledAppsScanner: Sendable {
         return apps.sorted {
             $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
         }
+    }
+
+    private func appBundleURLs(in root: URL) throws -> [URL] {
+        guard root.pathExtension != "app" else {
+            return [root]
+        }
+
+        guard let enumerator = FileManager.default.enumerator(
+            at: root,
+            includingPropertiesForKeys: [.isDirectoryKey, .isPackageKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
+        ) else {
+            return []
+        }
+
+        var appURLs: [URL] = []
+        for case let url as URL in enumerator where url.pathExtension == "app" {
+            try Task.checkCancellation()
+            appURLs.append(url)
+        }
+        return appURLs
     }
 
     private func installedApp(at bundleURL: URL, sourceRoot: URL) -> InstalledApp? {

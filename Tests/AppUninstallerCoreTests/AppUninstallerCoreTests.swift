@@ -62,6 +62,31 @@ final class AppUninstallerCoreTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(apps.first?.bundleSize ?? 0, 1_024)
     }
 
+    func testInstalledAppsScannerFindsAppsInsideVendorFolders() throws {
+        let applicationsURL = rootURL.appendingPathComponent("Applications", isDirectory: true)
+        let vendorURL = applicationsURL.appendingPathComponent("Nikon Software", isDirectory: true)
+        try FileManager.default.createDirectory(at: vendorURL, withIntermediateDirectories: true)
+        _ = try makeApp(
+            in: vendorURL,
+            name: "NX Studio",
+            bundleIdentifier: "com.nikon.NX-Studio"
+        )
+
+        let scanner = InstalledAppsScanner(
+            searchRoots: [applicationsURL],
+            ownBundleIdentifier: "dev.oleg-verhoglyad.SystemMonitor"
+        )
+
+        let apps = try scanner.scan()
+
+        XCTAssertEqual(apps.map(\.name), ["NX Studio"])
+        XCTAssertEqual(
+            apps.first?.bundleURL.deletingLastPathComponent().standardizedFileURL.path,
+            vendorURL.standardizedFileURL.path
+        )
+        XCTAssertEqual(apps.first?.sourceLocation, applicationsURL.path)
+    }
+
     func testLeftoverScannerMatchesConfidenceTiers() throws {
         let appURL = try makeApp(
             in: rootURL,
