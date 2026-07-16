@@ -160,6 +160,7 @@
 "Selected categories: %@." = "所选类别：%@。";
 "SENSORS" = "传感器";
 "Settings" = "设置";
+"Update available" = "有可用更新";
 "Show %@ in Finder" = "在 Finder 中显示 %@";
 "Show files" = "显示文件";
 "Show in Finder" = "在 Finder 中显示";

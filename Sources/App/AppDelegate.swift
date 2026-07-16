@@ -59,6 +59,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 router: router,
                 generalSettings: composer.generalSettings,
                 launchAtLoginModel: composer.launchAtLoginModel,
+                updateState: appUpdater.updateState,
+                checkForUpdates: appUpdater.checkForUpdates,
                 features: composer.features
             )
         )

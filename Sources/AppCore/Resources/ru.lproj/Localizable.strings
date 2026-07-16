@@ -160,6 +160,7 @@
 "Selected categories: %@." = "Выбранные категории: %@.";
 "SENSORS" = "ДАТЧИКИ";
 "Settings" = "Настройки";
+"Update available" = "Доступно обновление";
 "Show %@ in Finder" = "Показать %@ в Finder";
 "Show files" = "Показать файлы";
 "Show in Finder" = "Показать в Finder";
