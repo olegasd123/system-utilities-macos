@@ -1,9 +1,31 @@
 import AppKit
+import Combine
 import Foundation
 import Sparkle
 
 @MainActor
+final class AppUpdateState: NSObject, ObservableObject, SPUUpdaterDelegate {
+    @Published private(set) var isUpdateAvailable = false
+
+    func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+        isUpdateAvailable = true
+    }
+
+    func updater(
+        _ updater: SPUUpdater,
+        userDidMake choice: SPUUserUpdateChoice,
+        forUpdate updateItem: SUAppcastItem,
+        state: SPUUserUpdateState
+    ) {
+        if choice == .skip {
+            isUpdateAvailable = false
+        }
+    }
+}
+
+@MainActor
 final class AppUpdater {
+    let updateState = AppUpdateState()
     private let updaterController: SPUStandardUpdaterController?
 
     init(bundle: Bundle = .main) {
@@ -14,9 +36,13 @@ final class AppUpdater {
 
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
-            updaterDelegate: nil,
+            updaterDelegate: updateState,
             userDriverDelegate: nil
         )
+    }
+
+    func checkForUpdates() {
+        updaterController?.checkForUpdates(nil)
     }
 
     func configureCheckForUpdatesMenuItem(_ item: NSMenuItem) {

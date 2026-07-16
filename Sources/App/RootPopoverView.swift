@@ -7,6 +7,8 @@ struct RootPopoverView: View {
     @ObservedObject var router: PopoverRouter
     @ObservedObject var generalSettings: SettingsModel<GeneralSettings>
     @ObservedObject var launchAtLoginModel: LaunchAtLoginModel
+    @ObservedObject var updateState: AppUpdateState
+    let checkForUpdates: () -> Void
     let features: [any AppFeature]
 
     var body: some View {
@@ -65,16 +67,31 @@ struct RootPopoverView: View {
 
             Spacer()
 
-            Button {
-                router.showSettings(for: activeId)
-            } label: {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 28, height: PopoverLayout.titleHeight)
-                    .contentShape(Rectangle())
+            HStack(spacing: 4) {
+                if updateState.isUpdateAvailable {
+                    Button(action: checkForUpdates) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 28, height: PopoverLayout.titleHeight)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(localization("Update available"))
+                    .accessibilityLabel(localization("Update available"))
+                }
+
+                Button {
+                    router.showSettings(for: activeId)
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(width: 28, height: PopoverLayout.titleHeight)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(localization("Settings"))
             }
-            .buttonStyle(.plain)
-            .help(localization("Settings"))
         }
         .frame(height: PopoverLayout.titleHeight)
     }
