@@ -73,6 +73,7 @@ struct CleanDriveView: View {
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 11)
+                            .contentShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .buttonStyle(.plain)
                     .background(Color.red.opacity(0.22), in: RoundedRectangle(cornerRadius: 16))
@@ -84,6 +85,7 @@ struct CleanDriveView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 11)
+                            .contentShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .keyboardShortcut(.cancelAction)
                     .buttonStyle(.plain)
