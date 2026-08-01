@@ -32,17 +32,21 @@ struct AppUninstallerConfirmationOverlay: View {
                             .font(.system(size: 13, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
+                            .contentShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
                     .background(confirmButtonBackground, in: RoundedRectangle(cornerRadius: 8))
 
-                    Button(localization("Cancel")) {
+                    Button {
                         isPresented = false
+                    } label: {
+                        Text(localization("Cancel"))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .contentShape(RoundedRectangle(cornerRadius: 8))
                     }
                     .keyboardShortcut(.cancelAction)
                     .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
                 }
             }
